@@ -3,16 +3,16 @@
     <div class="modal-content">
       <span class="close" @click="$emit('close')">&times;</span>
       <h2>Créer une pièce de costume</h2>
-      <form @submit.prevent="createCostume">
+      <form @submit.prevent="handleCreateCostume">
         <input v-model="name" placeholder="Nom" />
         <input v-model="type" placeholder="Type" />
         <input v-model="description" placeholder="Description" />
-        <input v-model="size" placeholder="Taille" />
-        <input v-model="epoch" placeholder="Époque" />
-        <input v-model="material" placeholder="Matériau" />
+        <input v-model="taille" placeholder="Taille" />
+        <input v-model="epoque" placeholder="Époque" />
+        <input v-model="materiau" placeholder="Matériau" />
         <input v-model="state" placeholder="État" />
-        <input v-model="color" placeholder="Couleur" />
-        <input v-model="availability" placeholder="Disponibilité" />
+        <input v-model="couleur" placeholder="Couleur" />
+        <input v-model="disponibilite" placeholder="Disponibilité" />
         <button type="submit">Créer</button>
       </form>
     </div>
@@ -24,32 +24,31 @@ import { ref } from 'vue';
 import { createCostume } from '../services/costumeService';
 
 export default {
-  props: {
-    // Define any props if needed
-  },
   setup(props, { emit }) {
     const name = ref('');
+    const code = ref('');
     const type = ref('');
     const description = ref('');
-    const size = ref('');
-    const epoch = ref('');
-    const material = ref('');
+    const taille = ref('');
+    const epoque = ref('');
+    const materiau = ref('');
     const state = ref('');
-    const color = ref('');
-    const availability = ref('');
+    const couleur = ref('');
+    const disponibilite = ref('');
 
-    const createCostume = async () => {
+    const handleCreateCostume = async () => {
       try {
         await createCostume({
           name: name.value,
+          code: code.value,
           type: type.value,
           description: description.value,
-          size: size.value,
-          epoch: epoch.value,
-          material: material.value,
+          taille: taille.value,
+          epoque: epoque.value,
+          materiau: materiau.value,
           state: state.value,
-          color: color.value,
-          availability: availability.value
+          couleur: couleur.value,
+          disponibilite: disponibilite.value
         });
         emit('refresh');  // Emit an event to refresh the list
         emit('close');    // Emit an event to close the modal
@@ -62,13 +61,13 @@ export default {
       name,
       type,
       description,
-      size,
-      epoch,
-      material,
+      taille,
+      epoque,
+      materiau,
       state,
-      color,
-      availability,
-      createCostume
+      couleur,
+      disponibilite,
+      handleCreateCostume
     };
   }
 };

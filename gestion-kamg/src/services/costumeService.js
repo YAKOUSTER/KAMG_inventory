@@ -26,6 +26,7 @@ export async function fetchCostumeById(id) {
   }
 }
 
+
 export const createCostume = async (costume) => {
   const response = await fetch(API_URL, {
     method: 'POST',
