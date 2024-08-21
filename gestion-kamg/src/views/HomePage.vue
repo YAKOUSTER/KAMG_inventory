@@ -3,15 +3,19 @@
 -->
 
 <template>
-    <div>
+  <v-container>
+    <v-row class="mb-4">
+    <v-col>
       <h2>Liste des Pièces de Costume</h2>
-      <input v-model="search" placeholder="Rechercher..." />
-      <button @click="showCreateModal = true">Créer une pièce de costume</button>
+      <v-text-field v-model="search" placeholder="Rechercher..." outlined dense />
+      <v-btn @click="showCreateModal = true">Créer une pièce de costume</v-btn>
   
       <CostumeList :costumes="filteredCostumes" />
   
       <CreateCostumeModal v-if="showCreateModal" @close="showCreateModal = false" @refresh="fetchCostumes" />
-    </div>
+    </v-col>
+    </v-row>
+  </v-container>
   </template>
   
   <script>
@@ -40,7 +44,7 @@
   
       const filteredCostumes = computed(() => {
         return costumes.value.filter(costume =>
-          costume.name.toLowerCase().includes(search.value.toLowerCase())
+          costume.piece_name.toLowerCase().includes(search.value.toLowerCase())
         );
       });
   

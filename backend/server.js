@@ -24,14 +24,38 @@ app.listen(port, () => {
   console.log(`Serveur backend en écoute sur le port ${port}`);
 });
 
-// Route pour récupérer tous les costumes
 app.get('/api/costumes', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM pieces');
-    res.json(result.rows);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Erreur lors de la récupération des pièces de costume.' });
+      const result = await pool.query(`
+          SELECT 
+              p.id AS piece_id, 
+              p.name AS piece_name, 
+              p.code, 
+              p.type, 
+              p.description, 
+              p.taille, 
+              p.epoque, 
+              p.materiau, 
+              p.etat, 
+              p.couleur, 
+              p.disponibilite, 
+              m.nom AS borrower_name, 
+              l.loan_date, 
+              l.return_date, 
+              l.status
+          FROM 
+              pieces p
+          LEFT JOIN 
+              loan_items li ON p.id = li.pieces_id
+          LEFT JOIN 
+              loans l ON li.loan_id = l.id
+          LEFT JOIN 
+              membres m ON l.member_id = m.id;
+      `);
+
+      res.status(200).json(result.rows);
+  } catch (error) {
+      res.status(500).json({ error: 'Erreur lors de la récupération des pièces' });
   }
 });
 

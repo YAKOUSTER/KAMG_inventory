@@ -1,26 +1,33 @@
 <template>
-  <div id="app">
-    <header>
-      <h1>Gestionnaire de Costumes</h1>
-      <router-link to="/">Accueil</router-link>
-      <router-link to="/cart">Panier</router-link>
-    </header>
-    <router-view />
-  </div>
+  <v-app>
+    <v-app-bar app color="primary" dark>
+      <v-toolbar-title>Gestionnaire de Costumes</v-toolbar-title>
+      <v-spacer></v-spacer>
+      <v-btn text to="/">Accueil</v-btn>
+      <v-btn text to="/cart">Panier</v-btn>
+    </v-app-bar>
+
+    <v-main>
+      <router-view />
+    </v-main>
+  </v-app>
 </template>
 
 <script>
 export default {
-  name: 'App'
+  name: 'App',
 };
 </script>
 
 <style>
-/* Styles pour l'en-tête global et autres styles */
-header {
-  background-color: #4CAF50;
-  color: white;
-  padding: 10px;
-  text-align: center;
+/* Appliquez la police "Karla" à toute l'application */
+body {
+  font-family: 'Karla', sans-serif;
+}
+
+/* Style spécifique pour la barre de navigation */
+.v-app-bar {
+  font-family: 'Karla', sans-serif;
+  font-weight: 700; /* Utilisez le poids de police souhaité */
 }
 </style>
