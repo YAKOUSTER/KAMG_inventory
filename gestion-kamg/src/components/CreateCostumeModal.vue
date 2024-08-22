@@ -1,78 +1,224 @@
 <template>
-  <div class="modal">
-    <div class="modal-content">
-      <span class="close" @click="$emit('close')">&times;</span>
-      <h2>Créer une pièce de costume</h2>
-      <form @submit.prevent="handleCreateCostume">
-        <input v-model="name" placeholder="Nom" />
-        <input v-model="type" placeholder="Type" />
-        <input v-model="description" placeholder="Description" />
-        <input v-model="taille" placeholder="Taille" />
-        <input v-model="epoque" placeholder="Époque" />
-        <input v-model="materiau" placeholder="Matériau" />
-        <input v-model="state" placeholder="État" />
-        <input v-model="couleur" placeholder="Couleur" />
-        <input v-model="disponibilite" placeholder="Disponibilité" />
-        <button type="submit">Créer</button>
-      </form>
-    </div>
-  </div>
+  <v-dialog
+    v-model="internalModalOpen"
+    fullscreen
+    overlay-color="rgba(0, 0, 0, 0.6)"
+    transition="dialog-bottom-transition"
+  >
+    <v-card>
+      <v-toolbar dense flat color="primary" dark>
+        <v-toolbar-title>Créer une pièce de costume</v-toolbar-title>
+        <v-spacer></v-spacer>
+        <v-btn icon @click="closeModal">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </v-toolbar>
+
+      <v-card-text>
+        <v-container>
+          <v-row>
+            <v-col cols="12" sm="6">
+              <v-text-field
+                v-model="localName"
+                label="Nom"
+                outlined
+                dense
+              />
+            </v-col>
+            <v-col cols="12" sm="6">
+              <v-text-field
+                v-model="localType"
+                label="Type"
+                outlined
+                dense
+              />
+            </v-col>
+            <v-col cols="12" sm="6">
+              <v-text-field
+                v-model="localDescription"
+                label="Description"
+                outlined
+                dense
+              />
+            </v-col>
+            <v-col cols="12" sm="6">
+              <v-select
+                :items="sizes"
+                v-model="localSize"
+                label="Taille"
+                outlined
+                dense
+              />
+            </v-col>
+            <v-col cols="12" sm="6">
+              <v-select
+                :items="epochs"
+                v-model="localEpoch"
+                label="Époque"
+                outlined
+                dense
+              />
+            </v-col>
+            <v-col cols="12" sm="6">
+              <v-text-field
+                v-model="localMaterial"
+                label="Matériau"
+                outlined
+                dense
+              />
+            </v-col>
+            <v-col cols="12" sm="6">
+              <v-select
+                :items="states"
+                v-model="localState"
+                label="État"
+                outlined
+                dense
+              />
+            </v-col>
+            <v-col cols="12" sm="6">
+              <v-select
+                :items="colors"
+                v-model="localColor"
+                label="Couleur"
+                outlined
+                dense
+              />
+            </v-col>
+            <v-col cols="12" sm="6">
+              <v-select
+                :items="availabilities"
+                v-model="localAvailability"
+                label="Disponibilité"
+                outlined
+                dense
+              />
+            </v-col>
+          </v-row>
+        </v-container>
+      </v-card-text>
+
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn color="primary" @click="saveCostume">Créer</v-btn>
+        <v-btn text @click="closeModal">Annuler</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script>
-import { ref } from 'vue';
-import { createCostume } from '../services/costumeService';
+import { ref, watch } from 'vue';
 
 export default {
+  props: {
+    isModalOpen: {
+      type: Boolean,
+      required: true
+    },
+    name: String,
+    type: String,
+    description: String,
+    size: String,
+    epoch: String,
+    material: String,
+    state: String,
+    color: String,
+    availability: String
+  },
+  emits: ['close', 'create-costume'],
   setup(props, { emit }) {
-    const name = ref('');
-    const code = ref('');
-    const type = ref('');
-    const description = ref('');
-    const taille = ref('');
-    const epoque = ref('');
-    const materiau = ref('');
-    const state = ref('');
-    const couleur = ref('');
-    const disponibilite = ref('');
+    const internalModalOpen = ref(props.isModalOpen);
+    const localName = ref(props.name || '');
+    const localType = ref(props.type || '');
+    const localDescription = ref(props.description || '');
+    const localSize = ref(props.size || '');
+    const localEpoch = ref(props.epoch || '');
+    const localMaterial = ref(props.material || '');
+    const localState = ref(props.state || '');
+    const localColor = ref(props.color || '');
+    const localAvailability = ref(props.availability || '');
 
-    const handleCreateCostume = async () => {
-      try {
-        await createCostume({
-          name: name.value,
-          code: code.value,
-          type: type.value,
-          description: description.value,
-          taille: taille.value,
-          epoque: epoque.value,
-          materiau: materiau.value,
-          state: state.value,
-          couleur: couleur.value,
-          disponibilite: disponibilite.value
-        });
-        emit('refresh');  // Emit an event to refresh the list
-        emit('close');    // Emit an event to close the modal
-      } catch (error) {
-        console.error('Error creating costume:', error);
+    const sizes = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL'];
+    const epochs = ['1870', '1880', '1890', '1900', '1910', '1920', '1930', '1940'];
+    const states = ['Ancien', 'A réparer', 'Usé', 'Bon', 'Moyen', 'Très bon'];
+    const colors = ['Blanc', 'Rouge', 'Noir', 'Bleu', 'Vert', 'Jaune', 'Rose'];
+    const availabilities = ['Disponible', 'Emprunté', 'Au pressing', 'En réparation'];
+
+    watch(() => props.isModalOpen, (newVal) => {
+      internalModalOpen.value = newVal;
+      if (!newVal) {
+        resetForm();
       }
+    });
+
+    const resetForm = () => {
+      localName.value = props.name || '';
+      localType.value = props.type || '';
+      localDescription.value = props.description || '';
+      localSize.value = props.size || '';
+      localEpoch.value = props.epoch || '';
+      localMaterial.value = props.material || '';
+      localState.value = props.state || '';
+      localColor.value = props.color || '';
+      localAvailability.value = props.availability || '';
+    };
+
+    const closeModal = () => {
+      emit('close');
+    };
+
+    const saveCostume = () => {
+      emit('create-costume', {
+        name: localName.value,
+        type: localType.value,
+        description: localDescription.value,
+        size: localSize.value,
+        epoch: localEpoch.value,
+        material: localMaterial.value,
+        state: localState.value,
+        color: localColor.value,
+        availability: localAvailability.value
+      });
+      closeModal();
     };
 
     return {
-      name,
-      type,
-      description,
-      taille,
-      epoque,
-      materiau,
-      state,
-      couleur,
-      disponibilite,
-      handleCreateCostume
+      internalModalOpen,
+      localName,
+      localType,
+      localDescription,
+      localSize,
+      localEpoch,
+      localMaterial,
+      localState,
+      localColor,
+      localAvailability,
+      sizes,
+      epochs,
+      states,
+      colors,
+      availabilities,
+      closeModal,
+      saveCostume,
     };
   }
 };
 </script>
 
 <style scoped>
-/* Styles pour le modal */
+.v-card {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.v-card-text {
+  flex: 1;
+}
+
+.v-card-actions {
+  justify-content: flex-end;
+  padding-bottom: 16px;
+}
 </style>
