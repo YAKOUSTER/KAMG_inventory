@@ -90,25 +90,7 @@
     <!-- Modale de création de costume -->
     <CreateCostumeModal
       :isModalOpen="showCreateModal"
-      :name="name"
-      :type="type"
-      :description="description"
-      :size="size"
-      :epoch="epoch"
-      :material="material"
-      :state="state"
-      :color="color"
-      :availability="availability"
       @close="closeCreateModal"
-      @update:name="val => name = val"
-      @update:type="val => type = val"
-      @update:description="val => description = val"
-      @update:size="val => size = val"
-      @update:epoch="val => epoch = val"
-      @update:material="val => material = val"
-      @update:state="val => state = val"
-      @update:color="val => color = val"
-      @update:availability="val => availability = val"
       @create-costume="handleCreateCostume"
     />
   </v-container>
@@ -127,16 +109,6 @@ export default {
     const costumes = ref([]);
     const search = ref('');
     const showCreateModal = ref(false);
-
-    const name = ref('');
-    const type = ref('');
-    const description = ref('');
-    const size = ref('');
-    const epoch = ref('');
-    const material = ref('');
-    const state = ref('');
-    const color = ref('');
-    const availability = ref('');
 
     const selectedEpoch = ref('Tout');
     const selectedAvailability = ref('Tout');
@@ -188,6 +160,7 @@ export default {
         await createCostume(newCostume);
         console.log('Costume créé avec succès');
         fetchCostumesData(); // Rafraîchir la liste des costumes
+        closeCreateModal(); // Fermer la modale après la création
       } catch (error) {
         console.error('Erreur lors de la création du costume:', error);
       }
@@ -206,15 +179,6 @@ export default {
       states,
       colors,
       showCreateModal,
-      name,
-      type,
-      description,
-      size,
-      epoch,
-      material,
-      state,
-      color,
-      availability,
       filteredCostumes,
       openCreateModal,
       closeCreateModal,

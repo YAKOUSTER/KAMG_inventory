@@ -1,6 +1,6 @@
 <template>
   <v-dialog
-    v-bind:show="isModalOpen"
+    v-model="internalModalOpen"
     fullscreen
     overlay-color="rgba(0, 0, 0, 0.6)"
     transition="dialog-bottom-transition"
@@ -19,8 +19,7 @@
           <v-row>
             <v-col cols="12" sm="6">
               <v-text-field
-                :value="localName"
-                @input="updateName"
+                v-model="localName"
                 label="Nom"
                 outlined
                 dense
@@ -28,8 +27,7 @@
             </v-col>
             <v-col cols="12" sm="6">
               <v-text-field
-                :value="localType"
-                @input="updateType"
+                v-model="localType"
                 label="Type"
                 outlined
                 dense
@@ -37,8 +35,7 @@
             </v-col>
             <v-col cols="12" sm="6">
               <v-text-field
-                :value="localDescription"
-                @input="updateDescription"
+                v-model="localDescription"
                 label="Description"
                 outlined
                 dense
@@ -47,8 +44,7 @@
             <v-col cols="12" sm="6">
               <v-select
                 :items="sizes"
-                :value="localSize"
-                @input="updateSize"
+                v-model="localSize"
                 label="Taille"
                 outlined
                 dense
@@ -57,8 +53,7 @@
             <v-col cols="12" sm="6">
               <v-select
                 :items="epochs"
-                :value="localEpoch"
-                @input="updateEpoch"
+                v-model="localEpoch"
                 label="Époque"
                 outlined
                 dense
@@ -66,8 +61,7 @@
             </v-col>
             <v-col cols="12" sm="6">
               <v-text-field
-                :value="localMaterial"
-                @input="updateMaterial"
+                v-model="localMaterial"
                 label="Matériau"
                 outlined
                 dense
@@ -76,8 +70,7 @@
             <v-col cols="12" sm="6">
               <v-select
                 :items="states"
-                :value="localState"
-                @input="updateState"
+                v-model="localState"
                 label="État"
                 outlined
                 dense
@@ -86,8 +79,7 @@
             <v-col cols="12" sm="6">
               <v-select
                 :items="colors"
-                :value="localColor"
-                @input="updateColor"
+                v-model="localColor"
                 label="Couleur"
                 outlined
                 dense
@@ -96,8 +88,7 @@
             <v-col cols="12" sm="6">
               <v-select
                 :items="availabilities"
-                :value="localAvailability"
-                @input="updateAvailability"
+                v-model="localAvailability"
                 label="Disponibilité"
                 outlined
                 dense
@@ -135,8 +126,9 @@ export default {
     color: String,
     availability: String
   },
-  emits: ['close', 'update:name', 'update:type', 'update:description', 'update:size', 'update:epoch', 'update:material', 'update:state', 'update:color', 'update:availability', 'create-costume'],
+  emits: ['close', 'create-costume'],
   setup(props, { emit }) {
+    const internalModalOpen = ref(props.isModalOpen);
     const localName = ref(props.name || '');
     const localType = ref(props.type || '');
     const localDescription = ref(props.description || '');
@@ -154,66 +146,26 @@ export default {
     const availabilities = ['Disponible', 'Emprunté', 'Au pressing', 'En réparation'];
 
     watch(() => props.isModalOpen, (newVal) => {
+      internalModalOpen.value = newVal;
       if (!newVal) {
-        localName.value = props.name || '';
-        localType.value = props.type || '';
-        localDescription.value = props.description || '';
-        localSize.value = props.size || '';
-        localEpoch.value = props.epoch || '';
-        localMaterial.value = props.material || '';
-        localState.value = props.state || '';
-        localColor.value = props.color || '';
-        localAvailability.value = props.availability || '';
+        resetForm();
       }
     });
 
+    const resetForm = () => {
+      localName.value = props.name || '';
+      localType.value = props.type || '';
+      localDescription.value = props.description || '';
+      localSize.value = props.size || '';
+      localEpoch.value = props.epoch || '';
+      localMaterial.value = props.material || '';
+      localState.value = props.state || '';
+      localColor.value = props.color || '';
+      localAvailability.value = props.availability || '';
+    };
+
     const closeModal = () => {
       emit('close');
-    };
-
-    const updateName = (value) => {
-      localName.value = value;
-      emit('update:name', value);
-    };
-
-    const updateType = (value) => {
-      localType.value = value;
-      emit('update:type', value);
-    };
-
-    const updateDescription = (value) => {
-      localDescription.value = value;
-      emit('update:description', value);
-    };
-
-    const updateSize = (value) => {
-      localSize.value = value;
-      emit('update:size', value);
-    };
-
-    const updateEpoch = (value) => {
-      localEpoch.value = value;
-      emit('update:epoch', value);
-    };
-
-    const updateMaterial = (value) => {
-      localMaterial.value = value;
-      emit('update:material', value);
-    };
-
-    const updateState = (value) => {
-      localState.value = value;
-      emit('update:state', value);
-    };
-
-    const updateColor = (value) => {
-      localColor.value = value;
-      emit('update:color', value);
-    };
-
-    const updateAvailability = (value) => {
-      localAvailability.value = value;
-      emit('update:availability', value);
     };
 
     const saveCostume = () => {
@@ -232,6 +184,7 @@ export default {
     };
 
     return {
+      internalModalOpen,
       localName,
       localType,
       localDescription,
@@ -248,15 +201,6 @@ export default {
       availabilities,
       closeModal,
       saveCostume,
-      updateName,
-      updateType,
-      updateDescription,
-      updateSize,
-      updateEpoch,
-      updateMaterial,
-      updateState,
-      updateColor,
-      updateAvailability
     };
   }
 };
