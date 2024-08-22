@@ -1,8 +1,8 @@
 <template>
   <v-container>
     <!-- Barre de recherche avec filtres -->
-    <v-row class="mb-4" align="center">
-      <v-col cols="12" sm="4">
+    <v-row class="mb-4">
+      <v-col cols="12" sm="12">
         <v-text-field
           v-model="search"
           placeholder="Rechercher par nom ou code..."
@@ -15,6 +15,7 @@
           v-model="selectedEpoch"
           :items="['Tout', ...epochs]"
           label="Époque"
+          variant="solo"
           outlined
           dense
         />
@@ -24,6 +25,7 @@
           v-model="selectedAvailability"
           :items="['Tout', ...availabilities]"
           label="Disponibilité"
+          variant="solo"
           outlined
           dense
         />
@@ -33,6 +35,7 @@
           v-model="selectedSize"
           :items="['Tout', ...sizes]"
           label="Taille"
+          variant="solo"
           outlined
           dense
         />
@@ -42,6 +45,7 @@
           v-model="selectedState"
           :items="['Tout', ...states]"
           label="État"
+          variant="solo"
           outlined
           dense
         />
@@ -51,6 +55,7 @@
           v-model="selectedColor"
           :items="['Tout', ...colors]"
           label="Couleur"
+          variant="solo"
           outlined
           dense
         />
@@ -67,22 +72,25 @@
         v-for="costume in filteredCostumes"
         :key="costume.piece_id"
         cols="12"
-        sm="6"
-        md="4"
-        lg="3"
+        sm="4"
+        md="3"
+        lg="2"
       >
         <!-- Carte cliquable avec router-link -->
         <router-link :to="{ name: 'CostumeDetail', params: { id: costume.piece_id } }" style="text-decoration: none;">
+          
           <v-card :class="{'hover-card': true}">
             <v-img
               :src="costume.image || 'https://via.placeholder.com/300'"
               height="200px"
             ></v-img>
-            <v-card-title>{{ costume.piece_name }}</v-card-title>
+            <v-card-title>{{ costume.code }}</v-card-title>
             <v-card-subtitle>
-              {{ costume.disponibilite ? 'Disponible' : `Emprunté par : ${costume.borrower_name}` }}
+              <p>{{ costume.piece_name }}</p>
+              {{ costume.disponibilite == "Emprunté" ? `Emprunté par : ${costume.borrower_name}` : costume.disponibilite }}
             </v-card-subtitle>
           </v-card>
+
         </router-link>
       </v-col>
     </v-row>
@@ -136,9 +144,7 @@ export default {
           (costume.piece_name.toLowerCase().includes(search.value.toLowerCase()) ||
             costume.code.toLowerCase().includes(search.value.toLowerCase())) &&
           (selectedEpoch.value === 'Tout' || costume.epoque === selectedEpoch.value) &&
-          (selectedAvailability.value === 'Tout' ||
-            (costume.disponibilite && selectedAvailability.value === 'Disponible') ||
-            (!costume.disponibilite && selectedAvailability.value === 'Emprunté')) &&
+          (selectedAvailability.value === 'Tout' || costume.disponibilite === selectedAvailability.value) &&
           (selectedSize.value === 'Tout' || costume.taille === selectedSize.value) &&
           (selectedState.value === 'Tout' || costume.etat === selectedState.value) &&
           (selectedColor.value === 'Tout' || costume.couleur.toLowerCase() === selectedColor.value.toLowerCase())

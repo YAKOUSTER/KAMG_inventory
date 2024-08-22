@@ -26,7 +26,8 @@
               />
             </v-col>
             <v-col cols="12" sm="6">
-              <v-text-field
+              <v-select
+                :items="types"
                 v-model="localType"
                 label="Type"
                 outlined
@@ -139,6 +140,7 @@ export default {
     const localColor = ref(props.color || '');
     const localAvailability = ref(props.availability || '');
 
+    const types = ['Chemise/Roched', 'Gilet/Jiletenn', 'Veste courte/Chupenn', 'Bragoù Bras', 'Pantalon', 'Ceinture/Gouriz', 'Guêtres', 'Chapeau', 'Jupon', 'Corsage/Jiletenn', 'Corselet/Manchoù', 'Jupe', 'Tablier', 'Tour de cou', 'Collerette', 'Gorgerette', 'Coiffe', 'Chaussure', 'Bonnet', 'Ruban de cérémonie'];
     const sizes = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL'];
     const epochs = ['1870', '1880', '1890', '1900', '1910', '1920', '1930', '1940'];
     const states = ['Ancien', 'A réparer', 'Usé', 'Bon', 'Moyen', 'Très bon'];
@@ -194,6 +196,7 @@ export default {
       localState,
       localColor,
       localAvailability,
+      types,
       sizes,
       epochs,
       states,
