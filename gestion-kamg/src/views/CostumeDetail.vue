@@ -43,7 +43,7 @@
               </div>
             </v-card-text>
 
-            <v-btn v-if="!isEditing" @click="addCostumeToCart(costume)" color="primary" large block class="mt-4">
+            <v-btn v-if="!isEditing && !isConsulting" @click="addCostumeToCart(costume)" color="primary" large block class="mt-4">
               Ajouter au panier
             </v-btn>
 
@@ -110,6 +110,7 @@ export default {
       error: null,
       loanHistory: [],
       isEditing: false, // Pour contrôler le mode édition
+      isConsulting:false, //Pour contrôler le mode consultation
       editCostume: {} // Pour stocker les données du formulaire d'édition
     };
   },
@@ -131,6 +132,7 @@ export default {
     ...mapActions('store', ['addToCart']), // Mappez les actions du store
     addCostumeToCart(costume) {
       if (costume.disponibilite === 'Disponible') {
+        if (this.isConsulting) return; // Do nothing if in consultation mode
         console.log('Ajout au panier:', costume);
         this.addToCart(costume);
       } else {

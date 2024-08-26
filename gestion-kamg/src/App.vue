@@ -4,6 +4,7 @@
       <v-toolbar-title>Gestionnaire de Costumes</v-toolbar-title>
       <v-spacer></v-spacer>
       <v-btn text to="/">Accueil</v-btn>
+      <v-btn text to="/loan-details">Emprunts</v-btn>
       <v-btn text to="/cart">Panier</v-btn>
     </v-app-bar>
 

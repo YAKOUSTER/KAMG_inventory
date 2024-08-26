@@ -98,6 +98,18 @@ app.get('/api/type-de-pieces', async (req, res) => {
   }
 });
 
+// Route pour récupérer tous les types de pièces
+app.get('/api/loans', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM loans');
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Erreur lors de la récupération des emprunts' });
+  }
+});
+
+
 
 // Route pour ajouter un nouveau costume
 app.post('/api/costumes', async (req, res) => {
@@ -242,3 +254,79 @@ app.get('/api/costumes/:id/history', async (req, res) => {
   }
 });
 
+
+// Route pour récupérer tous les emprunts avec détails
+app.get('/api/loans', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        l.id AS loan_id, 
+        l.loan_date, 
+        l.return_date, 
+        m.nom AS member_name, 
+        l.status
+      FROM 
+        loans l
+      JOIN 
+        membres m ON l.member_id = m.id
+      ORDER BY 
+        l.loan_date DESC
+    `);
+
+    res.status(200).json(result.rows);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des emprunts:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Route pour obtenir les détails d'un emprunt
+app.get('/api/loans/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // Détails de l'emprunt
+    const loanResult = await pool.query(`
+      SELECT 
+        l.id AS loan_id, 
+        l.loan_date, 
+        l.return_date, 
+        m.nom AS member_name
+      FROM 
+        loans l
+      JOIN 
+        membres m ON l.member_id = m.id
+      WHERE 
+        l.id = $1
+    `, [id]);
+
+    if (loanResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Emprunt non trouvé' });
+    }
+
+    const loan = loanResult.rows[0];
+
+    // Pièces empruntées
+    const itemsResult = await pool.query(`
+      SELECT 
+        p.id AS piece_id, 
+        p.name AS piece_name, 
+        li.comment, 
+        p.disponibilite AS status
+      FROM 
+        loan_items li
+      JOIN 
+        pieces p ON li.pieces_id = p.id
+      WHERE 
+        li.loan_id = $1
+    `, [id]);
+
+    res.status(200).json({
+      ...loan,
+      items: itemsResult.rows
+    });
+  } catch (error) {
+    console.error('Erreur lors de la récupération des détails de l\'emprunt:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
