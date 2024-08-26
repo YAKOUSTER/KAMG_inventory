@@ -168,6 +168,10 @@ app.put('/api/costumes/:id', async (req, res) => {
     res.status(500).json({ error: 'Erreur lors de la mise à jour du costume' });
   }
 });
+
+
+// Route pour créer un emprunt
+
 app.post('/api/loans', async (req, res) => {
   const { memberId, cartItems, comments } = req.body;
   
@@ -194,11 +198,11 @@ app.post('/api/loans', async (req, res) => {
         [loanId, item.id, comment]
       );
 
-      // Marque le costume comme indisponible
-      await pool.query(
-        'UPDATE pieces SET disponibilite = false WHERE id = $1',
-        [item.id]
-      );
+     // Marque le costume comme "Emprunté"
+await pool.query(
+  'UPDATE pieces SET disponibilite = $1 WHERE id = $2',
+  ['Emprunté', item.id]
+);
 
       // Ajouter un commentaire général sur l'état du costume
       await pool.query(

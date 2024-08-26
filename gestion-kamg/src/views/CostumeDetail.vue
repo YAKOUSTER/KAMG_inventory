@@ -130,8 +130,12 @@ export default {
   methods: {
     ...mapActions('store', ['addToCart']), // Mappez les actions du store
     addCostumeToCart(costume) {
-      console.log('Ajout au panier:', costume);
-      this.addToCart(costume);
+      if (costume.disponibilite === 'Disponible') {
+        console.log('Ajout au panier:', costume);
+        this.addToCart(costume);
+      } else {
+        this.error = 'Ce costume n\'est pas disponible pour l\'ajout au panier.';
+      }
     },
     toggleEditing() {
       this.isEditing = !this.isEditing;
@@ -162,6 +166,7 @@ export default {
   }
 };
 </script>
+
 
 <style scoped>
 .costume-detail-container {

@@ -14,6 +14,8 @@
 </template>
 
 <script>
+import { VList, VListItem, VListItemContent, VListItemTitle, VListItemSubtitle, VSelect, VCard, VCardText, VContainer, VRow, VCol } from 'vuetify/lib/components';
+
 export default {
   name: 'App',
 };

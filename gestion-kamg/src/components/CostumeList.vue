@@ -10,11 +10,11 @@
           <v-card-title>
             {{ costume.piece_name }}
           </v-card-title>
-          <v-card-subtitle v-if="!costume.disponibilite">
+          <v-card-subtitle v-if="costume.disponibilite = 'Emprunté'">
             Emprunté par: {{ costume.borrower_name }}
           </v-card-subtitle>
           <v-card-subtitle v-else>
-            Disponible
+            {{ costume.disponibilite }}
           </v-card-subtitle>
           <v-card-actions>
             <router-link

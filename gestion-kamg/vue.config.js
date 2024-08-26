@@ -2,7 +2,7 @@ const { defineConfig } = require('@vue/cli-service');
 const webpack = require('webpack');
 
 module.exports = defineConfig({
-  transpileDependencies: true,
+  transpileDependencies: ['vuetify'],
 
   configureWebpack: {
     plugins: [
@@ -11,6 +11,7 @@ module.exports = defineConfig({
         '__VUE_PROD_DEVTOOLS__': JSON.stringify(false),
         '__VUE_PROD_HYDRATION_MISMATCH_DETAILS__': JSON.stringify(false)
       })
-    ]
-  }
+    ]}
 });
+
+
