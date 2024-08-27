@@ -12,107 +12,185 @@ app.use(express.json());
 
 // Configuration de la connexion PostgreSQL
 const pool = new Pool({
-  user: 'postgres', // Remplacez par votre nom d'utilisateur PostgreSQL
+  user: 'postgres', 
   host: 'localhost',
   database: 'KAMGgestion',
-  password: 'admin', // Remplacez par votre mot de passe PostgreSQL
+  password: 'admin', 
   port: 5432,
 });
+
+// Middleware pour centraliser la gestion des erreurs
+function errorHandler(err, req, res, next) {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Internal Server Error' });
+}
+
+app.use(errorHandler);
 
 // Démarrer le serveur
 app.listen(port, () => {
   console.log(`Serveur backend en écoute sur le port ${port}`);
 });
 
-app.get('/api/costumes', async (req, res) => {
-  try {
-      const result = await pool.query(`
-          SELECT 
-              p.id AS piece_id, 
-              p.name AS piece_name, 
-              p.code, 
-              p.type, 
-              p.description, 
-              p.taille, 
-              p.epoque, 
-              p.materiau, 
-              p.etat, 
-              p.couleur, 
-              p.disponibilite, 
-              m.nom AS borrower_name, 
-              l.loan_date, 
-              l.return_date, 
-              l.status
-          FROM 
-              pieces p
-          LEFT JOIN 
-              loan_items li ON p.id = li.pieces_id
-          LEFT JOIN 
-              loans l ON li.loan_id = l.id
-          LEFT JOIN 
-              membres m ON l.member_id = m.id;
-      `);
+// Routes API
 
-      res.status(200).json(result.rows);
+app.get('/api/costumes', async (req, res, next) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        p.id AS piece_id, 
+        p.name AS piece_name, 
+        p.code, 
+        p.type, 
+        p.description, 
+        p.taille, 
+        p.epoque, 
+        p.materiau, 
+        p.etat, 
+        p.couleur, 
+        p.disponibilite, 
+        m.nom AS borrower_name, 
+        l.loan_date, 
+        l.return_date, 
+        l.status
+      FROM 
+        pieces p
+      LEFT JOIN 
+        loan_items li ON p.id = li.pieces_id
+      LEFT JOIN 
+        loans l ON li.loan_id = l.id
+      LEFT JOIN 
+        membres m ON l.member_id = m.id;
+    `);
+
+    res.status(200).json(result.rows);
   } catch (error) {
-      res.status(500).json({ error: 'Erreur lors de la récupération des pièces' });
+    next(error);
   }
 });
 
-// Route pour récupérer tous les membres
-app.get('/api/members', async (req, res) => {
+app.get('/api/members', async (req, res, next) => {
   try {
     const members = await pool.query('SELECT * FROM membres');
     res.json(members.rows);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Erreur lors de la récupération des membres.' });
+    next(err);
   }
 });
 
-
-
-// Route pour obtenir un costume par ID
-app.get('/api/costumes/:id', async (req, res) => {
+app.get('/api/costumes/:id', async (req, res, next) => {
   const { id } = req.params;
   try {
     const result = await pool.query('SELECT * FROM pieces WHERE id = $1', [id]);
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Costume not found' });
+      return res.status(404).json({ error: 'Costume non trouvé' });
     }
     res.json(result.rows[0]);
   } catch (error) {
-    console.error('Error fetching costume:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    next(error);
   }
 });
 
-// Route pour récupérer tous les types de pièces
-app.get('/api/type-de-pieces', async (req, res) => {
+app.get('/api/type-de-pieces', async (req, res, next) => {
   try {
     const result = await pool.query('SELECT * FROM type_de_pieces');
     res.status(200).json(result.rows);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Erreur lors de la récupération des types de pièces' });
+    next(err);
   }
 });
 
-// Route pour récupérer tous les types de pièces
-app.get('/api/loans', async (req, res) => {
+app.get('/api/costumes/:id/history', async (req, res, next) => {
+  const costumeId = req.params.id;
+
   try {
-    const result = await pool.query('SELECT * FROM loans');
-    res.status(200).json(result.rows);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Erreur lors de la récupération des emprunts' });
+    const history = await pool.query(
+      `SELECT l.id AS loan_id, l.loan_date, l.return_date, li.comment, m.nom AS member_name
+       FROM loans l
+       JOIN loan_items li ON l.id = li.loan_id
+       JOIN membres m ON l.member_id = m.id
+       WHERE li.pieces_id = $1
+       ORDER BY l.loan_date DESC`,
+      [costumeId]
+    );
+
+    res.status(200).json(history.rows);
+  } catch (error) {
+    next(error);
   }
 });
 
+app.get('/api/loans', async (req, res, next) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        l.id AS loan_id, 
+        l.loan_date, 
+        l.return_date, 
+        m.nom AS member_name, 
+        l.status
+      FROM 
+        loans l
+      JOIN 
+        membres m ON l.member_id = m.id
+      ORDER BY 
+        l.loan_date DESC
+    `);
 
+    res.status(200).json(result.rows);
+  } catch (error) {
+    next(error);
+  }
+});
 
-// Route pour ajouter un nouveau costume
-app.post('/api/costumes', async (req, res) => {
+app.get('/api/loans/:id', async (req, res, next) => {
+  const { id } = req.params;
+
+  try {
+    const loanResult = await pool.query(`
+      SELECT 
+        l.id AS loan_id, 
+        l.loan_date, 
+        l.return_date, 
+        m.nom AS member_name
+      FROM 
+        loans l
+      JOIN 
+        membres m ON l.member_id = m.id
+      WHERE 
+        l.id = $1
+    `, [id]);
+
+    if (loanResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Emprunt non trouvé' });
+    }
+
+    const loan = loanResult.rows[0];
+
+    const itemsResult = await pool.query(`
+      SELECT 
+        p.id AS piece_id, 
+        p.name AS piece_name, 
+        li.comment, 
+        p.disponibilite AS status
+      FROM 
+        loan_items li
+      JOIN 
+        pieces p ON li.pieces_id = p.id
+      WHERE 
+        li.loan_id = $1
+    `, [id]);
+
+    res.status(200).json({
+      ...loan,
+      items: itemsResult.rows
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post('/api/costumes', async (req, res, next) => {
   const {
     code,
     type,
@@ -136,13 +214,11 @@ app.post('/api/costumes', async (req, res) => {
 
     res.status(201).json(result.rows[0]);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Erreur lors de l\'ajout du costume' });
+    next(err);
   }
 });
 
-// Route pour ajouter un nouveau type de pièce
-app.post('/api/type-de-pieces', async (req, res) => {
+app.post('/api/type-de-pieces', async (req, res, next) => {
   const { nom, description } = req.body;
 
   try {
@@ -153,14 +229,11 @@ app.post('/api/type-de-pieces', async (req, res) => {
 
     res.status(201).json(result.rows[0]);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Erreur lors de l\'ajout du type de pièce' });
+    next(err);
   }
 });
 
-
-// Route pour mettre à jour une pièce de costume
-app.put('/api/costumes/:id', async (req, res) => {
+app.put('/api/costumes/:id', async (req, res, next) => {
   const { id } = req.params;
   const { code, type, name, description, taille, epoque, materiau, etat, couleur, disponibilite } = req.body;
 
@@ -171,52 +244,43 @@ app.put('/api/costumes/:id', async (req, res) => {
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Costume not found' });
+      return res.status(404).json({ error: 'Costume non trouvé' });
     }
 
     res.status(200).json(result.rows[0]);
   } catch (err) {
-    console.error('Erreur lors de la mise à jour du costume:', err);
-    res.status(500).json({ error: 'Erreur lors de la mise à jour du costume' });
+    next(err);
   }
 });
 
-
-// Route pour créer un emprunt
-
-app.post('/api/loans', async (req, res) => {
+app.post('/api/loans', async (req, res, next) => {
   const { memberId, cartItems, comments } = req.body;
   
-  console.log('Requête reçue:', { memberId, cartItems, comments }); // Log des données reçues
+  console.log('Requête reçue:', { memberId, cartItems, comments });
 
   try {
-    // Crée un nouvel emprunt
     const result = await pool.query(
       'INSERT INTO loans (member_id) VALUES ($1) RETURNING id',
       [memberId]
     );
     const loanId = result.rows[0].id;
 
-    // Associe les items du panier à cet emprunt
     for (let i = 0; i < cartItems.length; i++) {
       const item = cartItems[i];
       const comment = comments[i] || '';
 
-      console.log(`Traitement de l'item: ${item.id} avec commentaire: ${comment}`); // Log de chaque item
+      console.log(`Traitement de l'item: ${item.id} avec commentaire: ${comment}`);
 
-      // Associe les items au prêt
       await pool.query(
         'INSERT INTO loan_items (loan_id, pieces_id, comment) VALUES ($1, $2, $3)',
         [loanId, item.id, comment]
       );
 
-     // Marque le costume comme "Emprunté"
-await pool.query(
-  'UPDATE pieces SET disponibilite = $1 WHERE id = $2',
-  ['Emprunté', item.id]
-);
+      await pool.query(
+        'UPDATE pieces SET disponibilite = $1 WHERE id = $2',
+        ['Emprunté', item.id]
+      );
 
-      // Ajouter un commentaire général sur l'état du costume
       await pool.query(
         'INSERT INTO comments_piece (piece_id, loan_id, comment) VALUES ($1, $2, $3)',
         [item.id, loanId, comment]
@@ -225,108 +289,6 @@ await pool.query(
 
     res.status(200).json({ message: 'Emprunt créé avec succès' });
   } catch (error) {
-    console.error('Erreur lors de la création de l\'emprunt:', error); // Log de l'erreur
-    res.status(500).json({ error: 'Erreur serveur' });
-  }
-});
-
-
-
-
-app.get('/api/costumes/:id/history', async (req, res) => {
-  const costumeId = req.params.id;
-
-  try {
-    const history = await pool.query(
-      `SELECT l.id AS loan_id, l.loan_date, l.return_date, li.comment, m.nom AS member_name
-       FROM loans l
-       JOIN loan_items li ON l.id = li.loan_id
-       JOIN membres m ON l.member_id = m.id
-       WHERE li.pieces_id = $1
-       ORDER BY l.loan_date DESC`,
-      [costumeId]
-    );
-
-    res.status(200).json(history.rows);
-  }  catch (error) {
-    console.error(`Erreur lors de la récupération de l'historique des emprunts pour le costume ID ${costumeId}:`, error);
-    res.status(500).json({ error: `Erreur serveur: ${error.message}` });
-  }
-});
-
-
-// Route pour récupérer tous les emprunts avec détails
-app.get('/api/loans', async (req, res) => {
-  try {
-    const result = await pool.query(`
-      SELECT 
-        l.id AS loan_id, 
-        l.loan_date, 
-        l.return_date, 
-        m.nom AS member_name, 
-        l.status
-      FROM 
-        loans l
-      JOIN 
-        membres m ON l.member_id = m.id
-      ORDER BY 
-        l.loan_date DESC
-    `);
-
-    res.status(200).json(result.rows);
-  } catch (error) {
-    console.error('Erreur lors de la récupération des emprunts:', error);
-    res.status(500).json({ error: 'Erreur serveur' });
-  }
-});
-
-// Route pour obtenir les détails d'un emprunt
-app.get('/api/loans/:id', async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    // Détails de l'emprunt
-    const loanResult = await pool.query(`
-      SELECT 
-        l.id AS loan_id, 
-        l.loan_date, 
-        l.return_date, 
-        m.nom AS member_name
-      FROM 
-        loans l
-      JOIN 
-        membres m ON l.member_id = m.id
-      WHERE 
-        l.id = $1
-    `, [id]);
-
-    if (loanResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Emprunt non trouvé' });
-    }
-
-    const loan = loanResult.rows[0];
-
-    // Pièces empruntées
-    const itemsResult = await pool.query(`
-      SELECT 
-        p.id AS piece_id, 
-        p.name AS piece_name, 
-        li.comment, 
-        p.disponibilite AS status
-      FROM 
-        loan_items li
-      JOIN 
-        pieces p ON li.pieces_id = p.id
-      WHERE 
-        li.loan_id = $1
-    `, [id]);
-
-    res.status(200).json({
-      ...loan,
-      items: itemsResult.rows
-    });
-  } catch (error) {
-    console.error('Erreur lors de la récupération des détails de l\'emprunt:', error);
-    res.status(500).json({ error: 'Erreur serveur' });
+    next(error);
   }
 });

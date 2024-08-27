@@ -1,21 +1,34 @@
-// src/services/loanService.js
+// loanService.js
 
-const API_BASE_URL = 'http://localhost:5000/api';
+import axios from 'axios';
 
-// Fonction pour récupérer tous les emprunts
-export async function fetchLoans() {
-  const response = await fetch(`${API_BASE_URL}/loans`);
-  if (!response.ok) {
-    throw new Error('Erreur lors de la récupération des emprunts');
+export const fetchLoans = async () => {
+  try {
+    const response = await axios.get('http://localhost:5000/api/loans');
+    return response.data;
+  } catch (error) {
+    console.error('Erreur lors de la récupération des emprunts:', error);
+    throw error;
   }
-  return response.json();
-}
+};
 
-// Fonction pour récupérer tous les membres
-export async function fetchMembers() {
-  const response = await fetch(`${API_BASE_URL}/members`);
-  if (!response.ok) {
-    throw new Error('Erreur lors de la récupération des membres');
+export const fetchMembers = async () => {
+  try {
+    const response = await axios.get('http://localhost:5000/api/members');
+    return response.data;
+  } catch (error) {
+    console.error('Erreur lors de la récupération des membres:', error);
+    throw error;
   }
-  return response.json();
-}
+};
+
+// Nouvelle fonction pour récupérer les détails d'un emprunt spécifique
+export const fetchLoanDetails = async (loanId) => {
+  try {
+    const response = await axios.get(`http://localhost:5000/api/loans/${loanId}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Erreur lors de la récupération des détails de l'emprunt ${loanId}:`, error);
+    throw error;
+  }
+};

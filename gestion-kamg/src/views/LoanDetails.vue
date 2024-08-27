@@ -2,65 +2,65 @@
     <VContainer class="loan-details-container my-8">
       <VRow>
         <VCol cols="12">
-          <VCard flat>
+          <VCard>
             <VCardTitle class="headline">Détails des Emprunts</VCardTitle>
             <VCardText>
-              <VForm>
-                <!-- Filtrer par membre -->
-                <VSelect
-                  v-model="selectedMember"
-                  :items="members"
-                  item-title="nom"
-                  item-value="id"
-                  label="Filtrer par membre"
-                  outlined
-                  dense
-                  class="mb-4"
-                ></VSelect>
+              <!-- Filtrer par membre -->
+              <VSelect
+                v-model="selectedMember"
+                :items="members"
+                item-title="nom"
+                item-value="id"
+                label="Filtrer par membre"
+                outlined
+                dense
+                class="mb-4"
+              ></VSelect>
   
-                <!-- Filtrer par date d'emprunt -->
-                <VMenu
-                  v-model="dateMenu"
-                  :close-on-content-click="false"
-                  transition="scale-transition"
-                  offset-y
-                  class="mb-4"
-                >
-                  <template #activator="{ on, attrs }">
-                    <VTextField
-                      v-model="selectedDate"
-                      label="Filtrer par date d'emprunt"
-                      readonly
-                      v-bind="attrs"
-                      v-on="on"
-                      outlined
-                      dense
-                    ></VTextField>
-                  </template>
-                  <VDatePicker v-model="selectedDate" @input="dateMenu = false"></VDatePicker>
-                </VMenu>
+              <!-- Filtrer par date d'emprunt -->
+              <VTextField
+                v-model="selectedDate"
+                label="Filtrer par date d'emprunt"
+                type="date"
+                outlined
+                dense
+                class="mb-4"
+              ></VTextField>
   
-                <!-- Tableau des emprunts -->
-                <VDataTable
-                  :headers="headers"
-                  :items="filteredLoans"
-                  item-key="loan_id"
-                  class="elevation-1"
-                  @click:row="viewLoanDetails"
-                >
-                  <template v-slot:body.cell(loan_id)="data">
-                    <VDataTableTd @click="viewLoanDetails(data.item)">
-                      {{ data.item.loan_id }}
-                    </VDataTableTd>
-                  </template>
-                </VDataTable>
-              </VForm>
+              <!-- Tableau des emprunts -->
+              <VDataTable
+                :headers="headers"
+                :items="filteredLoans"
+                item-key="loan_id"
+                class="elevation-1"
+              >
+                <template v-slot:item.loan_id="{ item }">
+                  {{ item.loan_id }}
+                </template>
+                <template v-slot:item.member_name="{ item }">
+                  {{ item.member_name }}
+                </template>
+                <template v-slot:item.loan_date="{ item }">
+                  {{ item.loan_date }}
+                </template>
+                <template v-slot:item.items.length="{ item }">
+                  {{ item.items.length }}
+                </template>
+                <template v-slot:item.items="{ item }">
+                  {{ item.items.map(i => i.piece_name).join(', ') }}
+                </template>
+                <template v-slot:item.status="{ item }">
+                  <span :class="{'text-success': item.status === 'Disponible', 'text-error': item.status !== 'Disponible'}">
+                    {{ item.status }}
+                  </span>
+                </template>
+              </VDataTable>
             </VCardText>
           </VCard>
         </VCol>
       </VRow>
   
-      <!-- Dialogue pour afficher les détails d'un emprunt -->
+      <!-- Optionnel : Dialog pour afficher les détails d'un emprunt -->
       <VDialog v-model="detailsDialog" max-width="800px">
         <VCard>
           <VCardTitle>
@@ -101,23 +101,20 @@
     VCard,
     VCardTitle,
     VCardText,
-    VForm,
     VSelect,
-    VMenu,
     VTextField,
-    VDatePicker,
     VDataTable,
     VList,
     VListItem,
     VListItemContent,
     VListItemTitle,
     VListItemSubtitle,
-    VDataTableTd,
+    VListItemGroup,
     VDialog,
     VCardActions,
     VBtn
   } from 'vuetify/components';
-  import { fetchLoans, fetchMembers } from '../services/loanService';
+  import { fetchLoans, fetchLoanDetails, fetchMembers } from '../services/loanService';
   
   export default {
     name: 'LoanDetails',
@@ -125,15 +122,17 @@
       return {
         selectedMember: null,
         selectedDate: null,
-        dateMenu: false,
         detailsDialog: false,
         selectedLoan: null,
         members: [], // Liste des membres pour filtrer
-        loans: [], // Liste des emprunts
+        loans: [], // Liste des emprunts avec les détails
         headers: [
-          { text: 'ID Emprunt', value: 'loan_id' },
-          { text: 'Date d\'Emprunt', value: 'loan_date' },
-          { text: 'Membre', value: 'member_name' }
+          { title: 'ID Emprunt', value: 'loan_id' },
+          { title: 'Membre', value: 'member_name' },
+          { title: 'Date d\'Emprunt', value: 'loan_date' },
+          { title: 'Nombre de Pièces', value: 'items.length' },
+          { title: 'Liste des Pièces', value: 'items' },
+          { title: 'Statut', value: 'status' }
         ]
       };
     },
@@ -149,8 +148,17 @@
     methods: {
       async fetchLoans() {
         try {
+          // 1. Récupérer les emprunts initiaux
           const loansData = await fetchLoans();
-          this.loans = loansData;
+  
+          // 2. Récupérer les détails pour chaque emprunt
+          const loanDetailsPromises = loansData.map(async (loan) => {
+            const loanDetails = await fetchLoanDetails(loan.loan_id);
+            return { ...loan, items: loanDetails.items };
+          });
+  
+          // Attendre que tous les détails soient récupérés
+          this.loans = await Promise.all(loanDetailsPromises);
         } catch (error) {
           console.error('Erreur lors de la récupération des emprunts:', error);
         }
@@ -161,18 +169,6 @@
           this.members = membersData;
         } catch (error) {
           console.error('Erreur lors de la récupération des membres:', error);
-        }
-      },
-      async viewLoanDetails(loan) {
-        try {
-          const response = await fetch(`http://localhost:5000/api/loans/${loan.loan_id}`);
-          if (!response.ok) {
-            throw new Error('Erreur lors de la récupération des détails de l\'emprunt');
-          }
-          this.selectedLoan = await response.json();
-          this.detailsDialog = true;
-        } catch (error) {
-          console.error('Erreur lors de la récupération des détails de l\'emprunt:', error);
         }
       },
       goToCostumeDetails(costumeId) {
@@ -194,11 +190,6 @@
   
   .v-card-title.headline {
     font-weight: bold;
-  }
-  
-  .v-btn.large {
-    height: 56px;
-    font-size: 18px;
   }
   
   .text-success {
