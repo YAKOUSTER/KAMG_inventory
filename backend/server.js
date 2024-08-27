@@ -292,3 +292,70 @@ app.post('/api/loans', async (req, res, next) => {
     next(error);
   }
 });
+
+// Route pour retourner toutes les pièces d'un emprunt
+app.put('/api/loans/:id/return-all', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // Marquer toutes les pièces de cet emprunt comme "Disponible"
+    await pool.query(`
+      UPDATE pieces
+      SET disponibilite = 'Disponible'
+      WHERE id IN (
+        SELECT pieces_id FROM loan_items WHERE loan_id = $1
+      )
+    `, [id]);
+
+    // Mettre à jour l'emprunt au statut "Retourné"
+    await pool.query(`
+      UPDATE loans
+      SET status = 'Retourné', return_date = NOW()
+      WHERE id = $1
+    `, [id]);
+
+    res.status(200).json({ message: 'Toutes les pièces ont été retournées avec succès.' });
+  } catch (error) {
+    console.error('Erreur lors du retour des pièces:', error);
+    res.status(500).json({ error: 'Erreur lors du retour des pièces.' });
+  }
+});
+
+// Route pour retourner quelques pièces d'un emprunt
+app.put('/api/loans/:id/return-partial', async (req, res) => {
+  const { id } = req.params;
+  const { returnedItems } = req.body;
+
+  try {
+    // Marquer les pièces retournées comme "Disponible"
+    for (const itemId of returnedItems) {
+      await pool.query(`
+        UPDATE pieces
+        SET disponibilite = 'Disponible'
+        WHERE id = $1
+      `, [itemId]);
+    }
+
+    // Vérifier si toutes les pièces ont été retournées ou non
+    const remainingItems = await pool.query(`
+      SELECT COUNT(*) 
+      FROM loan_items li
+      JOIN pieces p ON li.pieces_id = p.id
+      WHERE li.loan_id = $1 AND p.disponibilite != 'Disponible'
+    `, [id]);
+
+    const status = remainingItems.rows[0].count > 0 ? 'Retour en cours' : 'Retourné';
+
+    // Mettre à jour l'emprunt au statut correspondant
+    await pool.query(`
+      UPDATE loans
+      SET status = $1, return_date = CASE WHEN $1 = 'Retourné' THEN NOW() ELSE NULL END
+      WHERE id = $2
+    `, [status, id]);
+
+    res.status(200).json({ message: 'Les pièces sélectionnées ont été retournées avec succès.' });
+  } catch (error) {
+    console.error('Erreur lors du retour partiel des pièces:', error);
+    res.status(500).json({ error: 'Erreur lors du retour partiel des pièces.' });
+  }
+});
