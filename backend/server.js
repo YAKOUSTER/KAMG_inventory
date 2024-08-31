@@ -229,12 +229,15 @@ app.post('/api/costumes', async (req, res, next) => {
     longueur_manche,
     tour_tete,
     longueur_de_la_variable,
-    variable
+    variable,
+    tm_stp,
+    tm_stp_cre
   } = req.body;
 
   try {
     const result = await pool.query(
-      `INSERT INTO pieces (code,
+      `INSERT INTO pieces (
+        code,
         type,
         nom,
         description,
@@ -257,8 +260,10 @@ app.post('/api/costumes', async (req, res, next) => {
         longueur_manche,
         tour_tete,
         longueur_de_la_variable,
-        variable) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24) 
+        variable,
+        tm_stp,
+        tm_stp_cre) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, NOW(), NOW()) 
        RETURNING *`,
       [code,
         type,
