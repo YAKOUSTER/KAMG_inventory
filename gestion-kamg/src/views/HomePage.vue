@@ -60,14 +60,52 @@
           dense
         />
       </v-col>
+      <!-- Bouton pour basculer entre tableau et cartes -->
+      <v-col cols="12" sm="2">
+        <v-btn @click="toggleViewMode" color="primary">
+          Affichage en {{ isTableView ? 'cartes' : 'tableau' }}
+        </v-btn>
+      </v-col>
       <!-- Bouton pour ouvrir la modale de création -->
       <v-col cols="12" sm="2">
         <v-btn @click="openCreateModal" color="primary">Créer une pièce de costume</v-btn>
       </v-col>
     </v-row>
 
-    <!-- Grille de cartes pour les costumes -->
-    <v-row>
+    <!-- Affichage en tableau -->
+    <v-row v-if="isTableView">
+      <v-col cols="12">
+        <v-data-table
+          :headers="tableHeaders"
+          :items="filteredCostumes"
+          item-key="piece_id"
+          class="elevation-1"
+        >
+          <template v-slot:item="{ item }">
+            <tr>
+              <td>{{ item.piece_id }}</td>
+              <td>{{ item.code }}</td>
+              <td>{{ item.piece_name }}</td>
+              <td>{{ item.epoque }}</td>
+              <td>{{ item.taille }}</td>
+              <td>{{ item.etat }}</td>
+              <td>{{ item.couleur }}</td>
+              <td :class="{'text-success': item.disponibilite === 'Disponible', 'text-error': item.disponibilite === 'Emprunté'}">
+                {{ item.disponibilite }}
+              </td>
+              <td>
+                <router-link :to="{ name: 'CostumeDetail', params: { id: item.piece_id } }">
+                  <v-btn color="primary" text>Voir les détails</v-btn>
+                </router-link>
+              </td>
+            </tr>
+          </template>
+        </v-data-table>
+      </v-col>
+    </v-row>
+
+    <!-- Affichage en cartes -->
+    <v-row v-else>
       <v-col
         v-for="costume in filteredCostumes"
         :key="costume.piece_id"
@@ -78,7 +116,6 @@
       >
         <!-- Carte cliquable avec router-link -->
         <router-link :to="{ name: 'CostumeDetail', params: { id: costume.piece_id } }" style="text-decoration: none;">
-          
           <v-card :class="{'hover-card': true}">
             <v-img
               :src="costume.image || 'https://via.placeholder.com/300'"
@@ -87,10 +124,9 @@
             <v-card-title>{{ costume.code }}</v-card-title>
             <v-card-subtitle>
               <p>{{ costume.piece_name }}</p>
-              {{ costume.disponibilite == "Emprunté" ? `Emprunté par : ${costume.borrower_name}` : costume.disponibilite }}
+              {{ costume.disponibilite === "Emprunté" ? `Emprunté par : ${costume.borrower_name}` : costume.disponibilite }}
             </v-card-subtitle>
           </v-card>
-
         </router-link>
       </v-col>
     </v-row>
@@ -117,6 +153,7 @@ export default {
     const costumes = ref([]);
     const search = ref('');
     const showCreateModal = ref(false);
+    const isTableView = ref(false); // Variable pour gérer le mode d'affichage
 
     const selectedEpoch = ref('Tout');
     const selectedAvailability = ref('Tout');
@@ -161,15 +198,17 @@ export default {
     };
 
     const handleCreateCostume = async (newCostume) => {
-      console.log('Tentative de création de costume avec les données:', newCostume);
       try {
         await createCostume(newCostume);
-        console.log('Costume créé avec succès');
         fetchCostumesData(); // Rafraîchir la liste des costumes
         closeCreateModal(); // Fermer la modale après la création
       } catch (error) {
         console.error('Erreur lors de la création du costume:', error);
       }
+    };
+
+    const toggleViewMode = () => {
+      isTableView.value = !isTableView.value;
     };
 
     return {
@@ -189,7 +228,19 @@ export default {
       openCreateModal,
       closeCreateModal,
       handleCreateCostume,
-      fetchCostumes: fetchCostumesData
+      fetchCostumes: fetchCostumesData,
+      isTableView, // Gérer le mode d'affichage
+      toggleViewMode, // Fonction pour basculer entre les vues
+      tableHeaders: [
+        { text: 'ID', value: 'piece_id' },
+        { text: 'Code', value: 'code' },
+        { text: 'Nom de la Pièce', value: 'piece_name' },
+        { text: 'Époque', value: 'epoque' },
+        { text: 'Taille', value: 'taille' },
+        { text: 'État', value: 'etat' },
+        { text: 'Couleur', value: 'couleur' },
+        { text: 'Disponibilité', value: 'disponibilite' }
+      ]
     };
   }
 };
@@ -205,5 +256,11 @@ export default {
   transform: scale(1.05);
 }
 
-/* Styles spécifiques pour la page d'accueil */
+.text-success {
+  color: green;
+}
+
+.text-error {
+  color: red;
+}
 </style>

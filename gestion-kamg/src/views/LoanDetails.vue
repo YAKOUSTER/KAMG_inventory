@@ -66,11 +66,6 @@
                   <VListItemContent>
                     <VListItemTitle>
                       {{ item.piece_name }}
-
-                      <v-checkbox
-      v-model="item.returned"
-      label="Retourner cette pièce"
-    ></v-checkbox>
                       <VCheckbox
                         v-model="item.returned"
                         @click.stop=""
