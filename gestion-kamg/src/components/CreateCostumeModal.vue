@@ -87,53 +87,59 @@
 
               </v-col>
               <!-- Longueur générale -->
-              <v-col cols="12" sm="6" v-if="shouldShowLength">
+              <v-col cols="12"  v-if="shouldShowLength">
                 <v-text-field v-model="localLength" label="Longueur (cm)" outlined density="comfortable"
                   type="number" />
               </v-col>
               <!-- Longueur dos et avant pour certains types -->
-              <v-col cols="12" sm="6" v-if="shouldShowBackFrontLength">
+              <v-col cols="12" v-if="shouldShowBackFrontLength">
                 <v-text-field v-model="localBackLength" label="Longueur dos (cm)" outlined density="comfortable"
                   type="number" />
               </v-col>
-              <v-col cols="12" sm="6" v-if="shouldShowBackFrontLength">
+              <v-col cols="12"  v-if="shouldShowBackFrontLength">
                 <v-text-field v-model="localFrontLength" label="Longueur avant (cm)" outlined density="comfortable"
                   type="number" />
               </v-col>
               <!-- Tour de taille min et max -->
-              <v-col cols="12" sm="6" v-if="shouldShowWaist">
+              <v-col cols="12" v-if="shouldShowWaist">
                 <v-text-field v-model="localWaistMin" label="Tour de taille min (cm)" outlined density="comfortable"
                   type="number" />
               </v-col>
-              <v-col cols="12" sm="6" v-if="shouldShowWaist">
+              <v-col cols="12"  v-if="shouldShowWaist">
                 <v-text-field v-model="localWaistMax" label="Tour de taille max (cm)" outlined density="comfortable"
                   type="number" />
               </v-col>
               <!-- Tour de jupe -->
-              <v-col cols="12" sm="6" v-if="shouldShowSkirtWaist">
+              <v-col cols="12"  v-if="shouldShowSkirtWaist">
                 <v-text-field v-model="localSkirtWaist" label="Tour de jupe (cm)" outlined density="comfortable"
                   type="number" />
               </v-col>
               <!-- Longueur épaule à épaule -->
-              <v-col cols="12" sm="6" v-if="shouldShowShoulderLength">
+              <v-col cols="12"  v-if="shouldShowShoulderLength">
                 <v-text-field v-model="localShoulderLength" label="Longueur épaule à épaule (cm)" outlined
                   density="comfortable" type="number" />
               </v-col>
               <!-- Longueur de manche -->
-              <v-col cols="12" sm="6" v-if="shouldShowSleeveLength">
+              <v-col cols="12"  v-if="shouldShowSleeveLength">
                 <v-text-field v-model="localSleeveLength" label="Longueur de manche (cm)" outlined density="comfortable"
                   type="number" />
               </v-col>
               <!-- Tour de tête -->
-              <v-col cols="12" sm="6" v-if="shouldShowHeadCircumference">
+              <v-col cols="12"  v-if="shouldShowHeadCircumference">
                 <v-text-field v-model="localHeadCircumference" label="Tour de tête (cm)" outlined density="comfortable"
                   type="number" />
               </v-col>
+              <v-row >
               <!-- Longueur de la variable avec "cm" concaténée -->
-              <v-col cols="12" sm="6" v-if="shouldShowVariableLength">
-                <v-text-field v-model="localVariableLength" :label="Longueur" outlined density="comfortable"
+              <v-col cols="12" sm="2">
+                <v-text-field v-model="localVariableLength" label="Longueur de " outlined density="comfortable"
                   type="number" />
               </v-col>
+              <v-col cols="12" sm="10">
+                <v-text-field v-model="localVariable" label="Variable (velour, moire, dentelle,...)" outlined density="comfortable"
+                  type="text" />
+              </v-col>
+            </v-row>
             </v-row>
             <v-card-actions>
               <v-spacer></v-spacer>
@@ -231,36 +237,8 @@ export default {
     const shouldShowShoulderLength = computed(() => ['Chemise/Roched', 'Gilet/Jiletenn', 'Veste courte/Chupenn', 'Corsage/Jiletenn', 'Corselet/Manchoù'].includes(localType.value));
     const shouldShowSleeveLength = computed(() => ['Chemise/Roched', 'Gilet/Jiletenn', 'Veste courte/Chupenn', 'Corsage/Jiletenn', 'Corselet/Manchoù'].includes(localType.value));
     const shouldShowHeadCircumference = computed(() => localType.value === 'Chapeau');
-    const shouldShowVariableLength = computed(() => localVariable.value && localVariableLength.value !== null);
 
 
-
-    const resetForm = () => {
-      localName.value = props.nom || '';
-      localCode.value = props.code || '';
-      localType.value = props.type || '';
-      localDescription.value = props.description || '';
-      localSize.value = props.taille_lettre || '';
-      localEpoch.value = props.epoque || '';
-      localMaterial.value = props.materiau || '';
-      localState.value = props.etat || '';
-      localColor.value = props.couleur || '';
-      localAvailability.value = props.disponibilite || '';
-      localPerle.value = props.perle || false;
-      localBroderie.value = props.broderie || false;
-      localMotif.value = props.motif || '';
-      localLength.value = props.longueur || null;
-      localBackLength.value = props.longueur_dos || null;
-      localFrontLength.value = props.longueur_avant || null;
-      localWaistMin.value = props.tour_taille_min || null;
-      localWaistMax.value = props.tour_taille_max || null;
-      localSkirtWaist.value = props.tour_jupe || null;
-      localShoulderLength.value = props.longueur_epaule_epaule || null;
-      localSleeveLength.value = props.longueur_manche || null;
-      localHeadCircumference.value = props.tour_tete || null;
-      localVariable.value = props.variable || '';
-      localVariableLength.value = props.longueur_de_la_variable || null;
-    };
 
     const handleTypeChange = () => {
       // Reset specific fields if the type changes
@@ -273,7 +251,6 @@ export default {
       localShoulderLength.value = null;
       localSleeveLength.value = null;
       localHeadCircumference.value = null;
-      localVariableLength.value = null;
     };
 
     const handlePerleOrBrodeChange = () => {
@@ -310,7 +287,7 @@ export default {
       code: localCode.value,
       type: localType.value,
       description: localDescription.value,
-      size: localSize.value,
+      taille_lettre: localSize.value,
       epoque: localEpoch.value,
       materiau: localMaterial.value,
       etat: localState.value,
@@ -394,7 +371,6 @@ watch(() => props.isModalOpen, (newVal) => {
       shouldShowShoulderLength,
       shouldShowSleeveLength,
       shouldShowHeadCircumference,
-      shouldShowVariableLength,
       handleTypeChange,
       handlePerleOrBrodeChange,
     };
