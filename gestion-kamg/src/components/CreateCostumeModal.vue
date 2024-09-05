@@ -48,6 +48,20 @@
               </v-col>
             </v-row>
 
+
+            <VAutocomplete
+                v-model="linkedPiecesId"
+                :items="piecesOptions"
+                item-title="code"
+                item-value="id"
+                label="Pièce(s) de costume liée(s)"
+                placeholder="Choisir une ou des code(s) de pièce"
+                multiple
+                chips
+              ></VAutocomplete>
+
+
+
             <v-row class="bg-kamg zone">
               <v-col cols="12">
                 <v-card-title>
@@ -87,7 +101,7 @@
 
               </v-col>
               <!-- Longueur générale -->
-              <v-col cols="12"  v-if="shouldShowLength">
+              <v-col cols="12" v-if="shouldShowLength">
                 <v-text-field v-model="localLength" label="Longueur (cm)" outlined density="comfortable"
                   type="number" />
               </v-col>
@@ -96,7 +110,7 @@
                 <v-text-field v-model="localBackLength" label="Longueur dos (cm)" outlined density="comfortable"
                   type="number" />
               </v-col>
-              <v-col cols="12"  v-if="shouldShowBackFrontLength">
+              <v-col cols="12" v-if="shouldShowBackFrontLength">
                 <v-text-field v-model="localFrontLength" label="Longueur avant (cm)" outlined density="comfortable"
                   type="number" />
               </v-col>
@@ -105,41 +119,39 @@
                 <v-text-field v-model="localWaistMin" label="Tour de taille min (cm)" outlined density="comfortable"
                   type="number" />
               </v-col>
-              <v-col cols="12"  v-if="shouldShowWaist">
+              <v-col cols="12" v-if="shouldShowWaist">
                 <v-text-field v-model="localWaistMax" label="Tour de taille max (cm)" outlined density="comfortable"
                   type="number" />
               </v-col>
               <!-- Tour de jupe -->
-              <v-col cols="12"  v-if="shouldShowSkirtWaist">
+              <v-col cols="12" v-if="shouldShowSkirtWaist">
                 <v-text-field v-model="localSkirtWaist" label="Tour de jupe (cm)" outlined density="comfortable"
                   type="number" />
               </v-col>
               <!-- Longueur épaule à épaule -->
-              <v-col cols="12"  v-if="shouldShowShoulderLength">
+              <v-col cols="12" v-if="shouldShowShoulderLength">
                 <v-text-field v-model="localShoulderLength" label="Longueur épaule à épaule (cm)" outlined
                   density="comfortable" type="number" />
               </v-col>
               <!-- Longueur de manche -->
-              <v-col cols="12"  v-if="shouldShowSleeveLength">
+              <v-col cols="12" v-if="shouldShowSleeveLength">
                 <v-text-field v-model="localSleeveLength" label="Longueur de manche (cm)" outlined density="comfortable"
                   type="number" />
               </v-col>
-              <!-- Tour de tête -->
-              <v-col cols="12"  v-if="shouldShowHeadCircumference">
+              <v-col cols="12" v-if="shouldShowHeadCircumference">
                 <v-text-field v-model="localHeadCircumference" label="Tour de tête (cm)" outlined density="comfortable"
                   type="number" />
               </v-col>
-              <v-row >
-              <!-- Longueur de la variable avec "cm" concaténée -->
-              <v-col cols="12" sm="2">
-                <v-text-field v-model="localVariableLength" label="Longueur de " outlined density="comfortable"
-                  type="number" />
-              </v-col>
-              <v-col cols="12" sm="10">
-                <v-text-field v-model="localVariable" label="Variable (velour, moire, dentelle,...)" outlined density="comfortable"
-                  type="text" />
-              </v-col>
-            </v-row>
+              <v-row>
+                <v-col cols="12" sm="2">
+                  <v-text-field v-model="localVariableLength" label="Longueur de " outlined density="comfortable"
+                    type="number" />
+                </v-col>
+                <v-col cols="12" sm="10">
+                  <v-text-field v-model="localVariable" label="Variable (velour, moire, dentelle,...)" outlined
+                    density="comfortable" type="text" />
+                </v-col>
+              </v-row>
             </v-row>
             <v-card-actions>
               <v-spacer></v-spacer>
@@ -157,11 +169,17 @@
 import { ref, computed, watch } from 'vue';
 
 export default {
+
   props: {
     isModalOpen: {
       type: Boolean,
       required: true,
     },
+    pieces: {
+      type: Array,
+      default: () => [],
+    },
+    piece_id: String,
     nom: String,
     code: String,
     type: String,
@@ -190,17 +208,12 @@ export default {
   emits: ['close', 'create-costume'],
   setup(props, { emit }) {
     const internalModalOpen = ref(props.isModalOpen);
-    const form = ref(null);
-    const isValid = ref(false);
-    const localName = ref(props.nom || '');
-    const localCode = ref(props.code || '');
     const localType = ref(props.type || '');
-    const localDescription = ref(props.description || '');
-    const localSize = ref(props.taille_lettre || '');
+    const localCode = ref(props.code || '');
+    const localName = ref(props.nom || '');
     const localEpoch = ref(props.epoque || '');
-    const localMaterial = ref(props.materiau || '');
+    const localSize = ref(props.taille_lettre || '');
     const localState = ref(props.etat || '');
-    const localColor = ref(props.couleur || '');
     const localAvailability = ref(props.disponibilite || '');
     const localPerle = ref(props.perle || false);
     const localBroderie = ref(props.broderie || false);
@@ -215,42 +228,19 @@ export default {
     const localSleeveLength = ref(props.longueur_manche || null);
     const localHeadCircumference = ref(props.tour_tete || null);
     const localVariable = ref(props.variable || '');
-    const localVariableLength = ref(props.longueur_de_la_variable || null);
-
-    const types = [
-      'Chemise/Roched', 'Gilet/Jiletenn', 'Veste courte/Chupenn', 'Bragoù Bras',
-      'Pantalon', 'Ceinture/Gouriz', 'Guêtres', 'Chapeau', 'Jupon', 'Corsage/Jiletenn',
-      'Corselet/Manchoù', 'Jupe', 'Tablier', 'Tour de cou', 'Collerette', 'Gorgerette',
-      'Coiffe', 'Chaussure', 'Bonnet', 'Ruban de cérémonie'
-    ];
-    const sizes = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL'];
-    const epochs = ['1870', '1880', '1890', '1900', '1910', '1920', '1930', '1940'];
-    const states = ['Ancien', 'A réparer', 'Usé', 'Bon', 'Moyen', 'Très bon'];
-    const colors = ['Blanc', 'Rouge', 'Noir', 'Bleu', 'Vert', 'Jaune', 'Rose'];
-    const availabilities = ['Disponible', 'Emprunté', 'Au pressing', 'En réparation'];
-
-    // Computed properties to show/hide specific fields based on the type of piece
-    const shouldShowLength = computed(() => !['Chemise/Roched', 'Gilet/Jiletenn', 'Veste courte/Chupenn', 'Corsage/Jiletenn', 'Corselet/Manchoù'].includes(localType.value));
-    const shouldShowBackFrontLength = computed(() => ['Chemise/Roched', 'Gilet/Jiletenn', 'Veste courte/Chupenn', 'Corsage/Jiletenn', 'Corselet/Manchoù'].includes(localType.value));
-    const shouldShowWaist = computed(() => ['Jupe', 'Jupon', 'Bragoù Bras', 'Pantalon', 'Ceinture/Gouriz', 'Tablier'].includes(localType.value));
-    const shouldShowSkirtWaist = computed(() => ['Jupe', 'Jupon', 'Tablier'].includes(localType.value));
-    const shouldShowShoulderLength = computed(() => ['Chemise/Roched', 'Gilet/Jiletenn', 'Veste courte/Chupenn', 'Corsage/Jiletenn', 'Corselet/Manchoù'].includes(localType.value));
-    const shouldShowSleeveLength = computed(() => ['Chemise/Roched', 'Gilet/Jiletenn', 'Veste courte/Chupenn', 'Corsage/Jiletenn', 'Corselet/Manchoù'].includes(localType.value));
-    const shouldShowHeadCircumference = computed(() => localType.value === 'Chapeau');
+    const linkedPiecesId = ref(props.linkedPieces || []);
 
 
 
-    const handleTypeChange = () => {
-      // Reset specific fields if the type changes
-      localLength.value = null;
-      localBackLength.value = null;
-      localFrontLength.value = null;
-      localWaistMin.value = null;
-      localWaistMax.value = null;
-      localSkirtWaist.value = null;
-      localShoulderLength.value = null;
-      localSleeveLength.value = null;
-      localHeadCircumference.value = null;
+      required: value => !!value || 'Champ requis',
+    };
+
+    const closeModal = () => {
+      emit('close');
+   
+
+
+
     };
 
     const handlePerleOrBrodeChange = () => {
@@ -259,63 +249,66 @@ export default {
       }
     };
 
-    // Règles de validation
-    const rules = {
-      required: (v) => !!v || 'Ce champ est requis',
+    const handleTypeChange = () => {
+      resetFields();
     };
 
     const closeModal = () => {
       emit('close');
     };
 
-    const saveCostume = async () => {
-  // Ensure the form exists and is validated
-  if (form.value) {
-    console.log('Validating form...');
-    // Validate the form; if invalid, do not proceed
-    const isValid = await form.value.validate();
-    console.log('Form validation result:', isValid);
-    if (!isValid.valid) {
-      // Form is invalid, so do not close the modal
-      console.log('Form validation failed. Please fill in the required fields.');
-      return; // Exit the function to keep the modal open
-    }
 
-    // If form is valid, emit the event and close the modal
-    emit('create-costume', {
-      nom: localName.value,
-      code: localCode.value,
-      type: localType.value,
-      description: localDescription.value,
-      taille_lettre: localSize.value,
-      epoque: localEpoch.value,
-      materiau: localMaterial.value,
-      etat: localState.value,
-      couleur: localColor.value,
-      disponibilite: localAvailability.value,
-      perle: localPerle.value,
-      broderie: localBroderie.value,
-      motif: localMotif.value,
-      longueur: localLength.value,
-      longueur_dos: localBackLength.value,
-      longueur_avant: localFrontLength.value,
-      tour_taille_min: localWaistMin.value,
-      tour_taille_max: localWaistMax.value,
-      tour_jupe: localSkirtWaist.value,
-      longueur_epaule_epaule: localShoulderLength.value,
-      longueur_manche: localSleeveLength.value,
-      tour_tete: localHeadCircumference.value,
-      variable: localVariable.value,
-      longueur_de_la_variable: localVariableLength.value,
-    });
-    closeModal();
-  } else {
+
+
+
+    const saveCostume = async () => {
+      // Ensure the form exists and is validated
+      if (form.value) {
+        console.log('Validating form...');
+        // Validate the form; if invalid, do not proceed
+        const isValid = await form.value.validate();
+        console.log('Form validation result:', isValid);
+        if (!isValid.valid) {
+          // Form is invalid, so do not close the modal
+          console.log('Form validation failed. Please fill in the required fields.');
+          return; // Exit the function to keep the modal open
+        }
+
+        // If form is valid, emit the event and close the modal
+        emit('create-costume', {
+          nom: localName.value,
+          code: localCode.value,
+          type: localType.value,
+          description: localDescription.value,
+          taille_lettre: localSize.value,
+          epoque: localEpoch.value,
+          materiau: localMaterial.value,
+          etat: localState.value,
+          couleur: localColor.value,
+          disponibilite: localAvailability.value,
+          perle: localPerle.value,
+          broderie: localBroderie.value,
+          motif: localMotif.value,
+          longueur: localLength.value,
+          longueur_dos: localBackLength.value,
+          longueur_avant: localFrontLength.value,
+          tour_taille_min: localWaistMin.value,
+          tour_taille_max: localWaistMax.value,
+          tour_jupe: localSkirtWaist.value,
+          longueur_epaule_epaule: localShoulderLength.value,
+          longueur_manche: localSleeveLength.value,
+          tour_tete: localHeadCircumference.value,
+          variable: localVariable.value,
+          longueur_de_la_variable: localVariableLength.value,
+          pieces_liees_id: linkedPiecesId.value,
+        });
+        closeModal();
+      } else {
         console.warn('Form reference is not set.');
       }
-};
+    };
 
-
-watch(() => props.isModalOpen, (newVal) => {
+    watch(() => props.isModalOpen, (newVal) => {
       internalModalOpen.value = newVal;
       if (!newVal) {
         // Reset form and validation state when modal is closed
@@ -324,6 +317,7 @@ watch(() => props.isModalOpen, (newVal) => {
           form.value.resetValidation();   // Reset the validation states
         }
       }
+      console.log(piecesOptions);
     });
 
 
@@ -355,6 +349,8 @@ watch(() => props.isModalOpen, (newVal) => {
       localVariable,
       localVariableLength,
       isValid,
+      piecesOptions,
+      linkedPiecesId,
       rules,
       types,
       sizes,

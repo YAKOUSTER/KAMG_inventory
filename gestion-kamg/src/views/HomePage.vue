@@ -134,6 +134,7 @@
     <!-- Modale de création de costume -->
     <CreateCostumeModal
       :isModalOpen="showCreateModal"
+      :pieces="costumes"
       @close="closeCreateModal"
       @create-costume="handleCreateCostume"
     />
@@ -141,7 +142,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import CreateCostumeModal from '../components/CreateCostumeModal.vue';
 import { fetchCostumes, createCostume } from '../services/costumeService';
 
@@ -224,6 +225,7 @@ export default {
       states,
       colors,
       showCreateModal,
+      costumes,
       filteredCostumes,
       openCreateModal,
       closeCreateModal,
