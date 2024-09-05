@@ -9,60 +9,40 @@
         <v-col cols="12" md="6">
           <v-card flat>
             <v-card-title class="headline">
-              {{ isEditing ? 'Modifier le Costume' : costume.name }}
+              {{ costume.name }}
             </v-card-title>
             <v-card-subtitle class="text-subtitle-1 text-grey-darken-1 mb-4">
-              {{ isEditing ? '' : costume.type }}
+              {{ costume.type }}
             </v-card-subtitle>
 
             <v-divider class="my-4"></v-divider>
 
             <v-card-text class="costume-details">
-              <div v-if="isEditing">
-                <v-form ref="editForm">
-                  <v-text-field v-model="editCostume.name" label="Nom"></v-text-field>
-                  <v-text-field v-model="editCostume.type" label="Type"></v-text-field>
-                  <v-textarea v-model="editCostume.description" label="Description"></v-textarea>
-                  <v-text-field v-model="editCostume.size" label="Taille"></v-text-field>
-                  <v-text-field v-model="editCostume.epoque" label="Époque"></v-text-field>
-                  <v-text-field v-model="editCostume.materiau" label="Matériau"></v-text-field>
-                  <v-text-field v-model="editCostume.etat" label="État"></v-text-field>
-                  <v-text-field v-model="editCostume.couleur" label="Couleur"></v-text-field>
-                  <v-switch v-model="editCostume.disponibilite" label="Disponible"></v-switch>
-                </v-form>
-              </div>
-
-              <div v-else>
-                <p><strong>Description :</strong> {{ costume.description }}</p>
-                <p><strong>Taille :</strong> {{ costume.size }}</p>
-                <p><strong>Époque :</strong> {{ costume.epoque }}</p>
-                <p><strong>Matériau :</strong> {{ costume.materiau }}</p>
-                <p><strong>État :</strong> {{ costume.etat }}</p>
-                <p><strong>Couleur :</strong> {{ costume.couleur }}</p>
-                <p><strong>Disponibilité :</strong> <span :class="{'text-success': costume.disponibilite, 'text-error': !costume.disponibilite}">{{ costume.disponibilite ? 'Disponible' : 'Indisponible' }}</span></p>
-              </div>
+              <p><strong>Description :</strong> {{ costume.description }}</p>
+              <p><strong>Taille :</strong> {{ costume.size }}</p>
+              <p><strong>Époque :</strong> {{ costume.epoque }}</p>
+              <p><strong>Matériau :</strong> {{ costume.materiau }}</p>
+              <p><strong>État :</strong> {{ costume.etat }}</p>
+              <p><strong>Couleur :</strong> {{ costume.couleur }}</p>
+              <p><strong>Disponibilité :</strong> 
+                <span :class="{'text-success': costume.disponibilite, 'text-error': !costume.disponibilite}">
+                  {{ costume.disponibilite ? 'Disponible' : 'Indisponible' }}
+                </span>
+              </p>
             </v-card-text>
 
-            <v-btn v-if="!isEditing && !isConsulting" @click="addCostumeToCart(costume)" color="primary" large block class="mt-4">
+            <v-btn v-if="!isConsulting" @click="addCostumeToCart(costume)" color="primary" large block class="mt-4">
               Ajouter au panier
             </v-btn>
 
-            <v-btn v-if="isEditing" @click="saveChanges" color="success" large block class="mt-4">
-              Sauvegarder les modifications
-            </v-btn>
-
-            <v-btn v-if="isEditing" @click="cancelEditing" color="error" large block class="mt-2">
-              Annuler
-            </v-btn>
-
-            <v-btn v-else @click="toggleEditing" color="warning" large block class="mt-4">
+            <v-btn @click="toggleEditing" color="warning" large block class="mt-4">
               Modifier
             </v-btn>
           </v-card>
         </v-col>
       </v-row>
 
-      <v-row class="mt-12" v-if="!isEditing">
+      <v-row class="mt-12">
         <v-col>
           <v-card flat>
             <v-card-title class="headline">Historique des Emprunts</v-card-title>
@@ -94,6 +74,15 @@
           <v-alert type="error" dismissible>{{ error }}</v-alert>
         </v-col>
       </v-row>
+
+      <!-- Modale pour l'édition du costume -->
+         <CreateCostumeModal
+      :isModalOpen="showCreateModal"
+      :isEditing="true"
+      :pieces="costumes"
+      @close="closeCreateModal"
+      @modify-costume="handleCreateCostume"
+    />
     </v-container>
   </div>
 </template>
@@ -101,17 +90,21 @@
 <script>
 import { mapGetters, mapActions } from 'vuex';
 import { fetchCostumeById, updateCostumeById } from '../services/costumeService';
+import CreateCostumeModal from '../components/CreateCostumeModal.vue' ; // Assurez-vous que le chemin est correct
 
 export default {
   name: 'CostumeDetail',
+  components: {
+    CreateCostumeModal,
+  },
   data() {
     return {
       costume: null,
       error: null,
       loanHistory: [],
-      isEditing: false, // Pour contrôler le mode édition
-      isConsulting:false, //Pour contrôler le mode consultation
-      editCostume: {} // Pour stocker les données du formulaire d'édition
+      isModalVisible: false, // Contrôle la visibilité de la modale
+      isConsulting: false, // Pour contrôler le mode consultation
+      editCostume: {}, // Pour stocker les données du formulaire d'édition
     };
   },
   async created() {
@@ -119,20 +112,20 @@ export default {
     try {
       this.costume = await fetchCostumeById(costumeId);
       this.editCostume = { ...this.costume }; // Clone l'objet costume pour l'édition
-      await this.fetchLoanHistory(); // Fetch loan history only after costume is loaded
+      await this.fetchLoanHistory(); // Récupère l'historique des emprunts après avoir chargé le costume
     } catch (error) {
       this.error = 'Erreur lors du chargement du costume.';
       console.error(error);
     }
   },
   computed: {
-    ...mapGetters('store', ['cartItems']) // Accédez aux getters du store
+    ...mapGetters('store', ['cartItems']), // Accédez aux getters du store
   },
   methods: {
     ...mapActions('store', ['addToCart']), // Mappez les actions du store
     addCostumeToCart(costume) {
       if (costume.disponibilite === 'Disponible') {
-        if (this.isConsulting) return; // Do nothing if in consultation mode
+        if (this.isConsulting) return; // Ne fait rien si en mode consultation
         console.log('Ajout au panier:', costume);
         this.addToCart(costume);
       } else {
@@ -140,17 +133,16 @@ export default {
       }
     },
     toggleEditing() {
-      this.isEditing = !this.isEditing;
+      this.isModalVisible = true; // Ouvre la modale pour l'édition
     },
-    cancelEditing() {
-      this.isEditing = false;
-      this.editCostume = { ...this.costume }; // Réinitialise les changements
+    closeModal() {
+      this.isModalVisible = false; // Ferme la modale
     },
-    async saveChanges() {
+    async saveChanges(formData) {
       try {
-        await updateCostumeById(this.costume.id, this.editCostume);
-        this.costume = { ...this.editCostume }; // Met à jour le costume avec les nouvelles données
-        this.isEditing = false;
+        await updateCostumeById(this.costume.id, formData);
+        this.costume = { ...formData }; // Met à jour le costume avec les nouvelles données
+        this.isModalVisible = false; // Ferme la modale après la sauvegarde
       } catch (error) {
         console.error('Erreur lors de la sauvegarde des modifications:', error);
         this.error = 'Erreur lors de la sauvegarde des modifications.';
@@ -164,11 +156,10 @@ export default {
       } catch (error) {
         console.error('Erreur lors de la récupération de l\'historique des emprunts:', error);
       }
-    }
-  }
+    },
+  },
 };
 </script>
-
 
 <style scoped>
 .costume-detail-container {

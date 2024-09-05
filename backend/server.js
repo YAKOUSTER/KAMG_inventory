@@ -106,7 +106,7 @@ app.get('/api/costumes/:id', async (req, res, next) => {
 
     // Récupérer les pièces liées
     const linkedPiecesResult = await pool.query(
-      'SELECT p.* FROM piece_relations pr JOIN pieces p ON pr.linked_piece_id = p.id WHERE pr.piece_id = $1',
+      'SELECT p.* FROM piece_relations pr JOIN pieces p ON pr.related_piece_id = p.id WHERE pr.piece_id = $1',
       [id]
     );
 

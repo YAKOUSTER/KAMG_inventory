@@ -3,7 +3,7 @@
     transition="dialog-bottom-transition">
     <v-card>
       <v-toolbar dense flat color="primary" dark>
-        <v-toolbar-title>Créer une pièce de costume</v-toolbar-title>
+        <v-toolbar-title>{{ isEditing ? 'Modifier le Costume' : 'Créer un Costume' }}</v-toolbar-title>
         <v-spacer></v-spacer>
         <v-btn icon @click="closeModal">
           <v-icon>mdi-close</v-icon>
@@ -138,6 +138,7 @@
                 <v-text-field v-model="localSleeveLength" label="Longueur de manche (cm)" outlined density="comfortable"
                   type="number" />
               </v-col>
+              <!-- Tour de tête -->
               <v-col cols="12" v-if="shouldShowHeadCircumference">
                 <v-text-field v-model="localHeadCircumference" label="Tour de tête (cm)" outlined density="comfortable"
                   type="number" />
@@ -208,12 +209,18 @@ export default {
   emits: ['close', 'create-costume'],
   setup(props, { emit }) {
     const internalModalOpen = ref(props.isModalOpen);
-    const localType = ref(props.type || '');
-    const localCode = ref(props.code || '');
+    const form = ref(null);
+    const linkedPiecesId = ref([]);
+    const isValid = ref(false);
     const localName = ref(props.nom || '');
-    const localEpoch = ref(props.epoque || '');
+    const localCode = ref(props.code || '');
+    const localType = ref(props.type || '');
+    const localDescription = ref(props.description || '');
     const localSize = ref(props.taille_lettre || '');
+    const localEpoch = ref(props.epoque || '');
+    const localMaterial = ref(props.materiau || '');
     const localState = ref(props.etat || '');
+    const localColor = ref(props.couleur || '');
     const localAvailability = ref(props.disponibilite || '');
     const localPerle = ref(props.perle || false);
     const localBroderie = ref(props.broderie || false);
@@ -228,19 +235,55 @@ export default {
     const localSleeveLength = ref(props.longueur_manche || null);
     const localHeadCircumference = ref(props.tour_tete || null);
     const localVariable = ref(props.variable || '');
-    const linkedPiecesId = ref(props.linkedPieces || []);
+    const localVariableLength = ref(props.longueur_de_la_variable || null);
 
 
 
-      required: value => !!value || 'Champ requis',
-    };
+    const types = [
+      'Chemise/Roched', 'Gilet/Jiletenn', 'Veste courte/Chupenn', 'Bragoù Bras',
+      'Pantalon', 'Ceinture/Gouriz', 'Guêtres', 'Chapeau', 'Jupon', 'Corsage/Jiletenn',
+      'Corselet/Manchoù', 'Jupe', 'Tablier', 'Tour de cou', 'Collerette', 'Gorgerette',
+      'Coiffe', 'Chaussure', 'Bonnet', 'Ruban de cérémonie'
+    ];
+    const sizes = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL'];
+    const epochs = ['1870', '1880', '1890', '1900', '1910', '1920', '1930', '1940'];
+    const states = ['Ancien', 'A réparer', 'Usé', 'Bon', 'Moyen', 'Très bon'];
+    const colors = ['Blanc', 'Rouge', 'Noir', 'Bleu', 'Vert', 'Jaune', 'Rose'];
+    const availabilities = ['Disponible', 'Emprunté', 'Au pressing', 'En réparation'];
 
-    const closeModal = () => {
-      emit('close');
+    // Génère les options pour le multiselect à partir des pièces passées en prop
+    const piecesOptions = computed(() =>
+
+      props.pieces.map(costume => ({
+        id: costume.piece_id,
+        code: costume.code,
+      }))
+    );
+
    
 
+    // Computed properties to show/hide specific fields based on the type of piece
+    const shouldShowLength = computed(() => !['Chemise/Roched', 'Gilet/Jiletenn', 'Veste courte/Chupenn', 'Corsage/Jiletenn', 'Corselet/Manchoù'].includes(localType.value));
+    const shouldShowBackFrontLength = computed(() => ['Chemise/Roched', 'Gilet/Jiletenn', 'Veste courte/Chupenn', 'Corsage/Jiletenn', 'Corselet/Manchoù'].includes(localType.value));
+    const shouldShowWaist = computed(() => ['Jupe', 'Jupon', 'Bragoù Bras', 'Pantalon', 'Ceinture/Gouriz', 'Tablier'].includes(localType.value));
+    const shouldShowSkirtWaist = computed(() => ['Jupe', 'Jupon', 'Tablier'].includes(localType.value));
+    const shouldShowShoulderLength = computed(() => ['Chemise/Roched', 'Gilet/Jiletenn', 'Veste courte/Chupenn', 'Corsage/Jiletenn', 'Corselet/Manchoù'].includes(localType.value));
+    const shouldShowSleeveLength = computed(() => ['Chemise/Roched', 'Gilet/Jiletenn', 'Veste courte/Chupenn', 'Corsage/Jiletenn', 'Corselet/Manchoù'].includes(localType.value));
+    const shouldShowHeadCircumference = computed(() => localType.value === 'Chapeau');
 
 
+
+    const handleTypeChange = () => {
+      // Reset specific fields if the type changes
+      localLength.value = null;
+      localBackLength.value = null;
+      localFrontLength.value = null;
+      localWaistMin.value = null;
+      localWaistMax.value = null;
+      localSkirtWaist.value = null;
+      localShoulderLength.value = null;
+      localSleeveLength.value = null;
+      localHeadCircumference.value = null;
     };
 
     const handlePerleOrBrodeChange = () => {
@@ -249,8 +292,9 @@ export default {
       }
     };
 
-    const handleTypeChange = () => {
-      resetFields();
+    // Règles de validation
+    const rules = {
+      required: (v) => !!v || 'Ce champ est requis',
     };
 
     const closeModal = () => {

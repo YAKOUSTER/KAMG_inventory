@@ -135,6 +135,7 @@
     <CreateCostumeModal
       :isModalOpen="showCreateModal"
       :pieces="costumes"
+      :isEditing="false"
       @close="closeCreateModal"
       @create-costume="handleCreateCostume"
     />
@@ -191,6 +192,33 @@ export default {
     });
 
     const openCreateModal = () => {
+      // Réinitialiser les champs pour la création
+      localName.value = '';
+      localCode.value = '';
+      localType.value = '';
+      localDescription.value = '';
+      localSize.value = '';
+      localEpoch.value = '';
+      localMaterial.value = '';
+      localState.value = '';
+      localColor.value = '';
+      localAvailability.value = '';
+      localPerle.value = false;
+      localBroderie.value = false;
+      localMotif.value = '';
+      localLength.value = null;
+      localBackLength.value = null;
+      localFrontLength.value = null;
+      localWaistMin.value = null;
+      localWaistMax.value = null;
+      localSkirtWaist.value = null;
+      localShoulderLength.value = null;
+      localSleeveLength.value = null;
+      localHeadCircumference.value = null;
+      localVariable.value = '';
+      localVariableLength.value = null;
+      linkedPiecesId.value = [];
+      // Ouvrir la modale
       showCreateModal.value = true;
     };
 
