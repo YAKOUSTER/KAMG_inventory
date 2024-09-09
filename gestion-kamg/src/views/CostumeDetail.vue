@@ -34,12 +34,16 @@
 
               <div v-else>
                 <p><strong>Description :</strong> {{ costume.description }}</p>
-                <p><strong>Taille :</strong> {{ costume.size }}</p>
+                <p><strong>Taille :</strong> {{ costume.taille_lettre }}</p>
                 <p><strong>Époque :</strong> {{ costume.epoque }}</p>
                 <p><strong>Matériau :</strong> {{ costume.materiau }}</p>
                 <p><strong>État :</strong> {{ costume.etat }}</p>
                 <p><strong>Couleur :</strong> {{ costume.couleur }}</p>
-                <p><strong>Disponibilité :</strong> <span :class="{'text-success': costume.disponibilite, 'text-error': !costume.disponibilite}">{{ costume.disponibilite ? 'Disponible' : 'Indisponible' }}</span></p>
+                <p><strong>Disponibilité :</strong> <span :class="{'text-success': costume.disponibilite == 'Disponible', 'text-error': costume.disponibilite != 'Disponible'}">{{ costume.disponibilite }}</span></p>
+                <p><strong>Créé le :</strong> {{ costume.tm_stp_cre }}</p>
+                <p><strong>Modifié le :</strong> {{ costume.tm_stp }}</p>
+
+              
               </div>
             </v-card-text>
 

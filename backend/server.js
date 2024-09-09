@@ -1,7 +1,7 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const cors = require('cors');
-const { Pool } = require('pg');
+const express = require("express");
+const bodyParser = require("body-parser");
+const cors = require("cors");
+const { Pool } = require("pg");
 
 const app = express();
 const port = 5000;
@@ -12,17 +12,17 @@ app.use(express.json());
 
 // Configuration de la connexion PostgreSQL
 const pool = new Pool({
-  user: 'postgres', 
-  host: 'localhost',
-  database: 'KAMGgestion',
-  password: 'admin', 
+  user: "postgres",
+  host: "localhost",
+  database: "KAMGgestion",
+  password: "admin",
   port: 5432,
 });
 
 // Middleware pour centraliser la gestion des erreurs
 function errorHandler(err, req, res, next) {
   console.error(err.stack);
-  res.status(500).json({ error: 'Internal Server Error' });
+  res.status(500).json({ error: "Internal Server Error" });
 }
 
 app.use(errorHandler);
@@ -34,7 +34,7 @@ app.listen(port, () => {
 
 // Routes API
 
-app.get('/api/costumes', async (req, res, next) => {
+app.get("/api/costumes", async (req, res, next) => {
   try {
     const result = await pool.query(`
       SELECT 
@@ -83,9 +83,9 @@ app.get('/api/costumes', async (req, res, next) => {
   }
 });
 
-app.get('/api/members', async (req, res, next) => {
+app.get("/api/members", async (req, res, next) => {
   try {
-    const members = await pool.query('SELECT * FROM membres');
+    const members = await pool.query("SELECT * FROM membres");
     res.json(members.rows);
   } catch (err) {
     next(err);
@@ -93,20 +93,20 @@ app.get('/api/members', async (req, res, next) => {
 });
 
 // Récupérer un costume par ID avec ses pièces liées
-app.get('/api/costumes/:id', async (req, res, next) => {
+app.get("/api/costumes/:id", async (req, res, next) => {
   const { id } = req.params;
   try {
-    const result = await pool.query('SELECT * FROM pieces WHERE id = $1', [id]);
+    const result = await pool.query("SELECT * FROM pieces WHERE id = $1", [id]);
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Costume non trouvé' });
+      return res.status(404).json({ error: "Costume non trouvé" });
     }
 
     const costume = result.rows[0];
 
     // Récupérer les pièces liées
     const linkedPiecesResult = await pool.query(
-      'SELECT p.* FROM piece_relations pr JOIN pieces p ON pr.linked_piece_id = p.id WHERE pr.piece_id = $1',
+      "SELECT p.* FROM piece_relations pr JOIN pieces p ON pr.related_piece_id = p.id WHERE pr.piece_id = $1",
       [id]
     );
 
@@ -118,16 +118,16 @@ app.get('/api/costumes/:id', async (req, res, next) => {
   }
 });
 
-app.get('/api/type-de-pieces', async (req, res, next) => {
+app.get("/api/type-de-pieces", async (req, res, next) => {
   try {
-    const result = await pool.query('SELECT * FROM type_de_pieces');
+    const result = await pool.query("SELECT * FROM type_de_pieces");
     res.status(200).json(result.rows);
   } catch (err) {
     next(err);
   }
 });
 
-app.get('/api/costumes/:id/history', async (req, res, next) => {
+app.get("/api/costumes/:id/history", async (req, res, next) => {
   const costumeId = req.params.id;
 
   try {
@@ -147,7 +147,7 @@ app.get('/api/costumes/:id/history', async (req, res, next) => {
   }
 });
 
-app.get('/api/loans', async (req, res, next) => {
+app.get("/api/loans", async (req, res, next) => {
   try {
     const result = await pool.query(`
       SELECT 
@@ -170,11 +170,12 @@ app.get('/api/loans', async (req, res, next) => {
   }
 });
 
-app.get('/api/loans/:id', async (req, res, next) => {
+app.get("/api/loans/:id", async (req, res, next) => {
   const { id } = req.params;
 
   try {
-    const loanResult = await pool.query(`
+    const loanResult = await pool.query(
+      `
       SELECT 
         l.id AS loan_id, 
         l.loan_date, 
@@ -186,15 +187,18 @@ app.get('/api/loans/:id', async (req, res, next) => {
         membres m ON l.member_id = m.id
       WHERE 
         l.id = $1
-    `, [id]);
+    `,
+      [id]
+    );
 
     if (loanResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Emprunt non trouvé' });
+      return res.status(404).json({ error: "Emprunt non trouvé" });
     }
 
     const loan = loanResult.rows[0];
 
-    const itemsResult = await pool.query(`
+    const itemsResult = await pool.query(
+      `
       SELECT 
         p.id AS piece_id, 
         p.name AS piece_name, 
@@ -206,18 +210,20 @@ app.get('/api/loans/:id', async (req, res, next) => {
         pieces p ON li.pieces_id = p.id
       WHERE 
         li.loan_id = $1
-    `, [id]);
+    `,
+      [id]
+    );
 
     res.status(200).json({
       ...loan,
-      items: itemsResult.rows
+      items: itemsResult.rows,
     });
   } catch (error) {
     next(error);
   }
 });
 // Créer un nouveau costume avec des pièces liées
-app.post('/api/costumes', async (req, res, next) => {
+app.post("/api/costumes", async (req, res, next) => {
   const {
     code,
     type,
@@ -243,7 +249,7 @@ app.post('/api/costumes', async (req, res, next) => {
     tour_tete,
     longueur_de_la_variable,
     variable,
-    pieces_liees_id // Array of linked piece IDs
+    pieces_liees_id, // Array of linked piece IDs
   } = req.body;
 
   try {
@@ -307,7 +313,7 @@ app.post('/api/costumes', async (req, res, next) => {
         longueur_manche,
         tour_tete,
         longueur_de_la_variable,
-        variable
+        variable,
       ]
     );
 
@@ -317,7 +323,7 @@ app.post('/api/costumes', async (req, res, next) => {
     if (pieces_liees_id && pieces_liees_id.length > 0) {
       const linkedPiecesQueries = pieces_liees_id.map((linkedPieceId) => {
         return pool.query(
-          'INSERT INTO piece_relations (piece_id, related_piece_id) VALUES ($1, $2)',
+          "INSERT INTO piece_relations (piece_id, related_piece_id) VALUES ($1, $2)",
           [pieceId, linkedPieceId]
         );
       });
@@ -331,13 +337,12 @@ app.post('/api/costumes', async (req, res, next) => {
   }
 });
 
-
-app.post('/api/type-de-pieces', async (req, res, next) => {
+app.post("/api/type-de-pieces", async (req, res, next) => {
   const { nom, description } = req.body;
 
   try {
     const result = await pool.query(
-      'INSERT INTO type_de_pieces (nom, description) VALUES ($1, $2) RETURNING *',
+      "INSERT INTO type_de_pieces (nom, description) VALUES ($1, $2) RETURNING *",
       [nom, description]
     );
 
@@ -348,7 +353,7 @@ app.post('/api/type-de-pieces', async (req, res, next) => {
 });
 
 // Mettre à jour un costume avec des pièces liées
-app.put('/api/costumes/:id', async (req, res, next) => {
+app.put("/api/costumes/:id", async (req, res, next) => {
   const { id } = req.params;
   const {
     code,
@@ -375,7 +380,7 @@ app.put('/api/costumes/:id', async (req, res, next) => {
     tour_tete,
     longueur_de_la_variable,
     variable,
-    linkedPieces // Array of linked piece IDs
+    linkedPieces, // Array of linked piece IDs
   } = req.body;
 
   try {
@@ -388,7 +393,7 @@ app.put('/api/costumes/:id', async (req, res, next) => {
            tour_taille_min = $15, tour_taille_max = $16, longueur_dos = $17, 
            longueur_avant = $18, tour_jupe = $19, longueur_epaule_epaule = $20, 
            longueur_manche = $21, tour_tete = $22, longueur_de_la_variable = $23, 
-           variable = $24 
+           variable = $24, tm_stp = NOW()
        WHERE id = $25 
        RETURNING *`,
       [
@@ -421,17 +426,17 @@ app.put('/api/costumes/:id', async (req, res, next) => {
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Costume non trouvé' });
+      return res.status(404).json({ error: "Costume non trouvé" });
     }
 
     // Supprimer les anciennes pièces liées
-    await pool.query('DELETE FROM piece_relations WHERE piece_id = $1', [id]);
+    await pool.query("DELETE FROM piece_relations WHERE piece_id = $1", [id]);
 
     // Insérer les nouvelles pièces liées
     if (linkedPieces && linkedPieces.length > 0) {
       const linkedPiecesQueries = linkedPieces.map((linkedPieceId) => {
         return pool.query(
-          'INSERT INTO piece_relations (piece_id, related_piece_id) VALUES ($1, $2)',
+          "INSERT INTO piece_relations (piece_id, related_piece_id) VALUES ($1, $2)",
           [id, linkedPieceId]
         );
       });
@@ -445,110 +450,135 @@ app.put('/api/costumes/:id', async (req, res, next) => {
   }
 });
 
-
-app.post('/api/loans', async (req, res, next) => {
+app.post("/api/loans", async (req, res, next) => {
   const { memberId, cartItems, comments } = req.body;
-  
-  console.log('Requête reçue:', { memberId, cartItems, comments });
+
+  console.log("Requête reçue:", { memberId, cartItems, comments });
 
   try {
     const result = await pool.query(
-      'INSERT INTO loans (member_id) VALUES ($1) RETURNING id',
+      "INSERT INTO loans (member_id) VALUES ($1) RETURNING id",
       [memberId]
     );
     const loanId = result.rows[0].id;
 
     for (let i = 0; i < cartItems.length; i++) {
       const item = cartItems[i];
-      const comment = comments[i] || '';
+      const comment = comments[i] || "";
 
-      console.log(`Traitement de l'item: ${item.id} avec commentaire: ${comment}`);
+      console.log(
+        `Traitement de l'item: ${item.id} avec commentaire: ${comment}`
+      );
 
       await pool.query(
-        'INSERT INTO loan_items (loan_id, pieces_id, comment) VALUES ($1, $2, $3)',
+        "INSERT INTO loan_items (loan_id, pieces_id, comment) VALUES ($1, $2, $3)",
         [loanId, item.id, comment]
       );
 
-      await pool.query(
-        'UPDATE pieces SET disponibilite = $1 WHERE id = $2',
-        ['Emprunté', item.id]
-      );
+      await pool.query("UPDATE pieces SET disponibilite = $1 WHERE id = $2", [
+        "Emprunté",
+        item.id,
+      ]);
 
       await pool.query(
-        'INSERT INTO comments_piece (piece_id, loan_id, comment) VALUES ($1, $2, $3)',
+        "INSERT INTO comments_piece (piece_id, loan_id, comment) VALUES ($1, $2, $3)",
         [item.id, loanId, comment]
       );
     }
 
-    res.status(200).json({ message: 'Emprunt créé avec succès' });
+    res.status(200).json({ message: "Emprunt créé avec succès" });
   } catch (error) {
     next(error);
   }
 });
 
 // Route pour retourner toutes les pièces d'un emprunt
-app.put('/api/loans/:id/return-all', async (req, res) => {
+app.put("/api/loans/:id/return-all", async (req, res) => {
   const { id } = req.params;
 
   try {
     // Marquer toutes les pièces de cet emprunt comme "Disponible"
-    await pool.query(`
+    await pool.query(
+      `
       UPDATE pieces
       SET disponibilite = 'Disponible'
       WHERE id IN (
         SELECT pieces_id FROM loan_items WHERE loan_id = $1
       )
-    `, [id]);
+    `,
+      [id]
+    );
 
     // Mettre à jour l'emprunt au statut "Retourné"
-    await pool.query(`
+    await pool.query(
+      `
       UPDATE loans
       SET status = 'Retourné', return_date = NOW()
       WHERE id = $1
-    `, [id]);
+    `,
+      [id]
+    );
 
-    res.status(200).json({ message: 'Toutes les pièces ont été retournées avec succès.' });
+    res
+      .status(200)
+      .json({ message: "Toutes les pièces ont été retournées avec succès." });
   } catch (error) {
-    console.error('Erreur lors du retour des pièces:', error);
-    res.status(500).json({ error: 'Erreur lors du retour des pièces.' });
+    console.error("Erreur lors du retour des pièces:", error);
+    res.status(500).json({ error: "Erreur lors du retour des pièces." });
   }
 });
 
 // Route pour retourner quelques pièces d'un emprunt
-app.put('/api/loans/:id/return-partial', async (req, res) => {
+app.put("/api/loans/:id/return-partial", async (req, res) => {
   const { id } = req.params;
   const { returnedItems } = req.body;
 
   try {
     // Marquer les pièces retournées comme "Disponible"
     for (const itemId of returnedItems) {
-      await pool.query(`
+      await pool.query(
+        `
         UPDATE pieces
         SET disponibilite = 'Disponible'
         WHERE id = $1
-      `, [itemId]);
+      `,
+        [itemId]
+      );
     }
 
     // Vérifier si toutes les pièces ont été retournées ou non
-    const remainingItems = await pool.query(`
+    const remainingItems = await pool.query(
+      `
       SELECT COUNT(*) 
       FROM loan_items li
       JOIN pieces p ON li.pieces_id = p.id
       WHERE li.loan_id = $1 AND p.disponibilite != 'Disponible'
-    `, [id]);
+    `,
+      [id]
+    );
 
-    const status = remainingItems.rows[0].count > 0 ? 'Retour en cours' : 'Retourné';
+    const status =
+      remainingItems.rows[0].count > 0 ? "Retour en cours" : "Retourné";
 
     // Mettre à jour l'emprunt au statut correspondant
-    await pool.query(`
+    await pool.query(
+      `
       UPDATE loans
       SET status = $1, return_date = CASE WHEN $1 = 'Retourné' THEN NOW() ELSE NULL END
       WHERE id = $2
-    `, [status, id]);
+    `,
+      [status, id]
+    );
 
-    res.status(200).json({ message: 'Les pièces sélectionnées ont été retournées avec succès.' });
+    res
+      .status(200)
+      .json({
+        message: "Les pièces sélectionnées ont été retournées avec succès.",
+      });
   } catch (error) {
-    console.error('Erreur lors du retour partiel des pièces:', error);
-    res.status(500).json({ error: 'Erreur lors du retour partiel des pièces.' });
+    console.error("Erreur lors du retour partiel des pièces:", error);
+    res
+      .status(500)
+      .json({ error: "Erreur lors du retour partiel des pièces." });
   }
 });
