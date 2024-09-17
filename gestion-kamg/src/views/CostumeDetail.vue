@@ -81,7 +81,7 @@
             <v-divider></v-divider>
             <v-row>
               <v-col v-for="piece in costume.linkedPieces" :key="piece.id" cols="12" md="4">
-                <router-link :to="{ name: 'CostumeDetail', params: { id: piece.piece_id } }" style="text-decoration: none;">
+                <router-link :to="{ name: 'CostumeDetail', params: { id: piece.id } }" style="text-decoration: none;">
                 <v-card class="linked-piece-card" hover>
                   <v-img :src="piece.image || 'https://via.placeholder.com/150'" height="150px" contain></v-img>
                   <v-card-title>{{ piece.piece_name }}</v-card-title>
@@ -137,6 +137,7 @@ export default {
       try {
         this.costume = await fetchCostumeById(costumeId);
         await this.fetchLoanHistory();
+         window.scrollTo(0, 0); // Fait remonter la page en haut après avoir chargé les données du costume
       } catch (error) {
         this.error = 'Erreur lors du chargement du costume.';
         console.error(error);
