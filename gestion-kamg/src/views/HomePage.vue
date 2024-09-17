@@ -154,7 +154,7 @@ export default {
     const costumes = ref([]);
     const search = ref('');
     const showCreateModal = ref(false);
-    const isTableView = ref(false); // Variable pour gérer le mode d'affichage
+    const isTableView = ref(true); // Variable pour gérer le mode d'affichage
 
     const selectedEpoch = ref('Tout');
     const selectedAvailability = ref('Tout');
@@ -183,7 +183,7 @@ export default {
             costume.code.toLowerCase().includes(search.value.toLowerCase())) &&
           (selectedEpoch.value === 'Tout' || costume.epoque === selectedEpoch.value) &&
           (selectedAvailability.value === 'Tout' || costume.disponibilite === selectedAvailability.value) &&
-          (selectedSize.value === 'Tout' || costume.taille === selectedSize.value) &&
+          (selectedSize.value === 'Tout' || costume.taille_lettre === selectedSize.value) &&
           (selectedState.value === 'Tout' || costume.etat === selectedState.value) &&
           (selectedColor.value === 'Tout' || costume.couleur.toLowerCase() === selectedColor.value.toLowerCase())
         );

@@ -1,6 +1,12 @@
 <template>
   <div v-if="costume">
     <v-container class="costume-detail-container my-8">
+
+      <v-row v-if="error" class="mt-4">
+        <v-col>
+          <v-alert type="error" dismissible>{{ error }}</v-alert>
+        </v-col>
+      </v-row>
       <v-row>
         <v-col cols="12" md="6">
           <v-img :src="costume.image || 'https://via.placeholder.com/600'" class="costume-image" contain></v-img>
@@ -9,64 +15,38 @@
         <v-col cols="12" md="6">
           <v-card flat>
             <v-card-title class="headline">
-              {{ isEditing ? 'Modifier le Costume' : costume.name }}
+              {{ costume.name }}
             </v-card-title>
             <v-card-subtitle class="text-subtitle-1 text-grey-darken-1 mb-4">
-              {{ isEditing ? '' : costume.type }}
+              {{ costume.type }}
             </v-card-subtitle>
 
             <v-divider class="my-4"></v-divider>
 
             <v-card-text class="costume-details">
-              <div v-if="isEditing">
-                <v-form ref="editForm">
-                  <v-text-field v-model="editCostume.name" label="Nom"></v-text-field>
-                  <v-text-field v-model="editCostume.type" label="Type"></v-text-field>
-                  <v-textarea v-model="editCostume.description" label="Description"></v-textarea>
-                  <v-text-field v-model="editCostume.size" label="Taille"></v-text-field>
-                  <v-text-field v-model="editCostume.epoque" label="Époque"></v-text-field>
-                  <v-text-field v-model="editCostume.materiau" label="Matériau"></v-text-field>
-                  <v-text-field v-model="editCostume.etat" label="État"></v-text-field>
-                  <v-text-field v-model="editCostume.couleur" label="Couleur"></v-text-field>
-                  <v-switch v-model="editCostume.disponibilite" label="Disponible"></v-switch>
-                </v-form>
-              </div>
-
-              <div v-else>
+              <div>
                 <p><strong>Description :</strong> {{ costume.description }}</p>
                 <p><strong>Taille :</strong> {{ costume.taille_lettre }}</p>
                 <p><strong>Époque :</strong> {{ costume.epoque }}</p>
                 <p><strong>Matériau :</strong> {{ costume.materiau }}</p>
                 <p><strong>État :</strong> {{ costume.etat }}</p>
                 <p><strong>Couleur :</strong> {{ costume.couleur }}</p>
-                <p><strong>Disponibilité :</strong> <span :class="{'text-success': costume.disponibilite == 'Disponible', 'text-error': costume.disponibilite != 'Disponible'}">{{ costume.disponibilite }}</span></p>
+                <p><strong>Disponibilité :</strong> <span
+                    :class="{ 'text-success': costume.disponibilite == 'Disponible', 'text-error': costume.disponibilite != 'Disponible' }">{{
+                      costume.disponibilite }}</span></p>
                 <p><strong>Créé le :</strong> {{ costume.tm_stp_cre }}</p>
                 <p><strong>Modifié le :</strong> {{ costume.tm_stp }}</p>
-
-              
               </div>
             </v-card-text>
 
-            <v-btn v-if="!isEditing && !isConsulting" @click="addCostumeToCart(costume)" color="primary" large block class="mt-4">
-              Ajouter au panier
-            </v-btn>
-
-            <v-btn v-if="isEditing" @click="saveChanges" color="success" large block class="mt-4">
-              Sauvegarder les modifications
-            </v-btn>
-
-            <v-btn v-if="isEditing" @click="cancelEditing" color="error" large block class="mt-2">
-              Annuler
-            </v-btn>
-
-            <v-btn v-else @click="toggleEditing" color="warning" large block class="mt-4">
-              Modifier
+            <v-btn @click="addCostumeToCart(costume)" :disabled="isInCart(costume)" color="primary" large block class="mt-4">
+              {{ isInCart(costume) ? 'Déjà dans le panier' : 'Ajouter au panier' }}
             </v-btn>
           </v-card>
         </v-col>
       </v-row>
 
-      <v-row class="mt-12" v-if="!isEditing">
+      <v-row class="mt-12">
         <v-col>
           <v-card flat>
             <v-card-title class="headline">Historique des Emprunts</v-card-title>
@@ -93,18 +73,42 @@
         </v-col>
       </v-row>
 
-      <v-row v-if="error" class="mt-4">
+      
+      <v-row class="mt-12">
         <v-col>
-          <v-alert type="error" dismissible>{{ error }}</v-alert>
+          <v-card flat>
+            <v-card-title class="headline">Pièces liées</v-card-title>
+            <v-divider></v-divider>
+            <v-row>
+              <v-col v-for="piece in costume.linkedPieces" :key="piece.id" cols="12" md="4">
+                <router-link :to="{ name: 'CostumeDetail', params: { id: piece.piece_id } }" style="text-decoration: none;">
+                <v-card class="linked-piece-card" hover>
+                  <v-img :src="piece.image || 'https://via.placeholder.com/150'" height="150px" contain></v-img>
+                  <v-card-title>{{ piece.piece_name }}</v-card-title>
+                  <v-card-subtitle>{{ piece.type }}</v-card-subtitle>
+                  <v-card-actions>
+                    <v-btn @click="addCostumeToCart(piece)" :disabled="isInCart(piece)" color="primary" large>
+                      {{ isInCart(piece) ? 'Déjà dans le panier' : 'Ajouter au panier' }}
+                    </v-btn>
+                  </v-card-actions>
+                </v-card>
+              </router-link>
+              </v-col>
+            
+            </v-row>
+          </v-card>
         </v-col>
       </v-row>
+
+    
     </v-container>
   </div>
 </template>
 
+
 <script>
-import { mapGetters, mapActions } from 'vuex';
-import { fetchCostumeById, updateCostumeById } from '../services/costumeService';
+import { mapActions, mapGetters } from 'vuex';
+import { fetchCostumeById } from '../services/costumeService';
 
 export default {
   name: 'CostumeDetail',
@@ -113,51 +117,42 @@ export default {
       costume: null,
       error: null,
       loanHistory: [],
-      isEditing: false, // Pour contrôler le mode édition
-      isConsulting:false, //Pour contrôler le mode consultation
-      editCostume: {} // Pour stocker les données du formulaire d'édition
+      isConsulting: false,
     };
   },
-  async created() {
-    const costumeId = this.$route.params.id;
-    try {
-      this.costume = await fetchCostumeById(costumeId);
-      this.editCostume = { ...this.costume }; // Clone l'objet costume pour l'édition
-      await this.fetchLoanHistory(); // Fetch loan history only after costume is loaded
-    } catch (error) {
-      this.error = 'Erreur lors du chargement du costume.';
-      console.error(error);
-    }
-  },
   computed: {
-    ...mapGetters('store', ['cartItems']) // Accédez aux getters du store
+    ...mapGetters('store', ['isInCart']), // Assurez-vous d'utiliser le bon nom de module
+  },
+  watch: {
+    '$route.params.id': {
+      immediate: true,
+      handler() {
+        this.loadCostume();
+      },
+    },
   },
   methods: {
-    ...mapActions('store', ['addToCart']), // Mappez les actions du store
-    addCostumeToCart(costume) {
-      if (costume.disponibilite === 'Disponible') {
-        if (this.isConsulting) return; // Do nothing if in consultation mode
-        console.log('Ajout au panier:', costume);
-        this.addToCart(costume);
-      } else {
-        this.error = 'Ce costume n\'est pas disponible pour l\'ajout au panier.';
+    async loadCostume() {
+      const costumeId = this.$route.params.id;
+      try {
+        this.costume = await fetchCostumeById(costumeId);
+        await this.fetchLoanHistory();
+      } catch (error) {
+        this.error = 'Erreur lors du chargement du costume.';
+        console.error(error);
       }
     },
-    toggleEditing() {
-      this.isEditing = !this.isEditing;
-    },
-    cancelEditing() {
-      this.isEditing = false;
-      this.editCostume = { ...this.costume }; // Réinitialise les changements
-    },
-    async saveChanges() {
-      try {
-        await updateCostumeById(this.costume.id, this.editCostume);
-        this.costume = { ...this.editCostume }; // Met à jour le costume avec les nouvelles données
-        this.isEditing = false;
-      } catch (error) {
-        console.error('Erreur lors de la sauvegarde des modifications:', error);
-        this.error = 'Erreur lors de la sauvegarde des modifications.';
+    ...mapActions('store', ['addToCart']), // Assurez-vous d'utiliser le bon nom de module
+    addCostumeToCart(costume) {
+      if (costume.disponibilite === 'Disponible') {
+        if (this.isConsulting) return;
+        if (this.isInCart(costume.id)) {
+          this.error = "Ce costume est déjà dans le panier.";
+          return;
+        }
+        this.addToCart(costume);
+      } else {
+        this.error = "Ce costume n'est pas disponible pour l'ajout au panier.";
       }
     },
     async fetchLoanHistory() {
@@ -166,10 +161,10 @@ export default {
         const response = await fetch(`http://localhost:5000/api/costumes/${this.costume.id}/history`);
         this.loanHistory = await response.json();
       } catch (error) {
-        console.error('Erreur lors de la récupération de l\'historique des emprunts:', error);
+        console.error("Erreur lors de la récupération de l'historique des emprunts:", error);
       }
-    }
-  }
+    },
+  },
 };
 </script>
 

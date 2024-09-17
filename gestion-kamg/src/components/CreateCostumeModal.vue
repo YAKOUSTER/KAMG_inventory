@@ -254,8 +254,8 @@ export default {
     // Génère les options pour le multiselect à partir des pièces passées en prop
     const piecesOptions = computed(() =>
 
-      props.pieces.map(costume => ({
-        id: costume.id,
+    props.pieces.map(costume => ({
+        id: costume.piece_id,
         code: costume.code,
       }))
     );

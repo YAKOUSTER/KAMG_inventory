@@ -96,6 +96,7 @@ app.get("/api/members", async (req, res, next) => {
 app.get("/api/costumes/:id", async (req, res, next) => {
   const { id } = req.params;
   try {
+    // Récupérer le costume avec ses détails
     const result = await pool.query("SELECT * FROM pieces WHERE id = $1", [id]);
 
     if (result.rows.length === 0) {
@@ -104,12 +105,19 @@ app.get("/api/costumes/:id", async (req, res, next) => {
 
     const costume = result.rows[0];
 
-    // Récupérer les pièces liées
+    // Récupérer les pièces liées dans les deux sens
     const linkedPiecesResult = await pool.query(
-      "SELECT p.* FROM piece_relations pr JOIN pieces p ON pr.related_piece_id = p.id WHERE pr.piece_id = $1",
+      `
+      SELECT p.* 
+      FROM piece_relations pr 
+      JOIN pieces p ON 
+        (pr.related_piece_id = p.id AND pr.piece_id = $1)
+        OR (pr.piece_id = p.id AND pr.related_piece_id = $1)
+      `,
       [id]
     );
 
+    // Ajouter les pièces liées au costume
     costume.linkedPieces = linkedPiecesResult.rows;
 
     res.json(costume);
@@ -117,6 +125,7 @@ app.get("/api/costumes/:id", async (req, res, next) => {
     next(error);
   }
 });
+
 
 app.get("/api/type-de-pieces", async (req, res, next) => {
   try {
