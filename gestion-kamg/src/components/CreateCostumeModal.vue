@@ -3,8 +3,7 @@
     transition="dialog-bottom-transition">
     <v-card>
       <v-toolbar dense flat color="primary" dark>
-        <v-toolbar-title>Créer une pièce de costume</v-toolbar-title>
-        <v-spacer></v-spacer>
+        <v-toolbar-title>{{ isEdit ? 'Modifier' : 'Créer' }} une pièce de costume</v-toolbar-title>        <v-spacer></v-spacer>
         <v-btn icon @click="closeModal">
           <v-icon>mdi-close</v-icon>
         </v-btn>
@@ -156,7 +155,7 @@
             </v-row>
             <v-card-actions>
               <v-spacer></v-spacer>
-              <v-btn color="primary" type="submit">Créer</v-btn>
+              <v-btn color="primary" type="submit">{{ isEdit ? 'Modifier' : 'Créer' }}</v-btn>
               <v-btn text @click="closeModal">Annuler</v-btn>
             </v-card-actions>
           </v-form>
@@ -175,6 +174,10 @@ export default {
     isModalOpen: {
       type: Boolean,
       required: true,
+    },
+    isEdit: {  // Nouvel ajout pour indiquer si la modale est en mode édition
+      type: Boolean,
+      default: false,
     },
     pieces: {
       type: Array,
@@ -206,37 +209,66 @@ export default {
     variable: String,
     longueur_de_la_variable: Number,
   },
-  emits: ['close', 'create-costume'],
+  emits: ['close', 'create-costume', 'update-costume'],  // Ajout des deux événements séparés
   setup(props, { emit }) {
     const internalModalOpen = ref(props.isModalOpen);
     const form = ref(null);
     const linkedPiecesId = ref([]);
     const isValid = ref(false);
-    const localName = ref(props.nom || '');
-    const localCode = ref(props.code || '');
-    const localType = ref(props.type || '');
-    const localDescription = ref(props.description || '');
-    const localSize = ref(props.taille_lettre || '');
-    const localEpoch = ref(props.epoque || '');
-    const localMaterial = ref(props.materiau || '');
-    const localState = ref(props.etat || '');
-    const localColor = ref(props.couleur || '');
-    const localAvailability = ref(props.disponibilite || '');
-    const localPerle = ref(props.perle || false);
-    const localBroderie = ref(props.broderie || false);
-    const localMotif = ref(props.motif || '');
-    const localLength = ref(props.longueur || null);
-    const localBackLength = ref(props.longueur_dos || null);
-    const localFrontLength = ref(props.longueur_avant || null);
-    const localWaistMin = ref(props.tour_taille_min || null);
-    const localWaistMax = ref(props.tour_taille_max || null);
-    const localSkirtWaist = ref(props.tour_jupe || null);
-    const localShoulderLength = ref(props.longueur_epaule_epaule || null);
-    const localSleeveLength = ref(props.longueur_manche || null);
-    const localHeadCircumference = ref(props.tour_tete || null);
-    const localVariable = ref(props.variable || '');
-    const localVariableLength = ref(props.longueur_de_la_variable || null);
 
+   // Valeurs locales initiales
+  const localType = ref('');
+  const localName = ref('');
+  const localCode = ref('');
+  const localDescription = ref('');
+  const localSize = ref('');
+  const localEpoch = ref('');
+  const localMaterial = ref('');
+  const localState = ref('');
+  const localColor = ref('');
+  const localAvailability = ref('');
+  const localPerle = ref(false);
+  const localBroderie = ref(false);
+  const localMotif = ref('');
+  const localLength = ref(null);
+  const localBackLength = ref(null);
+  const localFrontLength = ref(null);
+  const localWaistMin = ref(null);
+  const localWaistMax = ref(null);
+  const localSkirtWaist = ref(null);
+  const localShoulderLength = ref(null);
+  const localSleeveLength = ref(null);
+  const localHeadCircumference = ref(null);
+  const localVariable = ref('');
+  const localVariableLength = ref(null);
+
+  // Fonction pour remplir les valeurs locales à partir des props
+  const fillLocalValues = () => {
+    localType.value = props.type || '';
+    localName.value = props.nom || '';
+    localCode.value = props.code || '';
+    localDescription.value = props.description || '';
+    localSize.value = props.taille_lettre || '';
+    localEpoch.value = props.epoque || '';
+    localMaterial.value = props.materiau || '';
+    localState.value = props.etat || '';
+    localColor.value = props.couleur || '';
+    localAvailability.value = props.disponibilite || '';
+    localPerle.value = props.perle || false;
+    localBroderie.value = props.broderie || false;
+    localMotif.value = props.motif || '';
+    localLength.value = props.longueur || null;
+    localBackLength.value = props.longueur_dos || null;
+    localFrontLength.value = props.longueur_avant || null;
+    localWaistMin.value = props.tour_taille_min || null;
+    localWaistMax.value = props.tour_taille_max || null;
+    localSkirtWaist.value = props.tour_jupe || null;
+    localShoulderLength.value = props.longueur_epaule_epaule || null;
+    localSleeveLength.value = props.longueur_manche || null;
+    localHeadCircumference.value = props.tour_tete || null;
+    localVariable.value = props.variable || '';
+    localVariableLength.value = props.longueur_de_la_variable || null;
+  };
 
 
     const types = [
@@ -319,7 +351,9 @@ export default {
         }
 
         // If form is valid, emit the event and close the modal
-        emit('create-costume', {
+        
+        
+        const costumeData = {
           nom: localName.value,
           code: localCode.value,
           type: localType.value,
@@ -345,16 +379,51 @@ export default {
           variable: localVariable.value,
           longueur_de_la_variable: localVariableLength.value,
           pieces_liees_id: linkedPiecesId.value,
-        });
+        };
+
+        if (props.isEdit) {
+          emit('update-costume', costumeData);  // Émet l'événement update-costume pour PUT
+        } else {
+          emit('create-costume', costumeData);  // Émet l'événement create-costume pour POST
+        }
         closeModal();
-      } else {
-        console.warn('Form reference is not set.');
       }
     };
 
-    watch(() => props.isModalOpen, (newVal) => {
+    watch(
+      () => props.isModalOpen, 
+      (newVal) => {
       internalModalOpen.value = newVal;
-      if (!newVal) {
+      if (newVal && props.isEdit) {
+        fillLocalValues(); // Remplit les champs avec les valeurs existantes pour la modification
+      } else if (newVal && !props.isEdit) {
+        // Si la modale est en mode création, on vide les champs
+        localType.value = '';
+        localName.value = '';
+        localCode.value = '';
+        localDescription.value = '';
+        localSize.value = '';
+        localEpoch.value = '';
+        localMaterial.value = '';
+        localState.value = '';
+        localColor.value = '';
+        localAvailability.value = '';
+        localPerle.value = false;
+        localBroderie.value = false;
+        localMotif.value = '';
+        localLength.value = null;
+        localBackLength.value = null;
+        localFrontLength.value = null;
+        localWaistMin.value = null;
+        localWaistMax.value = null;
+        localSkirtWaist.value = null;
+        localShoulderLength.value = null;
+        localSleeveLength.value = null;
+        localHeadCircumference.value = null;
+        localVariable.value = '';
+        localVariableLength.value = null;
+      }
+      else if (!newVal) {
         // Reset form and validation state when modal is closed
         if (form.value) {
           form.value.reset();             // Reset the form fields
