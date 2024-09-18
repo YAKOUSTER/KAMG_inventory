@@ -53,6 +53,7 @@
                       costume.disponibilite }}</span></p>
                 <p><strong>Créé le :</strong> {{ costume.tm_stp_cre }}</p>
                 <p><strong>Modifié le :</strong> {{ costume.tm_stp }}</p>
+                <p><strong>Pièce appartenant à :</strong> {{ costume.proprietaire }}</p>
               </div>
             </v-card-text>
 

@@ -42,6 +42,10 @@
                 <v-select :items="states" v-model="localState" label="État" outlined density="comfortable" />
               </v-col>
               <v-col cols="12" sm="6">
+                <v-text-field v-model="localOwner" label="Propriétaire de cette pièce" outlined density="comfortable" :rules="[rules.required]"
+                  required />
+              </v-col>
+              <v-col cols="12" sm="6">
                 <v-select :items="availabilities" v-model="localAvailability" label="Disponibilité" outlined
                   density="comfortable" />
               </v-col>
@@ -194,6 +198,7 @@ export default {
     etat: String,
     couleur: String,
     disponibilite: String,
+    proprietaire:String,
     perle: Boolean,
     broderie: Boolean,
     motif: String,
@@ -225,6 +230,7 @@ export default {
   const localEpoch = ref('');
   const localMaterial = ref('');
   const localState = ref('');
+  const localOwner = ref('');
   const localColor = ref('');
   const localAvailability = ref('');
   const localPerle = ref(false);
@@ -252,6 +258,7 @@ export default {
     localEpoch.value = props.epoque || '';
     localMaterial.value = props.materiau || '';
     localState.value = props.etat || '';
+    localOwner.value = props.proprietaire || '';
     localColor.value = props.couleur || '';
     localAvailability.value = props.disponibilite || '';
     localPerle.value = props.perle || false;
@@ -362,6 +369,7 @@ export default {
           epoque: localEpoch.value,
           materiau: localMaterial.value,
           etat: localState.value,
+          proprietaire: localOwner.value,
           couleur: localColor.value,
           disponibilite: localAvailability.value,
           perle: localPerle.value,
@@ -406,6 +414,7 @@ export default {
         localEpoch.value = '';
         localMaterial.value = '';
         localState.value = '';
+        localOwner.value = '';
         localColor.value = '';
         localAvailability.value = '';
         localPerle.value = false;
@@ -445,6 +454,7 @@ export default {
       localEpoch,
       localMaterial,
       localState,
+      localOwner,
       localColor,
       localAvailability,
       localPerle,

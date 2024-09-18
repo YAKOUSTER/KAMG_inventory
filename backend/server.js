@@ -63,6 +63,7 @@ app.get("/api/costumes", async (req, res, next) => {
         p.tour_tete,
         p.longueur_de_la_variable,
         p.variable,
+        p.proprietaire,
         m.nom AS borrower_name, 
         l.loan_date, 
         l.return_date, 
@@ -242,6 +243,7 @@ app.post("/api/costumes", async (req, res, next) => {
     epoque,
     materiau,
     etat,
+    proprietaire,
     couleur,
     disponibilite,
     perle,
@@ -290,12 +292,13 @@ app.post("/api/costumes", async (req, res, next) => {
         longueur_de_la_variable,
         variable,
         tm_stp,
-        tm_stp_cre
+        tm_stp_cre, 
+        proprietaire
       ) 
       VALUES (
         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 
         $11, $12, $13, $14, $15, $16, $17, $18, 
-        $19, $20, $21, $22, $23, $24, NOW(), NOW()
+        $19, $20, $21, $22, $23, $24, NOW(), NOW(), $25
       ) 
       RETURNING id`,
       [
@@ -323,6 +326,7 @@ app.post("/api/costumes", async (req, res, next) => {
         tour_tete,
         longueur_de_la_variable,
         variable,
+        proprietaire
       ]
     );
 
@@ -356,104 +360,6 @@ app.post("/api/type-de-pieces", async (req, res, next) => {
     );
 
     res.status(201).json(result.rows[0]);
-  } catch (err) {
-    next(err);
-  }
-});
-
-// Mettre à jour un costume avec des pièces liées
-app.put("/api/costumes/:id", async (req, res, next) => {
-  const { id } = req.params;
-  const {
-    code,
-    type,
-    nom,
-    description,
-    taille_lettre,
-    epoque,
-    materiau,
-    etat,
-    couleur,
-    disponibilite,
-    perle,
-    broderie,
-    motif,
-    longueur,
-    tour_taille_min,
-    tour_taille_max,
-    longueur_dos,
-    longueur_avant,
-    tour_jupe,
-    longueur_epaule_epaule,
-    longueur_manche,
-    tour_tete,
-    longueur_de_la_variable,
-    variable,
-    linkedPieces, // Array of linked piece IDs
-  } = req.body;
-
-  try {
-    // Mise à jour du costume
-    const result = await pool.query(
-      `UPDATE pieces 
-       SET code = $1, type = $2, nom = $3, description = $4, taille_lettre = $5, 
-           epoque = $6, materiau = $7, etat = $8, couleur = $9, disponibilite = $10, 
-           perle = $11, broderie = $12, motif = $13, longueur = $14, 
-           tour_taille_min = $15, tour_taille_max = $16, longueur_dos = $17, 
-           longueur_avant = $18, tour_jupe = $19, longueur_epaule_epaule = $20, 
-           longueur_manche = $21, tour_tete = $22, longueur_de_la_variable = $23, 
-           variable = $24, tm_stp = NOW()
-       WHERE id = $25 
-       RETURNING *`,
-      [
-        code,
-        type,
-        nom,
-        description,
-        taille_lettre,
-        epoque,
-        materiau,
-        etat,
-        couleur,
-        disponibilite,
-        perle,
-        broderie,
-        motif,
-        longueur,
-        tour_taille_min,
-        tour_taille_max,
-        longueur_dos,
-        longueur_avant,
-        tour_jupe,
-        longueur_epaule_epaule,
-        longueur_manche,
-        tour_tete,
-        longueur_de_la_variable,
-        variable,
-        id,
-      ]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: "Costume non trouvé" });
-    }
-
-    // Supprimer les anciennes pièces liées
-    await pool.query("DELETE FROM piece_relations WHERE piece_id = $1", [id]);
-
-    // Insérer les nouvelles pièces liées
-    if (linkedPieces && linkedPieces.length > 0) {
-      const linkedPiecesQueries = linkedPieces.map((linkedPieceId) => {
-        return pool.query(
-          "INSERT INTO piece_relations (piece_id, related_piece_id) VALUES ($1, $2)",
-          [id, linkedPieceId]
-        );
-      });
-
-      await Promise.all(linkedPiecesQueries);
-    }
-
-    res.status(200).json(result.rows[0]);
   } catch (err) {
     next(err);
   }
@@ -500,6 +406,107 @@ app.post("/api/loans", async (req, res, next) => {
     next(error);
   }
 });
+
+// Mettre à jour un costume avec des pièces liées
+app.put("/api/costumes/:id", async (req, res, next) => {
+  const { id } = req.params;
+  const {
+    code,
+    type,
+    nom,
+    description,
+    taille_lettre,
+    epoque,
+    materiau,
+    etat,
+    couleur,
+    disponibilite,
+    perle,
+    broderie,
+    motif,
+    longueur,
+    tour_taille_min,
+    tour_taille_max,
+    longueur_dos,
+    longueur_avant,
+    tour_jupe,
+    longueur_epaule_epaule,
+    longueur_manche,
+    tour_tete,
+    longueur_de_la_variable,
+    variable,
+    linkedPieces, // Array of linked piece IDs
+    proprietaire
+  } = req.body;
+
+  try {
+    // Mise à jour du costume
+    const result = await pool.query(
+      `UPDATE pieces 
+       SET code = $1, type = $2, nom = $3, description = $4, taille_lettre = $5, 
+           epoque = $6, materiau = $7, etat = $8, couleur = $9, disponibilite = $10, 
+           perle = $11, broderie = $12, motif = $13, longueur = $14, 
+           tour_taille_min = $15, tour_taille_max = $16, longueur_dos = $17, 
+           longueur_avant = $18, tour_jupe = $19, longueur_epaule_epaule = $20, 
+           longueur_manche = $21, tour_tete = $22, longueur_de_la_variable = $23, 
+           variable = $24, tm_stp = NOW(), proprietaire = $26
+       WHERE id = $25 
+       RETURNING *`,
+      [
+        code,
+        type,
+        nom,
+        description,
+        taille_lettre,
+        epoque,
+        materiau,
+        etat,
+        couleur,
+        disponibilite,
+        perle,
+        broderie,
+        motif,
+        longueur,
+        tour_taille_min,
+        tour_taille_max,
+        longueur_dos,
+        longueur_avant,
+        tour_jupe,
+        longueur_epaule_epaule,
+        longueur_manche,
+        tour_tete,
+        longueur_de_la_variable,
+        variable,
+        id,
+        proprietaire
+      ]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Costume non trouvé" });
+    }
+
+    // Supprimer les anciennes pièces liées
+    await pool.query("DELETE FROM piece_relations WHERE piece_id = $1", [id]);
+
+    // Insérer les nouvelles pièces liées
+    if (linkedPieces && linkedPieces.length > 0) {
+      const linkedPiecesQueries = linkedPieces.map((linkedPieceId) => {
+        return pool.query(
+          "INSERT INTO piece_relations (piece_id, related_piece_id) VALUES ($1, $2)",
+          [id, linkedPieceId]
+        );
+      });
+
+      await Promise.all(linkedPiecesQueries);
+    }
+
+    res.status(200).json(result.rows[0]);
+  } catch (err) {
+    next(err);
+  }
+});
+
 
 // Route pour retourner toutes les pièces d'un emprunt
 app.put("/api/loans/:id/return-all", async (req, res) => {
