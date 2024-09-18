@@ -25,9 +25,14 @@
         </v-col>
 
         <v-col cols="12" md="6">
+          <!-- Bouton pour ouvrir la modale de modification -->
+
+
           <v-card flat>
+            <v-btn prepend-icon="$edit" color="kamg" @click="openEditModal(costume)">Modifier</v-btn>
+
             <v-card-title class="headline">
-              {{ costume.name }}
+              {{ costume.nom }}
             </v-card-title>
             <v-card-subtitle class="text-subtitle-1 text-grey-darken-1 mb-4">
               {{ costume.type }}
@@ -55,8 +60,7 @@
               {{ isInCart(costume) ? 'Déjà dans le panier' : 'Ajouter au panier' }}
             </v-btn>
 
-            <!-- Bouton pour ouvrir la modale de modification -->
-            <v-btn color="primary" @click="openEditModal(costume)">Modifier la pièce</v-btn>
+            
           </v-card>
         </v-col>
       </v-row>

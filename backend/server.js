@@ -210,7 +210,7 @@ app.get("/api/loans/:id", async (req, res, next) => {
       `
       SELECT 
         p.id AS piece_id, 
-        p.name AS piece_name, 
+        p.nom AS piece_name, 
         li.comment, 
         p.disponibilite AS status
       FROM 
