@@ -61,6 +61,66 @@
         </v-col>
       </v-row>
 
+     <!-- Tableau des mesures -->
+     <v-row class="mt-4">
+        <v-col>
+          <v-table>
+            <thead>
+              <tr>
+                <th>Mesure</th>
+                <th>Valeur</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Longueur générale -->
+              <tr v-if="shouldShowLength">
+                <td>Longueur (cm)</td>
+                <td>{{ costume.longueur ? costume.longueur : 'A compléter' }}</td>
+              </tr>
+              <!-- Longueur dos et avant -->
+              <tr v-if="shouldShowBackFrontLength">
+                <td>Longueur dos (cm)</td>
+                <td>{{ costume.longueur_dos ? costume.longueur_dos : 'A compléter' }}</td>
+              </tr>
+              <tr v-if="shouldShowBackFrontLength">
+                <td>Longueur avant (cm)</td>
+                <td>{{ costume.longueur_avant ? costume.longueur_avant : 'A compléter' }}</td>
+              </tr>
+              <!-- Tour de taille min et max -->
+              <tr v-if="shouldShowWaist">
+                <td>Tour de taille min (cm)</td>
+                <td>{{ costume.tour_taille_min ? costume.tour_taille_min : 'A compléter' }}</td>
+              </tr>
+              <tr v-if="shouldShowWaist">
+                <td>Tour de taille max (cm)</td>
+                <td>{{ costume.tour_taille_max ? costume.tour_taille_max : 'A compléter' }}</td>
+              </tr>
+              <!-- Tour de jupe -->
+              <tr v-if="shouldShowSkirtWaist">
+                <td>Tour de jupe (cm)</td>
+                <td>{{ costume.tour_jupe ? costume.tour_jupe : 'A compléter' }}</td>
+              </tr>
+              <!-- Longueur épaule à épaule -->
+              <tr v-if="shouldShowShoulderLength">
+                <td>Longueur épaule à épaule (cm)</td>
+                <td>{{ costume.longueur_epaule_epaule ? costume.longueur_epaule_epaule : 'A compléter' }}</td>
+              </tr>
+              <!-- Longueur de manche -->
+              <tr v-if="shouldShowSleeveLength">
+                <td>Longueur de manche (cm)</td>
+                <td>{{ costume.longueur_manche ? costume.longueur_manche : 'A compléter' }}</td>
+              </tr>
+              <!-- Tour de tête -->
+              <tr v-if="shouldShowHeadCircumference">
+                <td>Tour de tête (cm)</td>
+                <td>{{ costume.tour_tete ? costume.tour_tete : 'A compléter' }}</td>
+              </tr>
+            </tbody>
+          </v-table>
+
+        </v-col>
+      </v-row>
+
       <!-- Historique des emprunts -->
       <v-row class="mt-12">
         <v-col>
@@ -123,6 +183,8 @@
 import { mapActions, mapGetters } from 'vuex';
 import { fetchCostumeById, updateCostumeById } from '../services/costumeService';
 import CreateCostumeModal from '../components/CreateCostumeModal.vue'; // Ton composant de modale
+import { computed } from 'vue';
+
 
 export default {
   name: 'CostumeDetail',
@@ -141,6 +203,27 @@ export default {
   },
   computed: {
     ...mapGetters('store', ['isInCart']), // Utilisation du store pour vérifier le panier
+    shouldShowLength() {
+      return !['Chemise/Roched', 'Gilet/Jiletenn', 'Veste courte/Chupenn', 'Corsage/Jiletenn', 'Corselet/Manchoù'].includes(this.costume.type);
+    },
+    shouldShowBackFrontLength() {
+      return ['Chemise/Roched', 'Gilet/Jiletenn', 'Veste courte/Chupenn', 'Corsage/Jiletenn', 'Corselet/Manchoù'].includes(this.costume.type);
+    },
+    shouldShowWaist() {
+      return ['Jupe', 'Jupon', 'Bragoù Bras', 'Pantalon', 'Ceinture/Gouriz', 'Tablier'].includes(this.costume.type);
+    },
+    shouldShowSkirtWaist() {
+      return ['Jupe', 'Jupon', 'Tablier'].includes(this.costume.type);
+    },
+    shouldShowShoulderLength() {
+      return ['Chemise/Roched', 'Gilet/Jiletenn', 'Veste courte/Chupenn', 'Corsage/Jiletenn', 'Corselet/Manchoù'].includes(this.costume.type);
+    },
+    shouldShowSleeveLength() {
+      return ['Chemise/Roched', 'Gilet/Jiletenn', 'Veste courte/Chupenn', 'Corsage/Jiletenn', 'Corselet/Manchoù'].includes(this.costume.type);
+    },
+    shouldShowHeadCircumference() {
+      return this.costume.type === 'Chapeau';
+    },
   },
   watch: {
     '$route.params.id': {
@@ -252,5 +335,25 @@ export default {
 
 .linked-piece-card:hover {
   transform: scale(1.05);
+}
+
+.measurements-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.measurements-table th, .measurements-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+.measurements-table th {
+  background-color: #f2f2f2;
+  text-align: left;
+}
+
+.measurements-table td {
+  text-align: center;
+
 }
 </style>
