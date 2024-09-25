@@ -25,14 +25,14 @@
       <!-- Filtres supplémentaires pour les mesures -->
 
 
-      <v-col cols="12" sm="3">
+      <v-col cols="12" sm="6" lg="4">
         <v-range-slider v-model="filters.lengthpiece" label="Longueur (cm)" :min="0" :max="180" step="1"
           dense></v-range-slider>
         <!-- Affichage des valeurs minimales et maximales sélectionnées -->
         <p>Longueur : {{ filters.lengthpiece[0] }} cm - {{ filters.lengthpiece[1] }} cm</p>
       </v-col>
 
-      <v-col cols="12" sm="3">
+      <v-col cols="12" sm="6" lg="4">
 
         <v-range-slider v-model="filters.waist" label="Tour de taille (cm)" :min="0" :max="100" step="1"
           dense></v-range-slider>
@@ -40,7 +40,7 @@
         <p>Tour de taille minimal : {{ filters.waist[0] }} cm - {{ filters.waist[1] }} cm</p>
       </v-col>
 
-      <v-col cols="12" sm="3">
+      <v-col cols="12" sm="6" lg="4">
 
         <v-range-slider v-model="filters.backLength" label="Hauteur du dos (cm)" :min="0" :max="100" step="1"
           dense></v-range-slider>
@@ -48,7 +48,7 @@
         <p>Longueur du dos : {{ filters.backLength[0] }} cm - {{ filters.backLength[1] }} cm</p>
       </v-col>
 
-      <v-col cols="12" sm="3">
+      <v-col cols="12" sm="6" lg="4">
 
         <v-range-slider v-model="filters.frontLength" label="Longueur avant (cm)" :min="0" :max="100" step="1"
           dense></v-range-slider>
@@ -56,7 +56,7 @@
         <p>Longueur avant : {{ filters.frontLength[0] }} cm - {{ filters.frontLength[1] }} cm</p>
       </v-col>
 
-      <v-col cols="12" sm="3">
+      <v-col cols="12" sm="6" lg="4">
 
         <v-range-slider v-model="filters.skirtCircumference" label="Tour de jupe (cm)" :min="0" :max="100" step="1"
           dense></v-range-slider>
@@ -64,7 +64,7 @@
         <p>Tour de jupe : {{ filters.skirtCircumference[0] }} cm - {{ filters.skirtCircumference[1] }} cm</p>
       </v-col>
 
-      <v-col cols="12" sm="3">
+      <v-col cols="12" sm="6" lg="4">
 
         <v-range-slider v-model="filters.shoulderToShoulder" label="Longueur épaule à épaule (cm)" :min="0" :max="100"
           step="1" dense></v-range-slider>
@@ -72,7 +72,7 @@
         <p>Epaule à épaule : {{ filters.shoulderToShoulder[0] }} cm - {{ filters.shoulderToShoulder[1] }} cm</p>
       </v-col>
 
-      <v-col cols="12" sm="3">
+      <v-col cols="12" sm="6" lg="4">
 
         <v-range-slider v-model="filters.sleeveLength" label="Longueur manches (cm)" :min="0" :max="100" step="1"
           dense></v-range-slider>
@@ -80,7 +80,7 @@
         <p>Longueur manche (cm) : {{ filters.sleeveLength[0] }} cm - {{ filters.sleeveLength[1] }} cm</p>
       </v-col>
 
-      <v-col cols="12" sm="3">
+      <v-col cols="12" sm="6" lg="4">
 
         <v-range-slider v-model="filters.headCircumference" label="Tour de tête (cm)" :min="0" :max="100" step="1"
           dense></v-range-slider>
@@ -89,8 +89,10 @@
       </v-col>
 
 
-
-
+      <!-- Bouton RESET pour réinitialiser tous les filtres -->
+      <v-col cols="12" sm="2">
+        <v-btn @click="resetFilters" color="red" outlined>Réinitialiser</v-btn>
+      </v-col>
       <!-- Bouton pour basculer entre tableau et cartes -->
       <v-col cols="12" sm="2">
         <v-btn @click="toggleViewMode" color="primary">
@@ -182,6 +184,27 @@ export default {
     const states = ['Ancien', 'A réparer', 'Usé', 'Bon', 'Moyen', 'Très bon'];
     const colors = ['Blanc', 'Rouge', 'Noir', 'Bleu', 'Vert', 'Jaune', 'Rose'];
 
+    const resetFilters = () => {
+    search.value = '';
+    selectedEpoch.value = 'Tout';
+    selectedAvailability.value = 'Tout';
+    selectedSize.value = 'Tout';
+    selectedState.value = 'Tout';
+    selectedColor.value = 'Tout';
+
+    // Réinitialiser les valeurs des sliders
+    filters.value = {
+      lengthpiece: [0, 180],
+      waist: [0, 100],
+      backLength: [0, 100],
+      frontLength: [0, 100],
+      skirtCircumference: [0, 300],
+      shoulderToShoulder: [0, 100],
+      sleeveLength: [0, 100],
+      headCircumference: [0, 100]
+    };
+  };
+
 
     const filters = ref({
       lengthpiece: [0, 180],
@@ -262,6 +285,7 @@ export default {
       costumes,
       filteredCostumes,
       filters,
+      resetFilters,
       openCreateModal,
       closeCreateModal,
       handleCreateCostume,
