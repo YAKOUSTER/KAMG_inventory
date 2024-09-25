@@ -37,6 +37,7 @@
                 <template v-slot:item="{ item }">
                   <tr @click="viewLoanDetails(item)">
                     <td>{{ item.loan_id }}</td>
+                    <td>{{ item.loan_titre }}</td>
                     <td>{{ item.member_name }}</td>
                     <td>{{ item.loan_date }}</td>
                     <td>{{ item.items ? item.items.length : 0 }}</td>

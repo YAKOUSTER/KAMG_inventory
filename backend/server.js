@@ -162,6 +162,7 @@ app.get("/api/loans", async (req, res, next) => {
     const result = await pool.query(`
       SELECT 
         l.id AS loan_id, 
+        l.loan_titre,
         l.loan_date, 
         l.return_date, 
         m.nom AS member_name, 
