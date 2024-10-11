@@ -1,0 +1,14 @@
+{
+    "builds": [
+      {
+        "src": "gestion-kamg/package.json",
+        "use": "@vercel/node"
+      }
+    ],
+    "routes": [
+      {
+        "src": "/(.*)",
+        "dest": "/gestion-kamg/$1"
+      }
+    ]
+  }
