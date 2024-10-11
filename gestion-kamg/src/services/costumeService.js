@@ -12,7 +12,7 @@ export const fetchCostumes = async () => {
 export async function fetchCostumeById(id) {
   console.log(`Fetching costume with ID: ${id}`);
   try {
-    const response = await fetch(`http://localhost:5000/api/costumes/${id}`);
+    const response = await fetch(`${API_URL}/${id}`);
     if (!response.ok) {
       console.error(`Failed to fetch costume. Status: ${response.status}`);
       throw new Error('Network response was not ok.');
@@ -22,10 +22,9 @@ export async function fetchCostumeById(id) {
     return data;
   } catch (error) {
     console.error('Error fetching costume:', error);
-    throw error; // Rejeter la promesse pour que l'appelant puisse gérer l'erreur
+    throw error;
   }
 }
-
 
 export const createCostume = async (costume) => {
   const response = await fetch(API_URL, {
@@ -39,4 +38,28 @@ export const createCostume = async (costume) => {
     throw new Error('Network response was not ok.');
   }
   return response.json();
+};
+
+// Ajout de la fonction updateCostumeById
+export const updateCostumeById = async (id, costumeData) => {
+  try {
+    const response = await fetch(`${API_URL}/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(costumeData),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to update costume.');
+    }
+    
+    const updatedCostume = await response.json();
+    return updatedCostume;
+    
+  } catch (error) {
+    console.error('Error updating costume:', error);
+    throw error;
+  }
 };
