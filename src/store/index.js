@@ -1,6 +1,6 @@
 import { createStore } from 'vuex';
-import storeModule from './modules/cart'; // Import du module store
-import loansModule from './modules/loans'; // Nouveau module
+import storeModule from '../../../src/store/modules/cart'; // Import du module store
+import loansModule from '../../../src/store/modules/loans'; // Nouveau module
 
 
 const store = createStore({
