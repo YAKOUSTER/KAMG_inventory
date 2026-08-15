@@ -5,6 +5,9 @@ import { fileURLToPath } from 'node:url'
 import { randomUUID } from 'node:crypto'
 import { DEFAULT_REFERENTIELS } from '../src/domain/taxonomy.js'
 import { normalizeItem } from '../src/domain/item.js'
+import { ROLE_PRESETS, can, publicUser } from '../src/domain/auth.js'
+import { groupLoansByYear, normalizePerson } from '../src/domain/person.js'
+import { hashPassword, randomToken, verifyPassword } from './password.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 export const DATA_DIR = path.resolve(__dirname, '../data')
@@ -19,6 +22,8 @@ function emptyDb() {
     items: [],
     people: [],
     loans: [],
+    users: [],
+    sessions: [],
   }
 }
 
@@ -30,6 +35,8 @@ function ensureShape(raw) {
   db.items = Array.isArray(raw.items) ? raw.items : []
   db.people = Array.isArray(raw.people) ? raw.people : []
   db.loans = Array.isArray(raw.loans) ? raw.loans : []
+  db.users = Array.isArray(raw.users) ? raw.users : []
+  db.sessions = Array.isArray(raw.sessions) ? raw.sessions : []
   return db
 }
 
@@ -52,6 +59,17 @@ export async function ensureDb({ seedPath = SEED_PATH, dbPath = DB_PATH } = {}) 
       await writeJson(dbPath, emptyDb())
     }
   }
+  const db = ensureShape(await readJson(dbPath))
+  let dirty = false
+  if (!db.users.length) {
+    db.users = await defaultUsers()
+    dirty = true
+  }
+  if (!Array.isArray(db.sessions)) {
+    db.sessions = []
+    dirty = true
+  }
+  if (dirty) await writeJson(dbPath, db)
 }
 
 async function readJson(file) {
@@ -103,7 +121,12 @@ export async function exportDb(options = {}) {
 }
 
 export async function importDb(payload, options = {}) {
+  const current = await readDb(options)
   const db = ensureShape(payload)
+  if (!db.users.length && current.users.length) {
+    db.users = current.users
+    db.sessions = current.sessions || []
+  }
   await writeDb(db, options)
   return db
 }
@@ -182,18 +205,24 @@ export async function listPeople(options = {}) {
   return db.people
 }
 
+export async function getPerson(id, options = {}) {
+  const db = await readDb(options)
+  const person = db.people.find((p) => p.id === id)
+  if (!person) return null
+  const loans = db.loans
+    .filter((loan) => loan.personId === id)
+    .map((loan) => decorateLoan(loan, db))
+    .sort((a, b) => (b.dateEmprunt || '').localeCompare(a.dateEmprunt || ''))
+  return {
+    ...person,
+    loans,
+    loansByYear: groupLoansByYear(loans),
+  }
+}
+
 export async function createPerson(payload, options = {}) {
   return withDb((db) => {
-    if (!payload?.nom?.trim()) throw Object.assign(new Error('Le nom est requis'), { status: 400 })
-    const person = {
-      id: randomUUID(),
-      nom: payload.nom.trim(),
-      role: payload.role || 'Membre',
-      telephone: payload.telephone || '',
-      email: payload.email || '',
-      notes: payload.notes || '',
-      createdAt: new Date().toISOString(),
-    }
+    const person = normalizePerson(payload, { id: randomUUID() })
     db.people.push(person)
     return person
   }, options)
@@ -201,15 +230,10 @@ export async function createPerson(payload, options = {}) {
 
 export async function updatePerson(id, payload, options = {}) {
   return withDb((db) => {
-    const person = db.people.find((p) => p.id === id)
-    if (!person) throw Object.assign(new Error('Personne introuvable'), { status: 404 })
-    Object.assign(person, {
-      nom: payload.nom?.trim() || person.nom,
-      role: payload.role ?? person.role,
-      telephone: payload.telephone ?? person.telephone,
-      email: payload.email ?? person.email,
-      notes: payload.notes ?? person.notes,
-    })
+    const index = db.people.findIndex((p) => p.id === id)
+    if (index === -1) throw Object.assign(new Error('Personne introuvable'), { status: 404 })
+    const person = normalizePerson({ ...db.people[index], ...payload, id }, { id })
+    db.people[index] = person
     return person
   }, options)
 }
@@ -297,20 +321,20 @@ export async function returnLoanItems(loanId, itemIds, options = {}) {
     const loan = db.loans.find((l) => l.id === loanId)
     if (!loan) throw Object.assign(new Error('Emprunt introuvable'), { status: 404 })
     const targets = itemIds?.length ? itemIds : loan.items.filter((i) => !i.returnedAt).map((i) => i.itemId)
-    const now = new Date().toISOString()
+    const dateRetour = (options.dateRetour || new Date().toISOString()).slice(0, 10)
     for (const itemId of targets) {
       const line = loan.items.find((i) => i.itemId === itemId)
-      if (!line) continue
-      line.returnedAt = now
+      if (!line || line.returnedAt) continue
+      line.returnedAt = dateRetour
       const item = db.items.find((i) => i.id === itemId)
       if (item) {
         item.disponibilite = 'Disponible'
-        item.updatedAt = now
+        item.updatedAt = new Date().toISOString()
       }
     }
     const remaining = loan.items.some((i) => !i.returnedAt)
     loan.statut = remaining ? 'retour_partiel' : 'retourne'
-    loan.dateRetour = remaining ? null : now.slice(0, 10)
+    loan.dateRetour = remaining ? null : dateRetour
     return decorateLoan(loan, db)
   }, options)
 }
@@ -354,3 +378,135 @@ export async function saveUpload({ filename, dataUrl, prefix }, options = {}) {
 }
 
 export { emptyDb, ensureShape }
+
+const SESSION_MS = 30 * 24 * 60 * 60 * 1000
+
+async function defaultUsers() {
+  const now = new Date().toISOString()
+  const specs = [
+    { login: 'admin', nom: 'Administrateur', role: 'admin', password: 'admin' },
+    { login: 'gestion', nom: 'Gestion', role: 'gestion', password: 'gestion' },
+    { login: 'lecteur', nom: 'Lecture', role: 'lecteur', password: 'lecteur' },
+  ]
+  const users = []
+  for (const spec of specs) {
+    users.push({
+      id: randomUUID(),
+      login: spec.login,
+      nom: spec.nom,
+      role: spec.role,
+      custom: false,
+      permissions: [...ROLE_PRESETS[spec.role]],
+      passwordHash: await hashPassword(spec.password),
+      createdAt: now,
+    })
+  }
+  return users
+}
+
+export async function login(loginName, password, options = {}) {
+  const identifiant = String(loginName || '').trim().toLowerCase()
+  if (!identifiant || !password) {
+    throw Object.assign(new Error('Identifiant et mot de passe requis'), { status: 400 })
+  }
+  return withDb(async (db) => {
+    const user = db.users.find((u) => u.login.toLowerCase() === identifiant)
+    if (!user || !(await verifyPassword(password, user.passwordHash))) {
+      throw Object.assign(new Error('Identifiant ou mot de passe incorrect'), { status: 401 })
+    }
+    const token = randomToken()
+    const now = Date.now()
+    db.sessions = (db.sessions || []).filter((session) => new Date(session.expiresAt).getTime() > now)
+    db.sessions.push({
+      token,
+      userId: user.id,
+      createdAt: new Date(now).toISOString(),
+      expiresAt: new Date(now + SESSION_MS).toISOString(),
+    })
+    return { token, user: publicUser(user) }
+  }, options)
+}
+
+export async function logout(token, options = {}) {
+  if (!token) return { ok: true }
+  return withDb((db) => {
+    db.sessions = (db.sessions || []).filter((session) => session.token !== token)
+    return { ok: true }
+  }, options)
+}
+
+export async function userFromToken(token, options = {}) {
+  if (!token) return null
+  const db = await readDb(options)
+  const session = (db.sessions || []).find((s) => s.token === token)
+  if (!session || new Date(session.expiresAt).getTime() < Date.now()) return null
+  const user = db.users.find((u) => u.id === session.userId)
+  return user ? publicUser(user) : null
+}
+
+export async function listUsers(options = {}) {
+  const db = await readDb(options)
+  return db.users.map(publicUser)
+}
+
+export async function createUser(payload, options = {}) {
+  return withDb(async (db) => {
+    const loginName = String(payload.login || '').trim().toLowerCase()
+    if (!loginName) throw Object.assign(new Error('L’identifiant est requis'), { status: 400 })
+    if (!payload.password) throw Object.assign(new Error('Le mot de passe est requis'), { status: 400 })
+    if (db.users.some((u) => u.login.toLowerCase() === loginName)) {
+      throw Object.assign(new Error('Cet identifiant existe déjà'), { status: 409 })
+    }
+    const role = ROLE_PRESETS[payload.role] ? payload.role : 'lecteur'
+    const custom = Boolean(payload.custom)
+    const user = {
+      id: randomUUID(),
+      login: loginName,
+      nom: (payload.nom || loginName).trim(),
+      role,
+      custom,
+      permissions: custom && Array.isArray(payload.permissions) ? payload.permissions : [...ROLE_PRESETS[role]],
+      passwordHash: await hashPassword(payload.password),
+      createdAt: new Date().toISOString(),
+    }
+    db.users.push(user)
+    return publicUser(user)
+  }, options)
+}
+
+export async function updateUser(id, payload, options = {}) {
+  return withDb(async (db) => {
+    const user = db.users.find((u) => u.id === id)
+    if (!user) throw Object.assign(new Error('Compte introuvable'), { status: 404 })
+    if (payload.login) {
+      const loginName = String(payload.login).trim().toLowerCase()
+      const clash = db.users.find((u) => u.id !== id && u.login.toLowerCase() === loginName)
+      if (clash) throw Object.assign(new Error('Cet identifiant existe déjà'), { status: 409 })
+      user.login = loginName
+    }
+    if (payload.nom != null) user.nom = String(payload.nom).trim() || user.nom
+    if (payload.role && ROLE_PRESETS[payload.role]) user.role = payload.role
+    if (payload.custom != null) user.custom = Boolean(payload.custom)
+    if (Array.isArray(payload.permissions)) user.permissions = payload.permissions
+    if (!user.custom) user.permissions = [...ROLE_PRESETS[user.role]]
+    if (payload.password) user.passwordHash = await hashPassword(payload.password)
+    return publicUser(user)
+  }, options)
+}
+
+export async function deleteUser(id, options = {}) {
+  return withDb((db) => {
+    const index = db.users.findIndex((u) => u.id === id)
+    if (index === -1) throw Object.assign(new Error('Compte introuvable'), { status: 404 })
+    const admins = db.users.filter((u) => u.role === 'admin' && can(u, 'users.manage'))
+    const target = db.users[index]
+    if (target.role === 'admin' && admins.length <= 1) {
+      throw Object.assign(new Error('Impossible de supprimer le dernier administrateur'), { status: 409 })
+    }
+    db.users.splice(index, 1)
+    db.sessions = (db.sessions || []).filter((session) => session.userId !== id)
+    return { ok: true }
+  }, options)
+}
+
+export { can }

@@ -6,7 +6,9 @@
       <v-btn variant="tonal" @click="tableView = !tableView">
         {{ tableView ? 'Cartes' : 'Tableau' }}
       </v-btn>
-      <v-btn color="primary" to="/pieces/nouvelle" prepend-icon="mdi-plus">Nouvelle fiche</v-btn>
+      <v-btn v-if="auth.can('items.create')" color="primary" to="/pieces/nouvelle" prepend-icon="mdi-plus">
+        Nouvelle fiche
+      </v-btn>
     </div>
 
     <v-card class="mb-4 pa-4" variant="outlined">
@@ -87,7 +89,9 @@
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useDisplay } from 'vuetify'
 import { useInventoryStore } from '@/stores/inventory'
+import { useAuthStore } from '@/stores/auth'
 import { CATEGORIES, DEFAULT_REFERENTIELS, MEASUREMENT_FIELDS, categoryLabel } from '@/domain/taxonomy'
 import { coverSrc } from '@/domain/images'
 import { filterItems } from '@/domain/filters'
@@ -95,9 +99,11 @@ import ItemCard from '@/components/ItemCard.vue'
 import StatusChip from '@/components/StatusChip.vue'
 
 const inventory = useInventoryStore()
+const auth = useAuthStore()
 const route = useRoute()
 const router = useRouter()
-const tableView = ref(true)
+const display = useDisplay()
+const tableView = ref(display.mdAndUp.value)
 const showMeasures = ref(false)
 
 function defaultFilters() {

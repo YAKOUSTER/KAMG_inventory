@@ -3,7 +3,9 @@
     <div class="d-flex flex-wrap align-center ga-3 mb-6">
       <h1 class="text-h4 page-title">Tableau de bord</h1>
       <v-spacer />
-      <v-btn color="primary" to="/pieces/nouvelle" prepend-icon="mdi-plus">Nouvelle fiche</v-btn>
+      <v-btn v-if="auth.can('items.create')" color="primary" to="/pieces/nouvelle" prepend-icon="mdi-plus">
+        Nouvelle fiche
+      </v-btn>
     </div>
 
     <v-row>
@@ -42,7 +44,7 @@
             <v-list-item
               v-for="loan in activeLoans"
               :key="loan.id"
-              to="/emprunts"
+              :to="{ name: 'loan-detail', params: { id: loan.id } }"
               :title="loan.titre"
               :subtitle="`${loan.personName} · ${loan.dateEmprunt}`"
             />
@@ -57,10 +59,12 @@
 <script setup>
 import { computed, onMounted } from 'vue'
 import { useInventoryStore } from '@/stores/inventory'
+import { useAuthStore } from '@/stores/auth'
 import { CATEGORIES, categoryLabel } from '@/domain/taxonomy'
 import StatusChip from '@/components/StatusChip.vue'
 
 const inventory = useInventoryStore()
+const auth = useAuthStore()
 
 onMounted(() => inventory.refresh().catch(() => {}))
 

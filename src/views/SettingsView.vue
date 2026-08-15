@@ -24,6 +24,7 @@
           <v-card-title>Importer</v-card-title>
           <v-card-text>
             Remplace la base locale par un fichier JSON précédemment exporté. Faites un export avant.
+            Les comptes de connexion déjà créés sont conservés si le fichier importé n’en contient pas.
             <v-file-input v-model="file" class="mt-4" accept="application/json,.json" label="Fichier JSON" />
             <v-alert v-if="message" :type="ok ? 'success' : 'error'" class="mt-2">{{ message }}</v-alert>
           </v-card-text>

@@ -1,28 +1,29 @@
 <template>
   <div>
-    <h1 class="text-h4 page-title mb-6">Panier d'emprunt</h1>
+    <h1 class="text-h5 text-md-h4 page-title mb-6">Panier d'emprunt</h1>
     <v-card variant="outlined">
       <v-card-text>
         <v-alert v-if="!cart.items.length" type="info" variant="tonal">Le panier est vide.</v-alert>
-        <v-list v-else>
-          <v-list-item v-for="item in cart.items" :key="item.id">
-            <v-list-item-title>{{ item.code }} — {{ item.nom }}</v-list-item-title>
-            <v-list-item-subtitle>{{ item.type }} · {{ item.tailleLettre }}</v-list-item-subtitle>
-            <template #append>
-              <v-text-field
-                :model-value="item.comment"
-                label="Commentaire"
-                hide-details
-                class="mr-4"
-                style="min-width: 220px"
-                @update:model-value="cart.setComment(item.id, $event)"
-              />
-              <v-btn icon variant="text" @click="cart.remove(item.id)">
+        <div v-else>
+          <div v-for="item in cart.items" :key="item.id" class="cart-line">
+            <div class="d-flex align-start ga-2">
+              <div class="flex-grow-1">
+                <div class="text-subtitle-2">{{ item.code }} — {{ item.nom }}</div>
+                <div class="text-caption text-medium-emphasis">{{ item.type }} · {{ item.tailleLettre }}</div>
+              </div>
+              <v-btn icon variant="text" aria-label="Retirer" @click="cart.remove(item.id)">
                 <v-icon>mdi-delete-outline</v-icon>
               </v-btn>
-            </template>
-          </v-list-item>
-        </v-list>
+            </div>
+            <v-text-field
+              class="mt-2"
+              :model-value="item.comment"
+              label="Commentaire (état, note de sortie…)"
+              hide-details
+              @update:model-value="cart.setComment(item.id, $event)"
+            />
+          </div>
+        </div>
 
         <div v-if="cart.items.length" class="mt-6">
           <v-autocomplete
@@ -35,7 +36,9 @@
           <v-text-field v-model="titre" label="Titre de l'emprunt (spectacle, répétition…)" />
           <v-text-field v-model="dateRetourPrevue" label="Retour prévu" type="date" />
           <v-alert v-if="error" type="error" class="mb-3">{{ error }}</v-alert>
-          <v-btn color="primary" :disabled="!personId" :loading="saving" @click="validate">Valider l'emprunt</v-btn>
+          <v-btn color="primary" block size="large" :disabled="!personId" :loading="saving" @click="validate">
+            Valider l'emprunt
+          </v-btn>
         </div>
       </v-card-text>
     </v-card>
@@ -64,7 +67,7 @@ async function validate() {
   saving.value = true
   error.value = ''
   try {
-    await api.createLoan({
+    const loan = await api.createLoan({
       personId: personId.value,
       titre: titre.value,
       dateRetourPrevue: dateRetourPrevue.value,
@@ -72,7 +75,7 @@ async function validate() {
     })
     cart.clear()
     await inventory.refresh()
-    router.push('/emprunts')
+    router.push({ name: 'loan-detail', params: { id: loan.id } })
   } catch (err) {
     error.value = err.message
   } finally {
@@ -80,3 +83,10 @@ async function validate() {
   }
 }
 </script>
+
+<style scoped>
+.cart-line {
+  padding: 12px 0;
+  border-bottom: 1px solid #ecece4;
+}
+</style>

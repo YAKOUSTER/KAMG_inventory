@@ -11,14 +11,21 @@
       >
         {{ cart.isInCart(item.id) ? 'Déjà au panier' : 'Ajouter au panier' }}
       </v-btn>
-      <v-btn variant="tonal" :to="{ name: 'item-edit', params: { id: item.id } }" prepend-icon="mdi-pencil">Modifier</v-btn>
-      <v-btn variant="text" color="error" @click="remove">Supprimer</v-btn>
+      <v-btn
+        v-if="auth.can('items.update')"
+        variant="tonal"
+        :to="{ name: 'item-edit', params: { id: item.id } }"
+        prepend-icon="mdi-pencil"
+      >
+        Modifier
+      </v-btn>
+      <v-btn v-if="auth.can('items.delete')" variant="text" color="error" @click="remove">Supprimer</v-btn>
     </div>
 
     <v-row>
       <v-col cols="12" md="5">
         <ImageGallery :item="item" :placeholder-icon="categoryIcon(item.categorie)" />
-        <v-card class="mt-4" variant="outlined">
+        <v-card v-if="auth.can('items.update')" class="mt-4" variant="outlined">
           <v-card-title>Photos de la pièce</v-card-title>
           <v-card-text>
             <ItemPhotos :model-value="item.images" :code="item.code" @update:model-value="onImages" @change="persistPhotos" />
@@ -74,6 +81,7 @@
         <v-list-item
           v-for="entry in item.loanHistory"
           :key="entry.loanId"
+          :to="{ name: 'loan-detail', params: { id: entry.loanId } }"
           :title="`${entry.personName} — ${entry.dateEmprunt}`"
           :subtitle="`Retour : ${entry.dateRetour || 'en cours'}${entry.comment ? ' · ' + entry.comment : ''}`"
         />
@@ -90,6 +98,7 @@ import { useRouter } from 'vue-router'
 import { api } from '@/services/api'
 import { useCartStore } from '@/stores/cart'
 import { useInventoryStore } from '@/stores/inventory'
+import { useAuthStore } from '@/stores/auth'
 import { MEASUREMENT_FIELDS, categoryIcon, categoryLabel, visibleMeasurements } from '@/domain/taxonomy'
 import { isLoanable } from '@/domain/item'
 import ItemCard from '@/components/ItemCard.vue'
@@ -101,10 +110,11 @@ const props = defineProps({ id: { type: String, required: true } })
 const router = useRouter()
 const cart = useCartStore()
 const inventory = useInventoryStore()
+const auth = useAuthStore()
 const item = ref(null)
 const error = ref('')
 
-const canLoan = computed(() => isLoanable(item.value))
+const canLoan = computed(() => auth.can('loans.write') && isLoanable(item.value))
 
 const facts = computed(() => {
   if (!item.value) return []

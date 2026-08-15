@@ -1,86 +1,58 @@
 <template>
   <div>
-    <div class="d-flex align-center mb-6">
-      <h1 class="text-h4 page-title">Personnes</h1>
+    <div class="d-flex flex-wrap align-center ga-3 mb-4">
+      <h1 class="text-h5 text-md-h4 page-title">Personnes</h1>
       <v-spacer />
-      <v-btn color="primary" prepend-icon="mdi-plus" @click="openCreate">Ajouter</v-btn>
+      <v-btn v-if="auth.can('people.write')" color="primary" to="/personnes/nouvelle" prepend-icon="mdi-plus">
+        Ajouter
+      </v-btn>
     </div>
 
-    <v-data-table :headers="headers" :items="inventory.people" item-value="id">
-      <template #item.actions="{ item }">
-        <v-btn size="small" variant="text" @click="openEdit(item)">Modifier</v-btn>
-        <v-btn size="small" variant="text" color="error" @click="remove(item)">Supprimer</v-btn>
-      </template>
-    </v-data-table>
+    <v-text-field v-model="search" class="mb-4" prepend-inner-icon="mdi-magnify" label="Rechercher" hide-details clearable />
 
-    <v-dialog v-model="dialog" max-width="520">
-      <v-card>
-        <v-card-title>{{ editing.id ? 'Modifier' : 'Nouvelle personne' }}</v-card-title>
-        <v-card-text>
-          <v-text-field v-model="editing.nom" label="Nom" />
-          <v-text-field v-model="editing.role" label="Rôle" />
-          <v-text-field v-model="editing.telephone" label="Téléphone" />
-          <v-text-field v-model="editing.email" label="Email" />
-          <v-textarea v-model="editing.notes" label="Notes" rows="2" />
-          <v-alert v-if="error" type="error">{{ error }}</v-alert>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn variant="text" @click="dialog = false">Annuler</v-btn>
-          <v-btn color="primary" @click="save">Enregistrer</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+    <v-row>
+      <v-col v-for="person in filtered" :key="person.id" cols="12" sm="6" md="4" lg="3">
+        <v-card :to="{ name: 'person-detail', params: { id: person.id } }" variant="outlined">
+          <div class="thumb" :style="{ backgroundImage: coverSrc(person) ? `url(${coverSrc(person)})` : 'none' }">
+            <v-icon v-if="!coverSrc(person)" size="40" color="primary">mdi-account</v-icon>
+          </div>
+          <v-card-text>
+            <div class="text-subtitle-1 font-weight-bold">{{ person.nom }}</div>
+            <div class="text-body-2">{{ person.role }}</div>
+            <div v-if="person.tailleLettre" class="text-caption">Taille {{ person.tailleLettre }}</div>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
   </div>
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useInventoryStore } from '@/stores/inventory'
-import { api } from '@/services/api'
+import { useAuthStore } from '@/stores/auth'
+import { coverSrc } from '@/domain/images'
 
 const inventory = useInventoryStore()
-const dialog = ref(false)
-const error = ref('')
-const editing = reactive({ id: '', nom: '', role: 'Membre', telephone: '', email: '', notes: '' })
+const auth = useAuthStore()
+const search = ref('')
 
-const headers = [
-  { title: 'Nom', key: 'nom' },
-  { title: 'Rôle', key: 'role' },
-  { title: 'Téléphone', key: 'telephone' },
-  { title: 'Email', key: 'email' },
-  { title: '', key: 'actions', sortable: false },
-]
-
-function openCreate() {
-  Object.assign(editing, { id: '', nom: '', role: 'Membre', telephone: '', email: '', notes: '' })
-  error.value = ''
-  dialog.value = true
-}
-
-function openEdit(person) {
-  Object.assign(editing, person)
-  error.value = ''
-  dialog.value = true
-}
-
-async function save() {
-  error.value = ''
-  try {
-    if (editing.id) await api.updatePerson(editing.id, editing)
-    else await api.createPerson(editing)
-    dialog.value = false
-    await inventory.refresh()
-  } catch (err) {
-    error.value = err.message
-  }
-}
-
-async function remove(person) {
-  if (!confirm(`Supprimer ${person.nom} ?`)) return
-  await api.deletePerson(person.id)
-  await inventory.refresh()
-}
+const filtered = computed(() => {
+  const q = search.value.trim().toLowerCase()
+  return inventory.people.filter((person) =>
+    !q || [person.nom, person.role, person.email, person.telephone].filter(Boolean).join(' ').toLowerCase().includes(q),
+  )
+})
 
 onMounted(() => inventory.refresh().catch(() => {}))
 </script>
+
+<style scoped>
+.thumb {
+  height: 140px;
+  background: #edede5 center/cover no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+</style>

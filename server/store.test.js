@@ -9,12 +9,15 @@ import {
   deleteItem,
   getItem,
   createPerson,
+  getPerson,
   createLoan,
   returnLoanItems,
   listItems,
   importDb,
   ensureDb,
   saveUpload,
+  login,
+  createUser,
 } from './store.js'
 
 async function tmpOptions() {
@@ -80,13 +83,16 @@ describe('json store', () => {
     assert.equal(loan.statut, 'en_cours')
     assert.equal((await getItem(jupe.id, options)).disponibilite, 'Emprunté')
 
-    const partial = await returnLoanItems(loan.id, [jupe.id], options)
+    const partial = await returnLoanItems(loan.id, [jupe.id], { ...options, dateRetour: '2026-08-01' })
     assert.equal(partial.statut, 'retour_partiel')
+    assert.equal(partial.items.find((line) => line.itemId === jupe.id).returnedAt, '2026-08-01')
     assert.equal((await getItem(jupe.id, options)).disponibilite, 'Disponible')
     assert.equal((await getItem(gilet.id, options)).disponibilite, 'Emprunté')
 
-    const done = await returnLoanItems(loan.id, [], options)
+    const done = await returnLoanItems(loan.id, [], { ...options, dateRetour: '2026-08-15T18:00:00.000Z' })
     assert.equal(done.statut, 'retourne')
+    assert.equal(done.items.find((line) => line.itemId === gilet.id).returnedAt, '2026-08-15')
+    assert.equal(done.dateRetour, '2026-08-15')
     assert.equal((await getItem(gilet.id, options)).disponibilite, 'Disponible')
   })
 
@@ -128,5 +134,61 @@ describe('json store', () => {
     const saved = await saveUpload({ filename: 'face.png', dataUrl: pixel, prefix: 'JUP-014' }, options)
     assert.match(saved.src, /^\/uploads\/jup-014-/)
     assert.match(saved.src, /\.png$/)
+  })
+
+  it('connecte les comptes par défaut et refuse un mauvais mot de passe', async () => {
+    const session = await login('admin', 'admin', options)
+    assert.equal(session.user.role, 'admin')
+    assert.ok(session.token)
+    assert.ok(session.user.permissions.includes('items.create'))
+    await assert.rejects(() => login('admin', 'mauvais', options), /incorrect/)
+  })
+
+  it('crée un compte aux accès personnalisés', async () => {
+    const user = await createUser(
+      {
+        login: 'marie',
+        password: 'secret',
+        nom: 'Marie',
+        role: 'gestion',
+        custom: true,
+        permissions: ['items.read', 'items.create', 'loans.read'],
+      },
+      options,
+    )
+    assert.equal(user.custom, true)
+    assert.ok(user.permissions.includes('items.create'))
+    assert.ok(!user.permissions.includes('items.update'))
+    assert.equal(user.passwordHash, undefined)
+  })
+
+  it('regroupe l’historique d’emprunts d’une personne par année', async () => {
+    const jupe = await createItem(
+      { code: 'JUP-HIST', nom: 'Jupe', categorie: 'piece_costume', disponibilite: 'Disponible' },
+      options,
+    )
+    const tablier = await createItem(
+      { code: 'TAB-HIST', nom: 'Tablier', categorie: 'piece_costume', disponibilite: 'Disponible' },
+      options,
+    )
+    const person = await createPerson(
+      { nom: 'Anna R.', mesures: { tourTaille: 70, pointure: 38 } },
+      options,
+    )
+    await createLoan(
+      { personId: person.id, titre: 'Fest-noz', dateEmprunt: '2024-12-14', items: [{ itemId: tablier.id }] },
+      options,
+    )
+    await createLoan(
+      { personId: person.id, titre: 'Spectacle', dateEmprunt: '2026-07-20', items: [{ itemId: jupe.id }] },
+      options,
+    )
+    const detail = await getPerson(person.id, options)
+    assert.equal(detail.mesures.tourTaille, 70)
+    assert.deepEqual(
+      detail.loansByYear.map((group) => group.year),
+      ['2026', '2024'],
+    )
+    assert.equal(detail.loansByYear[0].loans[0].titre, 'Spectacle')
   })
 })

@@ -440,7 +440,7 @@
       "composition": "",
       "etat": "Très bon",
       "couleur": "Argenté",
-      "disponibilite": "Disponible",
+      "disponibilite": "Emprunté",
       "proprietaire": "KAMG",
       "localisation": "Coffret bijoux / case 4",
       "tags": ["bijou"],
@@ -487,6 +487,22 @@
       "telephone": "",
       "email": "",
       "notes": "Taille M, jupe bigoudène.",
+      "tailleLettre": "M",
+      "images": [],
+      "mesures": {
+        "hauteur": 165,
+        "tourTete": 56,
+        "tourCou": 34,
+        "tourPoitrine": 90,
+        "tourTaille": 70,
+        "tourHanches": 96,
+        "carure": 38,
+        "longueurDos": 40,
+        "longueurBras": 58,
+        "longueurJambe": 98,
+        "tourPoignet": 15,
+        "pointure": 38
+      },
       "createdAt": "2024-01-01T10:00:00.000Z"
     },
     {
@@ -496,6 +512,22 @@
       "telephone": "",
       "email": "",
       "notes": "",
+      "tailleLettre": "L",
+      "images": [],
+      "mesures": {
+        "hauteur": 178,
+        "tourTete": 58,
+        "tourCou": 40,
+        "tourPoitrine": 100,
+        "tourTaille": 86,
+        "tourHanches": 102,
+        "carure": 46,
+        "longueurDos": 46,
+        "longueurBras": 64,
+        "longueurJambe": 108,
+        "tourPoignet": 17,
+        "pointure": 43
+      },
       "createdAt": "2024-01-01T10:00:00.000Z"
     }
   ],
@@ -513,9 +545,31 @@
           "itemId": "item-jupe-noire",
           "comment": "Broderie en bon état",
           "returnedAt": null
+        },
+        {
+          "itemId": "item-broche",
+          "comment": "",
+          "returnedAt": null
         }
       ],
       "createdAt": "2026-07-20T18:00:00.000Z"
+    },
+    {
+      "id": "loan-demo-2024",
+      "titre": "Fest-noz hiver",
+      "personId": "person-anna",
+      "dateEmprunt": "2024-12-14",
+      "dateRetourPrevue": "2024-12-16",
+      "dateRetour": "2024-12-16",
+      "statut": "retourne",
+      "items": [
+        {
+          "itemId": "item-tablier",
+          "comment": "",
+          "returnedAt": "2024-12-16"
+        }
+      ],
+      "createdAt": "2024-12-14T18:00:00.000Z"
     }
   ]
 }

@@ -2,6 +2,19 @@ import { defineStore } from 'pinia'
 import { api } from '@/services/api'
 import { filterItems } from '@/domain/filters'
 
+function isDenied(error) {
+  return /Accès refusé/.test(error?.message || '')
+}
+
+async function loadOr(fn, fallback) {
+  try {
+    return await fn()
+  } catch (error) {
+    if (isDenied(error)) return fallback
+    throw error
+  }
+}
+
 export const useInventoryStore = defineStore('inventory', {
   state: () => ({
     items: [],
@@ -21,10 +34,10 @@ export const useInventoryStore = defineStore('inventory', {
       this.error = ''
       try {
         const [items, people, loans, stats] = await Promise.all([
-          api.items(),
-          api.people(),
-          api.loans(),
-          api.stats(),
+          loadOr(() => api.items(), []),
+          loadOr(() => api.people(), []),
+          loadOr(() => api.loans(), []),
+          loadOr(() => api.stats(), null),
         ])
         this.items = items
         this.people = people
