@@ -17,7 +17,7 @@ Ouvrir [http://localhost:5173](http://localhost:5173).
 
 Au premier lancement, `data/seed.json` (jeu d’exemple) est copié vers `data/db.json`. Ce fichier local n’est pas versionné : c’est votre base.
 
-Comptes de départ (à changer ensuite dans **Comptes et accès**) :
+Comptes de départ (à changer ensuite via le menu du compte → **Comptes et accès**) :
 
 | Identifiant | Mot de passe | Profil |
 | --- | --- | --- |
