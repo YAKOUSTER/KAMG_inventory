@@ -1,0 +1,17 @@
+[Unit]
+Description=Patrimoine textile KAMG
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/var/www/kamg
+Environment=NODE_ENV=production
+Environment=PORT=4173
+ExecStart=/usr/bin/node server/index.js
+Restart=on-failure
+RestartSec=5
+User=www-data
+Group=www-data
+
+[Install]
+WantedBy=multi-user.target

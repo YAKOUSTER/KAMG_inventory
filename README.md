@@ -40,12 +40,58 @@ Vous pouvez ensuite **personnaliser les cases à cocher** d’un compte, comme d
 
 ## Production
 
+En local :
+
 ```bash
 npm run build
 npm start
 ```
 
 Le serveur Express sert l’interface et l’API JSON (port `4173`, ou `PORT`).
+
+### Sur sterennfonseca.fr, sans casser AppMEUR
+
+**Mille et une Reines** est déjà à la racine (`https://sterennfonseca.fr/`) avec son API sur `/api` (processus Node au port 8000). Cette appli utilise aussi `/api` et `/uploads` : la mettre à la place d’AppMEUR casserait les deux.
+
+Le bon schéma est un **sous-domaine** sur le même VPS, par exemple `https://kamg.sterennfonseca.fr`. AppMEUR reste tel quel ; KAMG a son propre nginx, son propre Node (port **4173**), son propre `data/`.
+
+1. Chez le registrar DNS, ajouter un enregistrement **A** : `kamg` → la même IP que `sterennfonseca.fr` (aujourd’hui `2.28.17.156`). Attendre la propagation.
+2. Sur le VPS, dans un dossier **séparé** d’AppMEUR :
+
+```bash
+sudo mkdir -p /var/www/kamg
+sudo chown "$USER":www-data /var/www/kamg
+git clone https://github.com/YAKOUSTER/KAMG_inventory.git /var/www/kamg
+cd /var/www/kamg
+npm ci
+npm run build
+sudo chown -R www-data:www-data /var/www/kamg/data
+```
+
+3. Service systemd (modèle dans `deploy/kamg.service`) :
+
+```bash
+sudo cp deploy/kamg.service /etc/systemd/system/kamg.service
+sudo systemctl daemon-reload
+sudo systemctl enable --now kamg
+```
+
+4. Nginx : **nouveau** fichier, ne pas éditer le `server { }` d’AppMEUR. Modèle : `deploy/nginx-kamg.conf`.
+
+```bash
+sudo cp deploy/nginx-kamg.conf /etc/nginx/sites-available/kamg.sterennfonseca.fr
+sudo ln -s /etc/nginx/sites-available/kamg.sterennfonseca.fr /etc/nginx/sites-enabled/
+sudo nginx -t && sudo systemctl reload nginx
+sudo certbot --nginx -d kamg.sterennfonseca.fr
+```
+
+Le certificat actuel ne couvre que `sterennfonseca.fr` et `www` : Certbot en crée un autre pour `kamg`.
+
+5. Changer tout de suite les mots de passe `admin` / `gestion` / `lecteur` via **Comptes et accès**.
+
+Mises à jour suivantes : `git pull && npm ci && npm run build && sudo systemctl restart kamg`. Le fichier `data/db.json` et `data/uploads/` restent sur le serveur (ils ne sont pas dans git).
+
+**À éviter :** copier le `dist/` dans le dossier web d’AppMEUR, ou pointer nginx de `sterennfonseca.fr` vers le port 4173. Un chemin du type `sterennfonseca.fr/kamg` est possible mais plus fragile (conflit `/api`) : le sous-domaine est le plus sûr.
 
 ## Tests
 
