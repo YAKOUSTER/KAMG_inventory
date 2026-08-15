@@ -61,6 +61,12 @@
       hover
       @click:row="(_e, { item }) => $router.push({ name: 'item-detail', params: { id: item.id } })"
     >
+      <template #item.photo="{ item }">
+        <v-avatar v-if="coverSrc(item)" rounded size="40">
+          <v-img :src="coverSrc(item)" cover />
+        </v-avatar>
+        <v-icon v-else size="20" color="primary">mdi-image-off-outline</v-icon>
+      </template>
       <template #item.categorie="{ item }">{{ categoryLabel(item.categorie) }}</template>
       <template #item.disponibilite="{ item }">
         <StatusChip :status="item.disponibilite" />
@@ -83,6 +89,7 @@ import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useInventoryStore } from '@/stores/inventory'
 import { CATEGORIES, DEFAULT_REFERENTIELS, MEASUREMENT_FIELDS, categoryLabel } from '@/domain/taxonomy'
+import { coverSrc } from '@/domain/images'
 import { filterItems } from '@/domain/filters'
 import ItemCard from '@/components/ItemCard.vue'
 import StatusChip from '@/components/StatusChip.vue'
@@ -129,6 +136,7 @@ const withAll = (list) => ['Tout', ...list]
 const filtered = computed(() => filterItems(inventory.items, filters))
 
 const headers = [
+  { title: '', key: 'photo', sortable: false, width: 56 },
   { title: 'Code', key: 'code' },
   { title: 'Nom', key: 'nom' },
   { title: 'Catégorie', key: 'categorie' },

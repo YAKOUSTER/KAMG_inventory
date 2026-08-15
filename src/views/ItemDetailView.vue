@@ -17,16 +17,13 @@
 
     <v-row>
       <v-col cols="12" md="5">
-        <v-img
-          v-if="item.images?.[0]"
-          :src="item.images[0]"
-          class="rounded-lg"
-          max-height="420"
-          cover
-        />
-        <v-sheet v-else class="d-flex align-center justify-center rounded-lg" height="280" color="kamg">
-          <v-icon size="72" color="primary">{{ categoryIcon(item.categorie) }}</v-icon>
-        </v-sheet>
+        <ImageGallery :item="item" :placeholder-icon="categoryIcon(item.categorie)" />
+        <v-card class="mt-4" variant="outlined">
+          <v-card-title>Photos de la pièce</v-card-title>
+          <v-card-text>
+            <ItemPhotos :model-value="item.images" :code="item.code" @update:model-value="onImages" @change="persistPhotos" />
+          </v-card-text>
+        </v-card>
       </v-col>
       <v-col cols="12" md="7">
         <div class="text-overline">{{ item.code }} · {{ categoryLabel(item.categorie) }}</div>
@@ -97,6 +94,8 @@ import { MEASUREMENT_FIELDS, categoryIcon, categoryLabel, visibleMeasurements } 
 import { isLoanable } from '@/domain/item'
 import ItemCard from '@/components/ItemCard.vue'
 import StatusChip from '@/components/StatusChip.vue'
+import ImageGallery from '@/components/ImageGallery.vue'
+import ItemPhotos from '@/components/ItemPhotos.vue'
 
 const props = defineProps({ id: { type: String, required: true } })
 const router = useRouter()
@@ -154,6 +153,19 @@ const measureRows = computed(() => {
   }
   return rows
 })
+
+async function persistPhotos(images) {
+  try {
+    await api.updateItem(item.value.id, { images })
+    await inventory.refresh()
+  } catch (err) {
+    error.value = err.message
+  }
+}
+
+function onImages(images) {
+  if (item.value) item.value.images = images
+}
 
 async function load() {
   error.value = ''

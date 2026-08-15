@@ -331,16 +331,26 @@ export async function getStats(options = {}) {
   }
 }
 
-export async function saveUpload({ filename, dataUrl }, options = {}) {
+function slug(value) {
+  return String(value || 'photo')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 40)
+    .toLowerCase() || 'photo'
+}
+
+export async function saveUpload({ filename, dataUrl, prefix }, options = {}) {
   await mkdir(options.uploadsDir || UPLOADS_DIR, { recursive: true })
   const match = /^data:(.+);base64,(.+)$/.exec(dataUrl || '')
   if (!match) throw Object.assign(new Error('Image invalide'), { status: 400 })
-  const ext = (filename || 'image').split('.').pop()?.toLowerCase() || 'png'
-  const safeExt = ['png', 'jpg', 'jpeg', 'webp', 'gif', 'svg'].includes(ext) ? ext : 'png'
-  const id = `${Date.now()}-${randomUUID().slice(0, 8)}.${safeExt}`
+  const ext = (filename || 'image.jpg').split('.').pop()?.toLowerCase() || 'jpg'
+  const safeExt = ['png', 'jpg', 'jpeg', 'webp', 'gif'].includes(ext) ? ext.replace('jpeg', 'jpg') : 'jpg'
+  const id = `${slug(prefix || filename)}-${Date.now()}-${randomUUID().slice(0, 6)}.${safeExt}`
   const dest = path.join(options.uploadsDir || UPLOADS_DIR, id)
   await writeFile(dest, Buffer.from(match[2], 'base64'))
-  return `/uploads/${id}`
+  return { src: `/uploads/${id}`, filename: id }
 }
 
 export { emptyDb, ensureShape }

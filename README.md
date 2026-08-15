@@ -22,7 +22,7 @@ Au premier lancement, `data/seed.json` (jeu d’exemple) est copié vers `data/d
 - Fiches par catégorie (échantillon, costume, collection, tissu, accessoire)
 - Champs adaptés : mesures de costume, laize/métrage, conservation, etc.
 - Recherche et filtres, vue tableau ou cartes
-- Pièces liées, photos (fichier ou URL)
+- Pièces liées, **photos locales** (plusieurs vues, légende, photo principale — fichiers dans `data/uploads`, comme AppMEUR)
 - Panier d’emprunt, retours totaux ou partiels
 - Personnes (emprunteurs)
 - Export / import JSON (page Paramètres)
@@ -50,4 +50,4 @@ npm test
 | `data/db.json` | Base locale (créée automatiquement) |
 | `data/uploads/` | Photos ajoutées depuis l’interface |
 
-Un dump JSON contient `items`, `people`, `loans` et `referentiels`.
+Un dump JSON contient `items`, `people`, `loans` et `referentiels`. Les photos sont des fichiers à côté (`data/uploads/`) ; le JSON ne stocke que le chemin, la légende et le crédit. Pour une sauvegarde complète : exporter le JSON **et** copier le dossier `data/uploads`.

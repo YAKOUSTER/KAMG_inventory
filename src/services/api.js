@@ -28,5 +28,6 @@ export const api = {
   returnLoan: (id, itemIds) => request(`/api/loans/${id}/return`, { method: 'PUT', body: { itemIds } }),
   exportDb: () => request('/api/db'),
   importDb: (body) => request('/api/db', { method: 'PUT', body }),
-  upload: (filename, dataUrl) => request('/api/uploads', { method: 'POST', body: { filename, dataUrl } }),
+  upload: (filename, dataUrl, prefix) =>
+    request('/api/uploads', { method: 'POST', body: { filename, dataUrl, prefix } }),
 }

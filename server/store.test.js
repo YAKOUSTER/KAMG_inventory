@@ -14,6 +14,7 @@ import {
   listItems,
   importDb,
   ensureDb,
+  saveUpload,
 } from './store.js'
 
 async function tmpOptions() {
@@ -119,5 +120,13 @@ describe('json store', () => {
     )
     const items = await listItems(options)
     assert.equal(items[0].code, 'TIS-01')
+  })
+
+  it('enregistre une photo dans le dossier uploads', async () => {
+    const pixel =
+      'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='
+    const saved = await saveUpload({ filename: 'face.png', dataUrl: pixel, prefix: 'JUP-014' }, options)
+    assert.match(saved.src, /^\/uploads\/jup-014-/)
+    assert.match(saved.src, /\.png$/)
   })
 })

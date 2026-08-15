@@ -1,4 +1,5 @@
 import { CATEGORY_IDS } from './taxonomy.js'
+import { normalizeImages } from './images.js'
 
 export function emptyItem(categorie = 'piece_costume') {
   return {
@@ -67,7 +68,7 @@ export function normalizeItem(input = {}, { id, now } = {}) {
   item.code = String(item.code).trim()
   item.nom = String(item.nom).trim()
   item.tags = Array.isArray(item.tags) ? item.tags.filter(Boolean) : []
-  item.images = Array.isArray(item.images) ? item.images.filter(Boolean) : []
+  item.images = normalizeImages(item.images)
   item.linkedItemIds = Array.isArray(item.linkedItemIds)
     ? [...new Set(item.linkedItemIds.filter((x) => x && x !== item.id))]
     : []
@@ -93,6 +94,7 @@ export function itemSearchText(item) {
     item.numeroInventaire,
     item.provenance,
     ...(item.tags || []),
+    ...(normalizeImages(item.images).map((img) => img.legende)),
   ]
     .filter(Boolean)
     .join(' ')

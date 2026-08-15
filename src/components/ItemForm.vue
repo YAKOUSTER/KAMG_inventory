@@ -176,7 +176,18 @@
     </v-card>
 
     <v-card class="mb-4" variant="outlined">
-      <v-card-title>Liens, images, notes</v-card-title>
+      <v-card-title>Photos</v-card-title>
+      <v-card-text>
+        <p class="text-body-2 text-medium-emphasis mb-4">
+          Les fichiers sont enregistrés à côté du JSON (<code>data/uploads</code>), comme dans AppMEUR :
+          pas d’hébergement d’images payant. Plusieurs vues par pièce (face, dos, détail, étiquette).
+        </p>
+        <ItemPhotos v-model="item.images" :code="item.code" />
+      </v-card-text>
+    </v-card>
+
+    <v-card class="mb-4" variant="outlined">
+      <v-card-title>Liens et notes</v-card-title>
       <v-card-text>
         <v-row>
           <v-col cols="12">
@@ -190,26 +201,6 @@
               chips
               closable-chips
             />
-          </v-col>
-          <v-col cols="12" md="6">
-            <v-file-input
-              label="Ajouter une photo"
-              accept="image/*"
-              prepend-icon="mdi-camera"
-              @update:model-value="onFile"
-            />
-          </v-col>
-          <v-col cols="12" md="6">
-            <v-text-field v-model="imageUrl" label="Ou coller une URL d'image" append-inner-icon="mdi-plus" @click:append-inner="addImageUrl" @keyup.enter="addImageUrl" />
-          </v-col>
-          <v-col v-for="(img, index) in item.images" :key="img" cols="6" md="3">
-            <v-img :src="img" height="120" cover class="rounded-lg">
-              <div class="d-flex justify-end pa-1">
-                <v-btn icon size="x-small" color="white" @click="item.images.splice(index, 1)">
-                  <v-icon>mdi-close</v-icon>
-                </v-btn>
-              </div>
-            </v-img>
           </v-col>
           <v-col v-if="item.categorie !== 'piece_collection'" cols="12">
             <v-textarea v-model="item.notesConservation" label="Notes" rows="2" />
@@ -229,7 +220,8 @@
 import { computed, reactive, ref, watch } from 'vue'
 import { CATEGORIES, DEFAULT_REFERENTIELS, MEASUREMENT_FIELDS, visibleMeasurements } from '@/domain/taxonomy'
 import { emptyItem } from '@/domain/item'
-import { api } from '@/services/api'
+import { normalizeImages } from '@/domain/images'
+import ItemPhotos from './ItemPhotos.vue'
 
 const props = defineProps({
   initial: { type: Object, default: null },
@@ -241,7 +233,6 @@ const props = defineProps({
 
 const emit = defineEmits(['save'])
 const form = ref(null)
-const imageUrl = ref('')
 const item = reactive(emptyItem())
 const referentiels = DEFAULT_REFERENTIELS
 const required = (v) => !!v || 'Champ requis'
@@ -249,7 +240,7 @@ const required = (v) => !!v || 'Champ requis'
 function assign(source) {
   Object.assign(item, emptyItem(source?.categorie), source || {})
   if (!Array.isArray(item.tags)) item.tags = []
-  if (!Array.isArray(item.images)) item.images = []
+  item.images = normalizeImages(item.images)
   if (!Array.isArray(item.linkedItemIds)) item.linkedItemIds = []
 }
 
@@ -287,30 +278,6 @@ const pieceOptions = computed(() =>
 
 function withBlank(list = []) {
   return list
-}
-
-async function onFile(file) {
-  const chosen = Array.isArray(file) ? file[0] : file
-  if (!chosen) return
-  const dataUrl = await readFile(chosen)
-  const url = await api.upload(chosen.name, dataUrl)
-  item.images.push(url)
-}
-
-function readFile(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(reader.result)
-    reader.onerror = reject
-    reader.readAsDataURL(file)
-  })
-}
-
-function addImageUrl() {
-  if (imageUrl.value.trim()) {
-    item.images.push(imageUrl.value.trim())
-    imageUrl.value = ''
-  }
 }
 
 async function submit() {

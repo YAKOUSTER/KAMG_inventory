@@ -12,6 +12,7 @@
           <v-card-title>Exporter</v-card-title>
           <v-card-text>
             Télécharge tout l’inventaire (pièces, personnes, emprunts) en un seul fichier JSON.
+            Les photos restent dans <code>data/uploads</code> : copiez ce dossier avec l’export pour une sauvegarde complète.
           </v-card-text>
           <v-card-actions>
             <v-btn color="primary" prepend-icon="mdi-download" @click="exportJson">Télécharger la base JSON</v-btn>

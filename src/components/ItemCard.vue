@@ -1,7 +1,7 @@
 <template>
   <v-card class="h-100 hover-card" :to="{ name: 'item-detail', params: { id: item.id } }" variant="outlined">
-    <div class="thumb" :style="{ backgroundImage: item.images?.[0] ? `url(${item.images[0]})` : 'none' }">
-      <v-icon v-if="!item.images?.[0]" size="40" color="primary">{{ categoryIcon(item.categorie) }}</v-icon>
+    <div class="thumb" :style="{ backgroundImage: cover ? `url(${cover})` : 'none' }">
+      <v-icon v-if="!cover" size="40" color="primary">{{ categoryIcon(item.categorie) }}</v-icon>
     </div>
     <v-card-text>
       <div class="text-caption text-medium-emphasis">{{ item.code }} · {{ categoryLabel(item.categorie) }}</div>
@@ -13,12 +13,16 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { categoryIcon, categoryLabel } from '@/domain/taxonomy'
+import { coverSrc } from '@/domain/images'
 import StatusChip from './StatusChip.vue'
 
-defineProps({
+const props = defineProps({
   item: { type: Object, required: true },
 })
+
+const cover = computed(() => coverSrc(props.item))
 </script>
 
 <style scoped>
