@@ -21,6 +21,7 @@ export const useInventoryStore = defineStore('inventory', {
   getters: {
     itemById: (state) => (id) => state.items.find((item) => item.id === id),
     personById: (state) => (id) => state.people.find((person) => person.id === id),
+    loanById: (state) => (id) => state.loans.find((loan) => loan.id === id),
     filtered: (state) => (filters) => filterItems(state.items, filters),
   },
   actions: {

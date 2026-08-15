@@ -3,6 +3,7 @@ import { useAuthStore } from '@/stores/auth'
 import DashboardView from '@/views/DashboardView.vue'
 import InventoryView from '@/views/InventoryView.vue'
 import LoansView from '@/views/LoansView.vue'
+import LoanDetailView from '@/views/LoanDetailView.vue'
 import PeopleView from '@/views/PeopleView.vue'
 import CartView from '@/views/CartView.vue'
 import LoginView from '@/views/LoginView.vue'
@@ -15,7 +16,7 @@ const routes = [
   { path: '/pieces/:id', name: 'item-detail', component: () => import('@/views/ItemDetailView.vue'), props: true, meta: { permission: 'items.read' } },
   { path: '/pieces/:id/modifier', name: 'item-edit', component: () => import('@/views/ItemEditView.vue'), props: true, meta: { permission: 'items.update' } },
   { path: '/emprunts', name: 'loans', component: LoansView, meta: { permission: 'loans.read' } },
-  { path: '/emprunts/:id', name: 'loan-detail', component: () => import('@/views/LoanDetailView.vue'), props: true, meta: { permission: 'loans.read' } },
+  { path: '/emprunts/:id', name: 'loan-detail', component: LoanDetailView, props: true, meta: { permission: 'loans.read' } },
   { path: '/panier', name: 'cart', component: CartView, meta: { permission: 'loans.write' } },
   { path: '/personnes', name: 'people', component: PeopleView, meta: { permission: 'people.read' } },
   { path: '/personnes/nouvelle', name: 'person-create', component: () => import('@/views/PersonEditView.vue'), meta: { permission: 'people.write' } },

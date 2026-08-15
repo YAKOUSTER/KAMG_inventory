@@ -70,7 +70,7 @@
       </v-card-text>
     </v-card>
   </div>
-  <v-skeleton-loader v-else-if="loading" type="article, list-item-two-line, list-item-two-line" />
+  <v-progress-linear v-else-if="loading" color="primary" indeterminate />
   <v-alert v-else-if="error" type="error">{{ error }}</v-alert>
 </template>
 
@@ -87,12 +87,14 @@ const props = defineProps({ id: { type: String, required: true } })
 const auth = useAuthStore()
 const inventory = useInventoryStore()
 const ui = useUiStore()
-const loan = ref(null)
+const remoteLoan = ref(null)
 const selectedIds = ref([])
 const dateRetour = ref(todayLocal())
 const saving = ref(false)
 const loading = ref(false)
 const error = ref('')
+
+const loan = computed(() => inventory.loanById(props.id) || remoteLoan.value)
 
 const hasOpen = computed(() => loan.value?.items?.some((line) => !line.returnedAt))
 const overdue = computed(() => isOverdue(loan.value))
@@ -111,10 +113,14 @@ function toggle(line) {
 
 async function load() {
   error.value = ''
+  selectedIds.value = []
+  if (remoteLoan.value?.id !== props.id) remoteLoan.value = null
+  if (inventory.loanById(props.id)) return
   loading.value = true
   try {
-    loan.value = await api.loan(props.id)
-    selectedIds.value = []
+    if (!inventory.loaded) await inventory.refresh()
+    if (inventory.loanById(props.id)) return
+    remoteLoan.value = await api.loan(props.id)
   } catch (err) {
     error.value = err.message
   } finally {
@@ -135,10 +141,11 @@ async function doReturn(itemIds) {
   saving.value = true
   error.value = ''
   try {
-    loan.value = await api.returnLoan(props.id, itemIds, dateRetour.value)
+    const updated = await api.returnLoan(props.id, itemIds, dateRetour.value)
     selectedIds.value = []
-    inventory.patchLoan(loan.value)
-    ui.notify(loan.value.statut === 'retourne' ? 'Emprunt clôturé' : 'Retour enregistré')
+    inventory.patchLoan(updated)
+    remoteLoan.value = updated
+    ui.notify(updated.statut === 'retourne' ? 'Emprunt clôturé' : 'Retour enregistré')
   } catch (err) {
     error.value = err.message
   } finally {
