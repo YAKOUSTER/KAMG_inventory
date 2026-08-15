@@ -1,37 +1,34 @@
-// plugins/vuetify.js
-import 'vuetify/styles';
 import '@mdi/font/css/materialdesignicons.css'
-import { createVuetify } from 'vuetify';
-import * as components from 'vuetify/components';
-import * as directives from 'vuetify/directives';
-import { VListItem, VListItemContent, VListItemTitle, VListItemSubtitle, VListItemAction } from 'vuetify/components';
+import 'vuetify/styles'
+import { createVuetify } from 'vuetify'
 
-
-const vuetify = createVuetify({
-  components,
-  directives,
-
+export default createVuetify({
   theme: {
-    defaultTheme: 'myCustomTheme',
+    defaultTheme: 'kamg',
     themes: {
-      myCustomTheme: {
-        dark: false, // ou true pour un thème sombre
+      kamg: {
+        dark: false,
         colors: {
-          primary: '#6A8C69', // Couleur primaire
-          secondary: '#53736A', // Couleur secondaire
-          kamg: '#edede5',
-          accent: '#82B1FF', // Couleur d'accentuation
-          error: '#A8B545', // Couleur d'erreur
-          info: '#C2C0A6', // Couleur d'information
-          success: '#4CAF50', // Couleur de succès
-          warning: '#A8B545', // Couleur d'avertissement
+          primary: '#6A8C69',
+          secondary: '#53736A',
+          surface: '#FFFFFF',
+          background: '#F4F6F4',
+          kamg: '#EDEDE5',
+          error: '#B85C38',
+          info: '#C2C0A6',
+          success: '#4CAF50',
+          warning: '#A8B545',
         },
       },
     },
   },
-  icons: {
-    defaultSet: 'mdi', // Pour définir un set d'icônes par défaut
+  defaults: {
+    VBtn: { rounded: 'lg' },
+    VCard: { rounded: 'lg' },
+    VTextField: { variant: 'outlined', density: 'comfortable' },
+    VSelect: { variant: 'outlined', density: 'comfortable' },
+    VAutocomplete: { variant: 'outlined', density: 'comfortable' },
+    VTextarea: { variant: 'outlined', density: 'comfortable' },
+    VCombobox: { variant: 'outlined', density: 'comfortable' },
   },
-});
-
-export default vuetify;
+})

@@ -1,16 +1,29 @@
-@import '~vuetify/dist/vuetify.min.css';
+@import url('https://fonts.googleapis.com/css2?family=Karla:wght@400;600;700&display=swap');
 
-@import url('https://fonts.googleapis.com/css2?family=Karla:wght@400;700&display=swap');
+:root {
+  --kamg-green: #6a8c69;
+  --kamg-deep: #53736a;
+  --kamg-mist: #f4f6f4;
+  --kamg-linen: #edede5;
+}
+
+html,
+body,
+#app {
+  min-height: 100%;
+}
 
 body {
-    background-color: #f5f5f5;
-    font-family: 'Roboto', sans-serif;
-    color: #333;
-  }
-  
-  h1, h2, h3, h4, h5, h6 {
-    font-weight: 500;
-  }
-  
+  font-family: Karla, sans-serif;
+  background: var(--kamg-mist);
+  color: #2c332c;
+}
 
+a {
+  color: inherit;
+}
 
+.page-title {
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
