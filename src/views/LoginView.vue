@@ -32,10 +32,8 @@
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { useInventoryStore } from '@/stores/inventory'
 
 const auth = useAuthStore()
-const inventory = useInventoryStore()
 const router = useRouter()
 const route = useRoute()
 const login = ref('')
@@ -49,7 +47,6 @@ async function submit() {
   error.value = ''
   try {
     await auth.login(login.value, password.value)
-    await inventory.refresh().catch(() => {})
     router.replace(route.query.redirect || '/')
   } catch (err) {
     error.value = err.message

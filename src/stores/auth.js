@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
-import { api, setToken, setUnauthorizedHandler } from '@/services/api'
+import { api, getToken, setToken, setUnauthorizedHandler } from '@/services/api'
 import { can as canUser } from '@/domain/auth'
+import { useInventoryStore } from '@/stores/inventory'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -16,17 +17,28 @@ export const useAuthStore = defineStore('auth', {
       setUnauthorizedHandler(() => {
         this.user = null
         setToken('')
+        useInventoryStore().reset()
       })
+    },
+    applySession(payload) {
+      this.user = payload?.user || null
+      this.ready = true
+      if (payload) useInventoryStore().hydrate(payload)
     },
     async hydrate() {
       this.bindUnauthorized()
       if (this.ready) return this.user
+      if (!getToken()) {
+        this.user = null
+        this.ready = true
+        return null
+      }
       try {
-        this.user = await api.me()
+        this.applySession(await api.bootstrap())
       } catch {
         this.user = null
         setToken('')
-      } finally {
+        useInventoryStore().reset()
         this.ready = true
       }
       return this.user
@@ -34,8 +46,7 @@ export const useAuthStore = defineStore('auth', {
     async login(login, password) {
       const result = await api.login(login, password)
       setToken(result.token)
-      this.user = result.user
-      this.ready = true
+      this.applySession(result)
       return this.user
     },
     async logout() {
@@ -46,6 +57,7 @@ export const useAuthStore = defineStore('auth', {
       }
       setToken('')
       this.user = null
+      useInventoryStore().reset()
     },
   },
 })

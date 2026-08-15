@@ -3,6 +3,7 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vuetify from 'vite-plugin-vuetify'
 import { createApiApp } from './server/app.js'
+import { ensureDb, readDb } from './server/store.js'
 
 export default defineConfig({
   plugins: [
@@ -11,6 +12,7 @@ export default defineConfig({
     {
       name: 'patrimoine-json-api',
       configureServer(server) {
+        ensureDb().then(() => readDb()).catch(() => {})
         const api = createApiApp()
         server.middlewares.use((req, res, next) => {
           if (req.url.startsWith('/api') || req.url.startsWith('/uploads')) {

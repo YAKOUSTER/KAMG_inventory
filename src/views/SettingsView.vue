@@ -68,7 +68,7 @@ async function importJson() {
     const text = await chosen.text()
     const payload = JSON.parse(text)
     await api.importDb(payload)
-    await inventory.refresh()
+    await inventory.refresh({ force: true })
     ok.value = true
     message.value = 'Import terminé.'
   } catch (error) {

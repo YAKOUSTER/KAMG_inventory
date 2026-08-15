@@ -169,7 +169,7 @@ async function load() {
 async function remove() {
   if (!confirm('Supprimer cette fiche ?')) return
   await api.deleteItem(props.id)
-  await inventory.refresh()
+    await inventory.refresh({ force: true })
   router.push('/inventaire')
 }
 

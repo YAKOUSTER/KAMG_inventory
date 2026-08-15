@@ -18,6 +18,7 @@ import {
   saveUpload,
   login,
   createUser,
+  getBootstrap,
 } from './store.js'
 
 async function tmpOptions() {
@@ -141,6 +142,10 @@ describe('json store', () => {
     assert.equal(session.user.role, 'admin')
     assert.ok(session.token)
     assert.ok(session.user.permissions.includes('items.create'))
+    assert.ok(Array.isArray(session.items))
+    assert.equal(typeof session.stats.totalItems, 'number')
+    const boot = await getBootstrap(session.user, options)
+    assert.equal(boot.items.length, session.items.length)
     await assert.rejects(() => login('admin', 'mauvais', options), /incorrect/)
   })
 

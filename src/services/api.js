@@ -4,6 +4,8 @@ function getToken() {
   return localStorage.getItem(TOKEN_KEY) || ''
 }
 
+export { getToken }
+
 export function setToken(token) {
   if (token) localStorage.setItem(TOKEN_KEY, token)
   else localStorage.removeItem(TOKEN_KEY)
@@ -39,6 +41,7 @@ export const api = {
   login: (login, password) => request('/api/auth/login', { method: 'POST', body: { login, password } }),
   logout: () => request('/api/auth/logout', { method: 'POST', body: {} }),
   me: () => request('/api/auth/me'),
+  bootstrap: () => request('/api/bootstrap'),
   stats: () => request('/api/stats'),
   items: () => request('/api/items'),
   item: (id) => request(`/api/items/${id}`),

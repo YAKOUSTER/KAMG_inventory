@@ -27,6 +27,7 @@ import {
   createUser,
   updateUser,
   deleteUser,
+  getBootstrap,
   UPLOADS_DIR,
 } from './store.js'
 import { can } from '../src/domain/auth.js'
@@ -97,6 +98,11 @@ export function createApiApp() {
     '/api/auth/me',
     auth(),
     handle((req) => req.user),
+  )
+  app.get(
+    '/api/bootstrap',
+    auth(),
+    handle(async (req) => ({ user: req.user, ...(await getBootstrap(req.user)) })),
   )
 
   app.get('/api/stats', auth('items.read'), handle(() => getStats()))

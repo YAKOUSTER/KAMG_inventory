@@ -74,7 +74,7 @@ async function validate() {
       items: cart.items.map((item) => ({ itemId: item.id, comment: item.comment })),
     })
     cart.clear()
-    await inventory.refresh()
+    await inventory.refresh({ force: true })
     router.push({ name: 'loan-detail', params: { id: loan.id } })
   } catch (err) {
     error.value = err.message

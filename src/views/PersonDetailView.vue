@@ -102,7 +102,7 @@ async function load() {
 async function remove() {
   if (!confirm(`Supprimer ${person.value.nom} ?`)) return
   await api.deletePerson(props.id)
-  await inventory.refresh()
+    await inventory.refresh({ force: true })
   router.push('/personnes')
 }
 

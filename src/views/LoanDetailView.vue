@@ -115,7 +115,7 @@ async function doReturn(itemIds) {
   try {
     loan.value = await api.returnLoan(props.id, itemIds, dateRetour.value)
     selectedIds.value = []
-    await inventory.refresh()
+    await inventory.refresh({ force: true })
   } catch (err) {
     error.value = err.message
   } finally {

@@ -49,27 +49,45 @@ async function exists(file) {
   }
 }
 
+const cacheByPath = new Map()
+const ensureByPath = new Map()
+
 export async function ensureDb({ seedPath = SEED_PATH, dbPath = DB_PATH } = {}) {
-  await mkdir(path.dirname(dbPath), { recursive: true })
-  await mkdir(UPLOADS_DIR, { recursive: true })
-  if (!(await exists(dbPath))) {
-    if (await exists(seedPath)) {
-      await copyFile(seedPath, dbPath)
-    } else {
-      await writeJson(dbPath, emptyDb())
+  if (cacheByPath.has(dbPath)) return
+  if (ensureByPath.has(dbPath)) {
+    await ensureByPath.get(dbPath)
+    return
+  }
+  const job = (async () => {
+    await mkdir(path.dirname(dbPath), { recursive: true })
+    await mkdir(UPLOADS_DIR, { recursive: true })
+    if (!(await exists(dbPath))) {
+      if (await exists(seedPath)) {
+        await copyFile(seedPath, dbPath)
+      } else {
+        await writeJson(dbPath, emptyDb())
+      }
     }
+    const db = ensureShape(await readJson(dbPath))
+    let dirty = false
+    if (!db.users.length) {
+      db.users = await defaultUsers()
+      dirty = true
+    }
+    if (!Array.isArray(db.sessions)) {
+      db.sessions = []
+      dirty = true
+    }
+    if (dirty) await writeJson(dbPath, db)
+    cacheByPath.set(dbPath, db)
+  })()
+  ensureByPath.set(dbPath, job)
+  try {
+    await job
+  } catch (error) {
+    ensureByPath.delete(dbPath)
+    throw error
   }
-  const db = ensureShape(await readJson(dbPath))
-  let dirty = false
-  if (!db.users.length) {
-    db.users = await defaultUsers()
-    dirty = true
-  }
-  if (!Array.isArray(db.sessions)) {
-    db.sessions = []
-    dirty = true
-  }
-  if (dirty) await writeJson(dbPath, db)
 }
 
 async function readJson(file) {
@@ -95,21 +113,22 @@ function enqueue(task) {
 }
 
 export async function readDb(options = {}) {
-  await ensureDb(options)
   const dbPath = options.dbPath || DB_PATH
-  return ensureShape(await readJson(dbPath))
+  if (!cacheByPath.has(dbPath)) await ensureDb(options)
+  return cacheByPath.get(dbPath)
 }
 
 export async function writeDb(db, options = {}) {
   const dbPath = options.dbPath || DB_PATH
   db.meta = { ...(db.meta || {}), version: 1, updatedAt: new Date().toISOString() }
   await writeJson(dbPath, db)
+  cacheByPath.set(dbPath, db)
   return db
 }
 
 export function withDb(mutator, options = {}) {
   return enqueue(async () => {
-    const db = await readDb(options)
+    const db = structuredClone(await readDb(options))
     const result = await mutator(db)
     await writeDb(db, options)
     return result
@@ -339,8 +358,7 @@ export async function returnLoanItems(loanId, itemIds, options = {}) {
   }, options)
 }
 
-export async function getStats(options = {}) {
-  const db = await readDb(options)
+function statsFrom(db) {
   const byCategory = db.items.reduce((acc, item) => {
     acc[item.categorie] = (acc[item.categorie] || 0) + 1
     return acc
@@ -353,6 +371,28 @@ export async function getStats(options = {}) {
     people: db.people.length,
     activeLoans: db.loans.filter((l) => l.statut !== 'retourne').length,
   }
+}
+
+export async function getStats(options = {}) {
+  return statsFrom(await readDb(options))
+}
+
+export function publicSnapshot(db, user) {
+  const loans = can(user, 'loans.read')
+    ? db.loans
+        .map((loan) => decorateLoan(loan, db))
+        .sort((a, b) => (b.dateEmprunt || '').localeCompare(a.dateEmprunt || ''))
+    : []
+  return {
+    items: can(user, 'items.read') ? db.items : [],
+    people: can(user, 'people.read') ? db.people : [],
+    loans,
+    stats: can(user, 'items.read') ? statsFrom(db) : null,
+  }
+}
+
+export async function getBootstrap(user, options = {}) {
+  return publicSnapshot(await readDb(options), user)
 }
 
 function slug(value) {
@@ -388,9 +428,8 @@ async function defaultUsers() {
     { login: 'gestion', nom: 'Gestion', role: 'gestion', password: 'gestion' },
     { login: 'lecteur', nom: 'Lecture', role: 'lecteur', password: 'lecteur' },
   ]
-  const users = []
-  for (const spec of specs) {
-    users.push({
+  return Promise.all(
+    specs.map(async (spec) => ({
       id: randomUUID(),
       login: spec.login,
       nom: spec.nom,
@@ -399,9 +438,8 @@ async function defaultUsers() {
       permissions: [...ROLE_PRESETS[spec.role]],
       passwordHash: await hashPassword(spec.password),
       createdAt: now,
-    })
-  }
-  return users
+    })),
+  )
 }
 
 export async function login(loginName, password, options = {}) {
@@ -423,7 +461,7 @@ export async function login(loginName, password, options = {}) {
       createdAt: new Date(now).toISOString(),
       expiresAt: new Date(now + SESSION_MS).toISOString(),
     })
-    return { token, user: publicUser(user) }
+    return { token, user: publicUser(user), ...publicSnapshot(db, publicUser(user)) }
   }, options)
 }
 
