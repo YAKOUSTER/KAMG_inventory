@@ -42,6 +42,7 @@
             <v-list-item
               v-for="loan in activeLoans"
               :key="loan.id"
+              to="/emprunts"
               :title="loan.titre"
               :subtitle="`${loan.personName} · ${loan.dateEmprunt}`"
             />
@@ -67,12 +68,15 @@ const cards = computed(() => {
   const stats = inventory.stats || { byCategory: {}, totalItems: 0, activeLoans: 0 }
   return [
     { label: 'Fiches', value: stats.totalItems, icon: 'mdi-archive-outline', to: '/inventaire' },
-    ...CATEGORIES.map((cat) => ({
-      label: cat.plural,
-      value: stats.byCategory?.[cat.id] || 0,
-      icon: cat.icon,
-      to: { path: '/inventaire', query: { categorie: cat.id } },
-    })),
+    ...CATEGORIES.map((cat) => {
+      const value = stats.byCategory?.[cat.id] || 0
+      return {
+        label: value === 1 ? cat.label : cat.plural,
+        value,
+        icon: cat.icon,
+        to: { path: '/inventaire', query: { categorie: cat.id } },
+      }
+    }),
   ]
 })
 
