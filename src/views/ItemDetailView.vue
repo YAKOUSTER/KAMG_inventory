@@ -37,17 +37,15 @@
       </v-col>
     </v-row>
 
-    <v-card class="mt-6" variant="outlined">
-      <v-card-title>Description</v-card-title>
-      <v-card-text>
-        <p>{{ item.description || 'Pas de description.' }}</p>
-        <p v-if="item.motif"><strong>Motif :</strong> {{ item.motif }}</p>
-        <p v-if="item.notesConservation"><strong>Conservation :</strong> {{ item.notesConservation }}</p>
-      </v-card-text>
-    </v-card>
+    <section class="page-block mt-6">
+      <h2 class="section-label">Description</h2>
+      <p>{{ item.description || 'Pas de description.' }}</p>
+      <p v-if="item.motif"><strong>Motif :</strong> {{ item.motif }}</p>
+      <p v-if="item.notesConservation"><strong>Conservation :</strong> {{ item.notesConservation }}</p>
+    </section>
 
-    <v-card v-if="measureRows.length" class="mt-4" variant="outlined">
-      <v-card-title>Mesures</v-card-title>
+    <section v-if="measureRows.length" class="page-block">
+      <h2 class="section-label">Mesures</h2>
       <v-table>
         <tbody>
           <tr v-for="row in measureRows" :key="row.label">
@@ -56,21 +54,19 @@
           </tr>
         </tbody>
       </v-table>
-    </v-card>
+    </section>
 
-    <v-card v-if="item.linkedItems?.length" class="mt-4" variant="outlined">
-      <v-card-title>Pièces liées</v-card-title>
-      <v-card-text>
-        <v-row>
-          <v-col v-for="linked in item.linkedItems" :key="linked.id" cols="12" sm="6" md="4">
-            <ItemCard :item="linked" />
-          </v-col>
-        </v-row>
-      </v-card-text>
-    </v-card>
+    <section v-if="item.linkedItems?.length" class="page-block">
+      <h2 class="section-label">Pièces liées</h2>
+      <v-row>
+        <v-col v-for="linked in item.linkedItems" :key="linked.id" cols="12" sm="6" md="4">
+          <ItemCard :item="linked" />
+        </v-col>
+      </v-row>
+    </section>
 
-    <v-card class="mt-4" variant="outlined">
-      <v-card-title>Historique des emprunts</v-card-title>
+    <section class="page-block">
+      <h2 class="section-label">Historique des emprunts</h2>
       <v-list v-if="item.loanHistory?.length">
         <v-list-item
           v-for="entry in item.loanHistory"
@@ -80,8 +76,8 @@
           :subtitle="`Retour : ${entry.dateRetour ? displayDate(entry.dateRetour) : 'en cours'}${entry.comment ? ' · ' + entry.comment : ''}`"
         />
       </v-list>
-      <v-card-text v-else>Aucun emprunt enregistré pour cette fiche.</v-card-text>
-    </v-card>
+      <p v-else class="text-medium-emphasis">Aucun emprunt enregistré pour cette fiche.</p>
+    </section>
   </div>
   <v-skeleton-loader v-else-if="loading" type="article, list-item-two-line" />
   <v-alert v-else-if="error" type="error">{{ error }}</v-alert>

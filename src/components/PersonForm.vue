@@ -1,48 +1,42 @@
 <template>
   <v-form ref="form" @submit.prevent="submit">
-    <v-card class="mb-4" variant="outlined">
-      <v-card-title>Identité</v-card-title>
-      <v-card-text>
-        <v-row>
-          <v-col cols="12" md="6">
-            <v-text-field v-model="person.nom" label="Nom" :rules="[required]" />
-          </v-col>
-          <v-col cols="12" md="6">
-            <v-text-field v-model="person.role" label="Rôle (danseuse, costumier…)" />
-          </v-col>
-          <v-col cols="12" md="6">
-            <v-text-field v-model="person.telephone" label="Téléphone" />
-          </v-col>
-          <v-col cols="12" md="6">
-            <v-text-field v-model="person.email" label="Email" />
-          </v-col>
-          <v-col cols="12" md="4">
-            <v-select v-model="person.tailleLettre" :items="['', ...DEFAULT_REFERENTIELS.tailles]" label="Taille générale" />
-          </v-col>
-          <v-col cols="12">
-            <v-textarea v-model="person.notes" label="Notes" rows="2" />
-          </v-col>
-        </v-row>
-      </v-card-text>
-    </v-card>
+    <section class="form-block">
+      <h2 class="section-label">Identité</h2>
+      <v-row>
+        <v-col cols="12" md="6">
+          <v-text-field v-model="person.nom" label="Nom" :rules="[required]" />
+        </v-col>
+        <v-col cols="12" md="6">
+          <v-text-field v-model="person.role" label="Rôle (danseuse, costumier…)" />
+        </v-col>
+        <v-col cols="12" md="6">
+          <v-text-field v-model="person.telephone" label="Téléphone" />
+        </v-col>
+        <v-col cols="12" md="6">
+          <v-text-field v-model="person.email" label="Courriel" />
+        </v-col>
+        <v-col cols="12" md="4">
+          <v-select v-model="person.tailleLettre" :items="['', ...DEFAULT_REFERENTIELS.tailles]" label="Taille générale" />
+        </v-col>
+        <v-col cols="12">
+          <v-textarea v-model="person.notes" label="Notes" rows="2" />
+        </v-col>
+      </v-row>
+    </section>
 
-    <v-card class="mb-4" variant="outlined">
-      <v-card-title>Photo</v-card-title>
-      <v-card-text>
-        <ItemPhotos v-model="person.images" :code="person.nom || 'personne'" />
-      </v-card-text>
-    </v-card>
+    <section class="form-block">
+      <h2 class="section-label">Photo</h2>
+      <ItemPhotos v-model="person.images" :code="person.nom || 'personne'" />
+    </section>
 
-    <v-card class="mb-4" variant="outlined">
-      <v-card-title>Mensurations pour une tenue complète</v-card-title>
-      <v-card-text>
-        <v-row>
-          <v-col v-for="field in PERSON_MEASUREMENTS" :key="field.key" cols="12" sm="6" md="4">
-            <v-text-field v-model.number="person.mesures[field.key]" :label="field.label" type="number" />
-          </v-col>
-        </v-row>
-      </v-card-text>
-    </v-card>
+    <section class="form-block">
+      <h2 class="section-label">Mensurations pour une tenue complète</h2>
+      <v-row>
+        <v-col v-for="field in PERSON_MEASUREMENTS" :key="field.key" cols="12" sm="6" md="4">
+          <v-text-field v-model.number="person.mesures[field.key]" :label="field.label" type="number" />
+        </v-col>
+      </v-row>
+    </section>
 
     <div class="d-flex ga-3 justify-end form-actions">
       <v-btn variant="text" :to="cancelTo">Annuler</v-btn>

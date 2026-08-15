@@ -1,33 +1,23 @@
 <template>
-  <v-container class="fill-height" style="max-width: 480px">
-    <v-card class="w-100 pa-2" elevation="8">
-      <div class="text-center px-6 pt-6">
-        <img :src="LOGO_SRC" :alt="GROUP_NAME" class="login-logo" width="240" height="226" />
-        <h1 class="page-title login-title">{{ APP_TITLE }}</h1>
-        <p class="text-subtitle-2 text-medium-emphasis mt-2 mb-0">Connexion</p>
-      </div>
-      <v-card-text class="px-6">
-        <v-form @submit.prevent="submit">
-          <v-text-field v-model="login" label="Identifiant" autocomplete="username" autofocus />
-          <v-text-field
-            v-model="password"
-            label="Mot de passe"
-            :type="show ? 'text' : 'password'"
-            autocomplete="current-password"
-            :append-inner-icon="show ? 'mdi-eye-off' : 'mdi-eye'"
-            @click:append-inner="show = !show"
-          />
-          <v-alert v-if="error" type="error" class="mb-3" density="compact">{{ error }}</v-alert>
-          <v-btn type="submit" color="primary" block size="large" :loading="loading">Entrer</v-btn>
-        </v-form>
-        <p class="text-caption text-medium-emphasis mt-4">
-          Comptes de départ : <code>admin</code> / <code>admin</code>,
-          <code>gestion</code> / <code>gestion</code>,
-          <code>lecteur</code> / <code>lecteur</code>.
-          Changez-les ensuite via le menu du compte (Comptes et accès).
-        </p>
-      </v-card-text>
-    </v-card>
+  <v-container class="fill-height" style="max-width: 440px">
+    <div class="w-100 text-center">
+      <img :src="LOGO_SRC" :alt="GROUP_NAME" class="login-logo" />
+      <h1 class="page-title login-title">{{ APP_TITLE }}</h1>
+      <p class="text-body-2 text-medium-emphasis mb-8">{{ GROUP_NAME }}</p>
+      <v-form @submit.prevent="submit">
+        <v-text-field v-model="login" label="Identifiant" autocomplete="username" autofocus />
+        <v-text-field
+          v-model="password"
+          label="Mot de passe"
+          :type="show ? 'text' : 'password'"
+          autocomplete="current-password"
+          :append-inner-icon="show ? 'mdi-eye-off' : 'mdi-eye'"
+          @click:append-inner="show = !show"
+        />
+        <v-alert v-if="error" type="error" class="mb-3" density="compact">{{ error }}</v-alert>
+        <v-btn type="submit" color="primary" block size="large" :loading="loading">Entrer</v-btn>
+      </v-form>
+    </div>
   </v-container>
 </template>
 
@@ -62,15 +52,13 @@ async function submit() {
 
 <style scoped>
 .login-logo {
-  width: min(220px, 72%);
+  width: min(240px, 72vw);
   height: auto;
   display: block;
-  margin: 0 auto 16px;
+  margin: 0 auto 1.25rem;
 }
 .login-title {
-  font-size: 1.12rem;
-  line-height: 1.35;
-  text-wrap: balance;
-  font-weight: 700;
+  font-size: 1.6rem;
+  line-height: 1.2;
 }
 </style>

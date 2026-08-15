@@ -4,7 +4,7 @@
       <h1 class="text-h5 text-md-h4 page-title">Emprunts</h1>
       <v-spacer />
       <v-btn v-if="auth.can('loans.write')" color="primary" to="/panier" prepend-icon="mdi-cart-outline">
-        Nouveau (panier)
+        Nouveau
       </v-btn>
     </div>
     <v-row class="mb-2">
@@ -22,8 +22,9 @@
       :headers="headers"
       :items="filtered"
       item-value="id"
-      hover
       :items-per-page="25"
+      no-data-text="Aucun emprunt"
+      items-per-page-text="Lignes par page"
       @click:row="(_e, { item }) => go(item)"
     >
       <template #item.dateEmprunt="{ item }">{{ displayDate(item.dateEmprunt) }}</template>
@@ -40,18 +41,16 @@
 
     <v-row v-else class="mt-2">
       <v-col v-for="loan in filtered" :key="loan.id" cols="12">
-        <v-card :to="{ name: 'loan-detail', params: { id: loan.id } }" variant="outlined">
-          <v-card-text>
-            <div class="d-flex align-center ga-2 mb-1">
-              <div class="text-subtitle-1 font-weight-bold flex-grow-1">{{ loan.titre }}</div>
-              <v-chip size="small" :color="chipColor(loan)" variant="tonal">
-                {{ chipLabel(loan) }}
-              </v-chip>
-            </div>
-            <div class="text-body-2">{{ loan.personName }} · {{ displayDate(loan.dateEmprunt) }}</div>
-            <div class="text-caption text-medium-emphasis mt-1">{{ loanPiecesLabel(loan) }}</div>
-          </v-card-text>
-        </v-card>
+        <router-link class="loan-link stack-item d-block" :to="{ name: 'loan-detail', params: { id: loan.id } }">
+          <div class="d-flex align-center ga-2 mb-1">
+            <div class="text-subtitle-1 font-weight-bold flex-grow-1">{{ loan.titre }}</div>
+            <v-chip size="small" :color="chipColor(loan)" variant="tonal">
+              {{ chipLabel(loan) }}
+            </v-chip>
+          </div>
+          <div class="text-body-2">{{ loan.personName }} · {{ displayDate(loan.dateEmprunt) }}</div>
+          <div class="text-caption text-medium-emphasis mt-1">{{ loanPiecesLabel(loan) }}</div>
+        </router-link>
       </v-col>
       <v-col v-if="!filtered.length" cols="12">
         <v-alert type="info" variant="tonal">Aucun emprunt pour ces filtres.</v-alert>
@@ -124,3 +123,13 @@ function go(loan) {
 
 onMounted(() => inventory.refresh().catch(() => {}))
 </script>
+
+<style scoped>
+.loan-link {
+  color: inherit;
+  text-decoration: none;
+}
+.loan-link:hover .text-subtitle-1 {
+  color: #53736a;
+}
+</style>

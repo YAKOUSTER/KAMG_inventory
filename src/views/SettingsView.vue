@@ -1,39 +1,30 @@
 <template>
   <div>
     <h1 class="text-h4 page-title mb-2">Paramètres</h1>
-    <p class="text-body-1 text-medium-emphasis mb-6">
-      Les données vivent dans un fichier JSON (<code>data/db.json</code>), comme AppMEUR et Brocstock.
+    <p class="text-body-1 text-medium-emphasis mb-8">
+      Les données vivent dans un fichier JSON (<code>data/db.json</code>).
       Pas de base payante : un export régulier suffit comme sauvegarde.
     </p>
 
-    <v-row>
-      <v-col cols="12" md="6">
-        <v-card variant="outlined">
-          <v-card-title>Exporter</v-card-title>
-          <v-card-text>
-            Télécharge tout l’inventaire (pièces, personnes, emprunts) en un seul fichier JSON.
-            Les photos restent dans <code>data/uploads</code> : copiez ce dossier avec l’export pour une sauvegarde complète.
-          </v-card-text>
-          <v-card-actions>
-            <v-btn color="primary" prepend-icon="mdi-download" @click="exportJson">Télécharger la base JSON</v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-col>
-      <v-col cols="12" md="6">
-        <v-card variant="outlined">
-          <v-card-title>Importer</v-card-title>
-          <v-card-text>
-            Remplace la base locale par un fichier JSON précédemment exporté. Faites un export avant.
-            Les comptes de connexion déjà créés sont conservés si le fichier importé n’en contient pas.
-            <v-file-input v-model="file" class="mt-4" accept="application/json,.json" label="Fichier JSON" />
-            <v-alert v-if="message" :type="ok ? 'success' : 'error'" class="mt-2">{{ message }}</v-alert>
-          </v-card-text>
-          <v-card-actions>
-            <v-btn color="warning" :disabled="!file" :loading="loading" @click="importJson">Importer</v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-col>
-    </v-row>
+    <section class="page-block">
+      <h2 class="section-label">Exporter</h2>
+      <p class="text-body-2 text-medium-emphasis mb-4">
+        Télécharge tout l’inventaire (pièces, personnes, emprunts) en un seul fichier JSON.
+        Les photos restent dans <code>data/uploads</code> : copiez ce dossier avec l’export pour une sauvegarde complète.
+      </p>
+      <v-btn color="primary" prepend-icon="mdi-download" @click="exportJson">Télécharger la base JSON</v-btn>
+    </section>
+
+    <section class="page-block">
+      <h2 class="section-label">Importer</h2>
+      <p class="text-body-2 text-medium-emphasis mb-4">
+        Remplace la base locale par un fichier JSON précédemment exporté. Faites un export avant.
+        Les comptes de connexion déjà créés sont conservés si le fichier importé n’en contient pas.
+      </p>
+      <v-file-input v-model="file" accept="application/json,.json" label="Fichier JSON" />
+      <v-alert v-if="message" :type="ok ? 'success' : 'error'" class="mt-2 mb-4">{{ message }}</v-alert>
+      <v-btn color="warning" :disabled="!file" :loading="loading" @click="importJson">Importer</v-btn>
+    </section>
   </div>
 </template>
 

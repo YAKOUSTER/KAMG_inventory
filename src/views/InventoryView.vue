@@ -11,7 +11,7 @@
       </v-btn>
     </div>
 
-    <v-card class="mb-4 pa-4" variant="outlined">
+    <div class="mb-6">
       <v-row>
         <v-col cols="12" md="4">
           <v-text-field v-model="filters.search" prepend-inner-icon="mdi-magnify" label="Recherche (code, nom, matière, tags…)" hide-details clearable />
@@ -53,15 +53,16 @@
         <v-spacer />
         <span class="text-body-2 text-medium-emphasis">{{ filtered.length }} fiche(s)</span>
       </div>
-    </v-card>
+      </div>
 
     <v-data-table
       v-if="tableView"
       :headers="headers"
       :items="filtered"
       item-value="id"
-      hover
       :items-per-page="25"
+      items-per-page-text="Lignes par page"
+      no-data-text="Aucune fiche"
       @click:row="(_e, { item }) => $router.push({ name: 'item-detail', params: { id: item.id } })"
     >
       <template #item.photo="{ item }">

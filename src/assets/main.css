@@ -26,6 +26,62 @@ a {
   letter-spacing: 0.01em;
 }
 
+.section-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--kamg-deep);
+  margin: 0 0 0.85rem;
+}
+
+.form-block,
+.page-block {
+  margin-bottom: 2.25rem;
+}
+
+.stack-item {
+  padding: 0.85rem 0;
+}
+
+.v-table,
+.v-data-table,
+.v-list {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.v-card--variant-outlined {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.v-table > .v-table__wrapper > table > tbody > tr > td,
+.v-table > .v-table__wrapper > table > thead > tr > th,
+.v-data-table .v-table__wrapper > table > tbody > tr > td,
+.v-data-table .v-table__wrapper > table > thead > tr > th {
+  border-bottom: none !important;
+}
+
+.v-data-table-footer {
+  border-top: none !important;
+}
+
+.v-divider {
+  display: none;
+}
+
+.v-list-item {
+  padding-inline: 0 !important;
+}
+
+.v-btn-group {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
 @media (max-width: 600px) {
   html {
     -webkit-text-size-adjust: 100%;

@@ -30,15 +30,15 @@
         <div class="text-subtitle-1 mb-4">{{ person.role }}</div>
         <v-list density="compact">
           <v-list-item v-if="person.telephone" :title="person.telephone" subtitle="Téléphone" />
-          <v-list-item v-if="person.email" :title="person.email" subtitle="Email" />
+          <v-list-item v-if="person.email" :title="person.email" subtitle="Courriel" />
           <v-list-item v-if="person.tailleLettre" :title="person.tailleLettre" subtitle="Taille générale" />
         </v-list>
         <p v-if="person.notes" class="mt-2">{{ person.notes }}</p>
       </v-col>
     </v-row>
 
-    <v-card class="mt-6" variant="outlined">
-      <v-card-title>Mensurations</v-card-title>
+    <section class="page-block mt-6">
+      <h2 class="section-label">Mensurations</h2>
       <v-table v-if="filledMeasures.length">
         <tbody>
           <tr v-for="field in filledMeasures" :key="field.key">
@@ -47,14 +47,14 @@
           </tr>
         </tbody>
       </v-table>
-      <v-card-text v-else class="text-medium-emphasis">Aucune mensuration renseignée.</v-card-text>
-    </v-card>
+      <p v-else class="text-medium-emphasis">Aucune mensuration renseignée.</p>
+    </section>
 
-    <v-card class="mt-4" variant="outlined">
-      <v-card-title>Historique des emprunts</v-card-title>
-      <v-card-text v-if="!person.loansByYear?.length">Aucun emprunt enregistré.</v-card-text>
+    <section class="page-block">
+      <h2 class="section-label">Historique des emprunts</h2>
+      <p v-if="!person.loansByYear?.length" class="text-medium-emphasis">Aucun emprunt enregistré.</p>
       <div v-for="group in person.loansByYear" :key="group.year" class="mb-4">
-        <div class="text-subtitle-1 font-weight-bold px-4 pt-2">{{ group.year }}</div>
+        <div class="text-subtitle-1 font-weight-bold pt-2">{{ group.year }}</div>
         <v-list>
           <v-list-item
             v-for="loan in group.loans"
@@ -65,7 +65,7 @@
           />
         </v-list>
       </div>
-    </v-card>
+    </section>
   </div>
   <v-skeleton-loader v-else-if="loading" type="article, list-item-two-line" />
   <v-alert v-else-if="error" type="error">{{ error }}</v-alert>

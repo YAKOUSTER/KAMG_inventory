@@ -6,25 +6,23 @@
       <v-btn color="primary" prepend-icon="mdi-plus" @click="openCreate">Nouveau compte</v-btn>
     </div>
     <p class="text-body-2 text-medium-emphasis mb-4">
-      Trois profils de base (admin, gestion, lecteur), puis vous pouvez cocher les droits un par un pour chaque personne — comme dans AppMEUR.
+      Trois profils de base (Administrateur, Gestion, Lecteur), puis vous pouvez cocher les droits un par un pour chaque personne.
     </p>
 
-    <v-card v-for="user in users" :key="user.id" class="mb-3" variant="outlined">
-      <v-card-title class="d-flex flex-wrap align-center ga-2">
-        <span>{{ user.nom }}</span>
+    <div v-for="user in users" :key="user.id" class="stack-item">
+      <div class="d-flex flex-wrap align-center ga-2">
+        <span class="text-subtitle-1 font-weight-bold">{{ user.nom }}</span>
         <v-chip size="small" variant="tonal">{{ roleLabel(user.role) }}</v-chip>
         <v-chip v-if="user.custom" size="small" color="warning" variant="tonal">Accès personnalisés</v-chip>
         <v-spacer />
         <span class="text-body-2 text-medium-emphasis">{{ user.login }}</span>
-      </v-card-title>
-      <v-card-text>
-        <div class="text-caption mb-2">{{ permissionSummary(user) }}</div>
-        <div class="d-flex ga-2">
-          <v-btn size="small" variant="tonal" @click="openEdit(user)">Modifier les accès</v-btn>
-          <v-btn size="small" variant="text" color="error" @click="remove(user)">Supprimer</v-btn>
-        </div>
-      </v-card-text>
-    </v-card>
+      </div>
+      <div class="text-caption my-2">{{ permissionSummary(user) }}</div>
+      <div class="d-flex ga-2">
+        <v-btn size="small" variant="text" color="primary" @click="openEdit(user)">Modifier les accès</v-btn>
+        <v-btn size="small" variant="text" color="error" @click="remove(user)">Supprimer</v-btn>
+      </div>
+    </div>
 
     <v-dialog v-model="dialog" :fullscreen="display.smAndDown" max-width="640">
       <v-card>

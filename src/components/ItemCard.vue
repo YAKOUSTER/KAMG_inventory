@@ -1,5 +1,5 @@
 <template>
-  <v-card class="h-100 hover-card" variant="outlined">
+  <v-card class="h-100 hover-card" variant="flat">
     <router-link class="card-link" :to="{ name: 'item-detail', params: { id: item.id } }">
       <div class="thumb" :style="{ backgroundImage: cover ? `url(${cover})` : 'none' }">
         <v-icon v-if="!cover" size="40" color="primary">{{ categoryIcon(item.categorie) }}</v-icon>
@@ -56,11 +56,10 @@ function add() {
 
 <style scoped>
 .hover-card {
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  background: transparent !important;
 }
-.hover-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(83, 115, 106, 0.12);
+.hover-card:hover .text-subtitle-1 {
+  color: #53736a;
 }
 .card-link {
   color: inherit;
@@ -73,5 +72,6 @@ function add() {
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 20px;
 }
 </style>

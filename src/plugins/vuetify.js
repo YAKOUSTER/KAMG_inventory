@@ -1,8 +1,14 @@
 import '@mdi/font/css/materialdesignicons.css'
 import 'vuetify/styles'
 import { createVuetify } from 'vuetify'
+import { fr } from 'vuetify/locale'
 
 export default createVuetify({
+  locale: {
+    locale: 'fr',
+    fallback: 'fr',
+    messages: { fr },
+  },
   theme: {
     defaultTheme: 'kamg',
     themes: {
@@ -11,7 +17,7 @@ export default createVuetify({
         colors: {
           primary: '#6A8C69',
           secondary: '#53736A',
-          surface: '#FFFFFF',
+          surface: '#F4F6F4',
           background: '#F4F6F4',
           kamg: '#EDEDE5',
           error: '#B85C38',
@@ -23,12 +29,21 @@ export default createVuetify({
     },
   },
   defaults: {
-    VBtn: { rounded: 'lg' },
-    VCard: { rounded: 'lg' },
-    VTextField: { variant: 'outlined', density: 'comfortable' },
-    VSelect: { variant: 'outlined', density: 'comfortable' },
-    VAutocomplete: { variant: 'outlined', density: 'comfortable' },
-    VTextarea: { variant: 'outlined', density: 'comfortable' },
-    VCombobox: { variant: 'outlined', density: 'comfortable' },
+    VBtn: { rounded: 'xl' },
+    VCard: { rounded: 'xl', elevation: 0, variant: 'flat' },
+    VTextField: { variant: 'underlined', density: 'comfortable' },
+    VSelect: { variant: 'underlined', density: 'comfortable' },
+    VAutocomplete: { variant: 'underlined', density: 'comfortable' },
+    VTextarea: { variant: 'underlined', density: 'comfortable' },
+    VCombobox: { variant: 'underlined', density: 'comfortable' },
+    VFileInput: { variant: 'underlined', density: 'comfortable' },
+    VAlert: { rounded: 'xl', variant: 'tonal' },
+    VChip: { rounded: 'lg' },
+    VDataTable: {
+      noDataText: 'Aucune donnée',
+      itemsPerPageText: 'Lignes par page',
+      hover: false,
+    },
+    VList: { bgColor: 'transparent' },
   },
 })

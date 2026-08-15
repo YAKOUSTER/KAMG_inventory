@@ -8,13 +8,9 @@
 
     <template v-else>
       <v-app-bar color="primary" elevation="0" density="comfortable">
-        <router-link to="/" class="brand mr-2" :title="APP_TITLE">
-          <img :src="LOGO_MARK_SRC" :alt="GROUP_NAME" class="brand-logo" width="40" height="40" />
-          <span class="brand-text">
-            <span class="brand-line">Gestion du patrimoine textiles et fournitures</span>
-            <span class="brand-line">du cercle {{ GROUP_NAME }}</span>
-          </span>
-          <span class="brand-short">{{ APP_SHORT_TITLE }}</span>
+        <router-link to="/" class="brand mr-3" :title="GROUP_NAME">
+          <img :src="LOGO_SRC" :alt="GROUP_NAME" class="brand-logo" />
+          <span class="brand-name">{{ APP_TITLE }}</span>
         </router-link>
 
         <div class="nav-scroll">
@@ -86,7 +82,7 @@
         {{ ui.snack }}
         <template #actions>
           <v-btn v-if="ui.to" variant="text" :to="ui.to">{{ ui.action || 'Ouvrir' }}</v-btn>
-          <v-btn variant="text" @click="snackOpen = false">OK</v-btn>
+          <v-btn variant="text" @click="snackOpen = false">Fermer</v-btn>
         </template>
       </v-snackbar>
     </template>
@@ -101,7 +97,7 @@ import { useCartStore } from '@/stores/cart'
 import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
 import { ROLES } from '@/domain/auth'
-import { APP_SHORT_TITLE, APP_TITLE, GROUP_NAME, LOGO_MARK_SRC } from '@/domain/brand'
+import { APP_TITLE, GROUP_NAME, LOGO_SRC } from '@/domain/brand'
 
 const route = useRoute()
 const router = useRouter()
@@ -114,7 +110,7 @@ const snackOpen = ref(false)
 const isLogin = computed(() => route.name === 'login')
 
 const links = [
-  { to: '/', title: 'Tableau de bord', short: 'Accueil', permission: 'items.read', exact: true },
+  { to: '/', title: 'Accueil', short: 'Accueil', permission: 'items.read', exact: true },
   { to: '/inventaire', title: 'Inventaire', short: 'Pièces', permission: 'items.read' },
   { to: '/emprunts', title: 'Emprunts', short: 'Emprunts', permission: 'loans.read' },
   { to: '/personnes', title: 'Personnes', short: 'Personnes', permission: 'people.read' },
@@ -151,48 +147,24 @@ onMounted(() => {
 .brand {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   min-width: 0;
   flex: 0 1 auto;
-  max-width: min(52vw, 420px);
   text-decoration: none;
   color: inherit;
 }
 .brand-logo {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
+  height: 48px;
+  width: auto;
+  max-width: 52px;
   flex-shrink: 0;
-  object-fit: cover;
-  background: #2c3a2c;
+  object-fit: contain;
+  display: block;
 }
-.brand-text {
-  display: none;
-  flex-direction: column;
-  min-width: 0;
-  line-height: 1.15;
-}
-.brand-line {
-  font-size: 0.72rem;
+.brand-name {
+  font-size: 0.95rem;
   font-weight: 700;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.brand-short {
-  font-size: 0.85rem;
-  font-weight: 700;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-@media (min-width: 700px) {
-  .brand-text {
-    display: flex;
-  }
-  .brand-short {
-    display: none;
-  }
 }
 .nav-scroll {
   display: flex;

@@ -4,7 +4,7 @@ Application de gestion du **patrimoine textile et des fournitures** du cercle ce
 
 Les données sont stockées dans un **fichier JSON** (`data/db.json`), sans base de données. C’est le même principe que AppMEUR et Brocstock : zéro coût d’hébergement SQL, export/import pour les sauvegardes. Si un jour un vrai serveur de base devient possible, seul le module `server/store.js` aura besoin d’évoluer.
 
-Héritage du vestiaire Korriganed Ar Meilhoù Glas (mesures par type de pièce, pièces liées, emprunts). Pensé pour un usage **mobile** (emprunts et retours sur téléphone). Le logo du cercle est dans `public/logo-kamg.png` (page de connexion) et `public/logo-kamg-mark.png` (barre du haut).
+Héritage du vestiaire Korriganed Ar Meilhoù Glas (mesures par type de pièce, pièces liées, emprunts). Pensé pour un usage **mobile** (emprunts et retours sur téléphone). Le logo officiel du cercle est dans `public/logo-kamg.png`, affiché tel quel.
 
 ## Démarrer
 

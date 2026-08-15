@@ -41,55 +41,54 @@
 
     <v-row v-if="images.length">
       <v-col v-for="(img, index) in images" :key="img.id" cols="12" sm="6" md="4">
-        <v-card variant="outlined">
-          <v-img :src="img.src" height="160" cover>
+        <div class="photo-block">
+          <v-img :src="img.src" height="160" cover class="rounded-lg">
             <div class="d-flex justify-space-between pa-1">
               <v-chip v-if="img.principale" size="x-small" color="primary">Photo principale</v-chip>
               <v-spacer />
-              <v-btn icon size="x-small" variant="flat" @click.stop="remove(img.id)">
+              <v-btn icon size="x-small" variant="text" @click.stop="remove(img.id)">
                 <v-icon>mdi-close</v-icon>
               </v-btn>
             </div>
           </v-img>
-          <v-card-text class="pt-3">
-            <v-text-field
-              :model-value="img.legende"
-              label="Légende"
-              placeholder="Vue de face, dos, détail…"
-              hide-details
-              density="compact"
-              class="mb-2"
-              @update:model-value="patch(img.id, { legende: $event })"
-            />
-            <v-text-field
-              :model-value="img.credit"
-              label="Crédit / source"
-              hide-details
-              density="compact"
-              @update:model-value="patch(img.id, { credit: $event })"
-            />
-            <div class="d-flex ga-1 mt-2">
-              <v-btn size="x-small" variant="text" :disabled="index === 0" @click="move(img.id, -1)">
-                <v-icon start>mdi-chevron-left</v-icon>
-                Avant
-              </v-btn>
-              <v-btn size="x-small" variant="text" :disabled="index === images.length - 1" @click="move(img.id, 1)">
-                Après
-                <v-icon end>mdi-chevron-right</v-icon>
-              </v-btn>
-              <v-spacer />
-              <v-btn
-                size="x-small"
-                variant="text"
-                color="primary"
-                :disabled="img.principale"
-                @click="makeCover(img.id)"
-              >
-                Couverture
-              </v-btn>
-            </div>
-          </v-card-text>
-        </v-card>
+          <v-text-field
+            class="mt-3"
+            :model-value="img.legende"
+            label="Légende"
+            placeholder="Vue de face, dos, détail…"
+            hide-details
+            density="compact"
+            @update:model-value="patch(img.id, { legende: $event })"
+          />
+          <v-text-field
+            class="mt-2"
+            :model-value="img.credit"
+            label="Crédit / source"
+            hide-details
+            density="compact"
+            @update:model-value="patch(img.id, { credit: $event })"
+          />
+          <div class="d-flex ga-1 mt-2">
+            <v-btn size="x-small" variant="text" :disabled="index === 0" @click="move(img.id, -1)">
+              <v-icon start>mdi-chevron-left</v-icon>
+              Avant
+            </v-btn>
+            <v-btn size="x-small" variant="text" :disabled="index === images.length - 1" @click="move(img.id, 1)">
+              Après
+              <v-icon end>mdi-chevron-right</v-icon>
+            </v-btn>
+            <v-spacer />
+            <v-btn
+              size="x-small"
+              variant="text"
+              color="primary"
+              :disabled="img.principale"
+              @click="makeCover(img.id)"
+            >
+              Couverture
+            </v-btn>
+          </div>
+        </div>
       </v-col>
     </v-row>
   </div>
@@ -192,17 +191,14 @@ async function addFiles(fileList) {
 
 <style scoped>
 .dropzone {
-  border: 2px dashed #9aab9a;
   border-radius: 16px;
   padding: 28px 16px;
   text-align: center;
-  background: #f7f8f4;
   cursor: pointer;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition: background 0.15s ease;
 }
 .dropzone-active,
 .dropzone:hover {
-  border-color: #6a8c69;
   background: #edede5;
 }
 .dropzone-busy {

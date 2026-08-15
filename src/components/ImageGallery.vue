@@ -44,12 +44,10 @@
       </v-card>
     </v-dialog>
   </div>
-  <v-sheet v-else class="d-flex align-center justify-center rounded-lg" height="280" color="kamg">
-    <div class="text-center">
-      <v-icon size="64" color="primary">{{ placeholderIcon }}</v-icon>
-      <div class="text-body-2 text-medium-emphasis mt-2">Pas encore de photo</div>
-    </div>
-  </v-sheet>
+  <div v-else class="gallery-empty text-center py-12">
+    <v-icon size="56" color="primary">{{ placeholderIcon }}</v-icon>
+    <div class="text-body-2 text-medium-emphasis mt-2">Pas encore de photo</div>
+  </div>
 </template>
 
 <script setup>
