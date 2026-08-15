@@ -41,6 +41,12 @@
           <v-list density="compact" min-width="220">
             <v-list-item :title="auth.user?.nom" :subtitle="roleLabel" />
             <v-divider />
+            <v-list-item
+              v-if="auth.can('users.manage')"
+              title="Comptes et accès"
+              prepend-icon="mdi-account-key-outline"
+              to="/utilisateurs"
+            />
             <v-list-item title="Déconnexion" prepend-icon="mdi-logout" @click="logout" />
           </v-list>
         </v-menu>
@@ -79,7 +85,6 @@ const links = [
   { to: '/inventaire', title: 'Inventaire', short: 'Pièces', permission: 'items.read' },
   { to: '/emprunts', title: 'Emprunts', short: 'Emprunts', permission: 'loans.read' },
   { to: '/personnes', title: 'Personnes', short: 'Personnes', permission: 'people.read' },
-  { to: '/utilisateurs', title: 'Comptes et accès', short: 'Comptes', permission: 'users.manage' },
   { to: '/parametres', title: 'Paramètres', short: 'Réglages', permission: 'settings.manage' },
 ]
 

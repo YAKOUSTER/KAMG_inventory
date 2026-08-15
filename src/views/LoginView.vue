@@ -21,7 +21,7 @@
           Comptes de départ : <code>admin</code> / <code>admin</code>,
           <code>gestion</code> / <code>gestion</code>,
           <code>lecteur</code> / <code>lecteur</code>.
-          Changez-les ensuite dans Comptes et accès.
+          Changez-les ensuite via le menu du compte (Comptes et accès).
         </p>
       </v-card-text>
     </v-card>
