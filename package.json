@@ -2,14 +2,14 @@
   "name": "patrimoine-textile",
   "version": "2.0.0",
   "private": true,
-  "description": "Gestion d'un patrimoine textile (échantillons, costumes, collection, tissus) — stockage JSON, sans base de données.",
+  "description": "Gestion du patrimoine textiles et fournitures du cercle Korriganed Ar Meilhoù Glas — stockage JSON, sans base de données.",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
     "start": "NODE_ENV=production node server/index.js",
-    "test": "node --test server/store.test.js src/domain/filters.test.js src/domain/images.test.js src/domain/auth.test.js src/domain/person.test.js src/domain/dates.test.js src/domain/loans.test.js src/domain/item.test.js"
+    "test": "node --test server/store.test.js src/domain/filters.test.js src/domain/images.test.js src/domain/auth.test.js src/domain/person.test.js src/domain/dates.test.js src/domain/loans.test.js src/domain/item.test.js src/domain/brand.test.js"
   },
   "dependencies": {
     "@mdi/font": "^7.4.47",

@@ -11,5 +11,5 @@ await ensureDb()
 await readDb()
 const app = createProductionApp(distDir)
 app.listen(port, () => {
-  console.log(`Patrimoine textile (JSON) sur http://localhost:${port}`)
+  console.log(`Gestion du patrimoine textiles — Korriganed Ar Meilhoù Glas (JSON) sur http://localhost:${port}`)
 })

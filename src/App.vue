@@ -8,7 +8,14 @@
 
     <template v-else>
       <v-app-bar color="primary" elevation="0" density="comfortable">
-        <v-toolbar-title class="text-truncate mr-2 brand">Patrimoine textile</v-toolbar-title>
+        <router-link to="/" class="brand mr-2" :title="APP_TITLE">
+          <img :src="LOGO_MARK_SRC" :alt="GROUP_NAME" class="brand-logo" width="40" height="40" />
+          <span class="brand-text">
+            <span class="brand-line">Gestion du patrimoine textiles et fournitures</span>
+            <span class="brand-line">du cercle {{ GROUP_NAME }}</span>
+          </span>
+          <span class="brand-short">{{ APP_SHORT_TITLE }}</span>
+        </router-link>
 
         <div class="nav-scroll">
           <v-btn
@@ -94,6 +101,7 @@ import { useCartStore } from '@/stores/cart'
 import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
 import { ROLES } from '@/domain/auth'
+import { APP_SHORT_TITLE, APP_TITLE, GROUP_NAME, LOGO_MARK_SRC } from '@/domain/brand'
 
 const route = useRoute()
 const router = useRouter()
@@ -141,8 +149,50 @@ onMounted(() => {
   background: linear-gradient(160deg, #53736a 0%, #6a8c69 55%, #edede5 100%);
 }
 .brand {
-  flex: 0 0 auto;
-  max-width: 42vw;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 0 1 auto;
+  max-width: min(52vw, 420px);
+  text-decoration: none;
+  color: inherit;
+}
+.brand-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  object-fit: cover;
+  background: #2c3a2c;
+}
+.brand-text {
+  display: none;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.15;
+}
+.brand-line {
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.brand-short {
+  font-size: 0.85rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media (min-width: 700px) {
+  .brand-text {
+    display: flex;
+  }
+  .brand-short {
+    display: none;
+  }
 }
 .nav-scroll {
   display: flex;
