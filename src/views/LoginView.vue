@@ -5,7 +5,7 @@
       <v-card-subtitle class="px-6">Connexion</v-card-subtitle>
       <v-card-text class="px-6">
         <v-form @submit.prevent="submit">
-          <v-text-field v-model="login" label="Identifiant" autocomplete="username" />
+          <v-text-field v-model="login" label="Identifiant" autocomplete="username" autofocus />
           <v-text-field
             v-model="password"
             label="Mot de passe"

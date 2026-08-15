@@ -209,7 +209,7 @@
       </v-card-text>
     </v-card>
 
-    <div class="d-flex ga-3 justify-end">
+    <div class="d-flex ga-3 justify-end form-actions">
       <v-btn variant="text" :to="cancelTo">Annuler</v-btn>
       <v-btn type="submit" color="primary" :loading="saving">{{ submitLabel }}</v-btn>
     </div>
@@ -286,3 +286,13 @@ async function submit() {
   emit('save', { ...item })
 }
 </script>
+
+<style scoped>
+.form-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  padding: 12px 0 4px;
+  background: linear-gradient(180deg, rgba(244, 246, 244, 0), #f4f6f4 28%);
+}
+</style>

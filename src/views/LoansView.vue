@@ -1,6 +1,12 @@
 <template>
   <div>
-    <h1 class="text-h5 text-md-h4 page-title mb-4">Emprunts</h1>
+    <div class="d-flex flex-wrap align-center ga-3 mb-4">
+      <h1 class="text-h5 text-md-h4 page-title">Emprunts</h1>
+      <v-spacer />
+      <v-btn v-if="auth.can('loans.write')" color="primary" to="/panier" prepend-icon="mdi-cart-outline">
+        Nouveau (panier)
+      </v-btn>
+    </div>
     <v-row class="mb-2">
       <v-col cols="12" sm="6" md="4">
         <v-select v-model="personId" :items="peopleItems" label="Personne" hide-details />
@@ -17,16 +23,16 @@
       :items="filtered"
       item-value="id"
       hover
+      :items-per-page="25"
       @click:row="(_e, { item }) => go(item)"
     >
+      <template #item.dateEmprunt="{ item }">{{ displayDate(item.dateEmprunt) }}</template>
       <template #item.statut="{ item }">
-        <v-chip size="small" :color="statusColor(item.statut)" variant="tonal">
-          {{ statusLabel(item.statut) }}
+        <v-chip size="small" :color="chipColor(item)" variant="tonal">
+          {{ chipLabel(item) }}
         </v-chip>
       </template>
-      <template #item.pieces="{ item }">
-        {{ (item.items || []).map((i) => i.code || i.nom).join(', ') }}
-      </template>
+      <template #item.pieces="{ item }">{{ loanPiecesLabel(item) }}</template>
       <template #item.actions="{ item }">
         <v-btn size="small" variant="text" :to="{ name: 'loan-detail', params: { id: item.id } }">Ouvrir</v-btn>
       </template>
@@ -38,14 +44,12 @@
           <v-card-text>
             <div class="d-flex align-center ga-2 mb-1">
               <div class="text-subtitle-1 font-weight-bold flex-grow-1">{{ loan.titre }}</div>
-              <v-chip size="small" :color="statusColor(loan.statut)" variant="tonal">
-                {{ statusLabel(loan.statut) }}
+              <v-chip size="small" :color="chipColor(loan)" variant="tonal">
+                {{ chipLabel(loan) }}
               </v-chip>
             </div>
             <div class="text-body-2">{{ loan.personName }} · {{ displayDate(loan.dateEmprunt) }}</div>
-            <div class="text-caption text-medium-emphasis mt-1">
-              {{ (loan.items || []).map((i) => i.code || i.nom).join(', ') }}
-            </div>
+            <div class="text-caption text-medium-emphasis mt-1">{{ loanPiecesLabel(loan) }}</div>
           </v-card-text>
         </v-card>
       </v-col>
@@ -61,9 +65,12 @@ import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useDisplay } from 'vuetify'
 import { useInventoryStore } from '@/stores/inventory'
-import { displayDate } from '@/domain/person'
+import { useAuthStore } from '@/stores/auth'
+import { displayDate } from '@/domain/dates'
+import { isOverdue, loanPiecesLabel, loanStatusColor, loanStatusLabel } from '@/domain/loans'
 
 const inventory = useInventoryStore()
+const auth = useAuthStore()
 const router = useRouter()
 const display = useDisplay()
 const personId = ref('Tout')
@@ -76,6 +83,7 @@ const peopleItems = computed(() => [
 
 const statusItems = [
   { title: 'En cours (y compris partiels)', value: 'actifs' },
+  { title: 'En retard', value: 'retard' },
   { title: 'En cours', value: 'en_cours' },
   { title: 'Retour partiel', value: 'retour_partiel' },
   { title: 'Retourné', value: 'retourne' },
@@ -94,6 +102,7 @@ const headers = [
 const filtered = computed(() =>
   inventory.loans.filter((loan) => {
     const matchPerson = personId.value === 'Tout' || loan.personId === personId.value
+    if (status.value === 'retard') return matchPerson && isOverdue(loan)
     const matchStatus =
       status.value === 'tous' ||
       (status.value === 'actifs' ? loan.statut !== 'retourne' : loan.statut === status.value)
@@ -101,12 +110,12 @@ const filtered = computed(() =>
   }),
 )
 
-function statusLabel(value) {
-  return { en_cours: 'En cours', retour_partiel: 'Retour partiel', retourne: 'Retourné' }[value] || value
+function chipLabel(loan) {
+  return isOverdue(loan) ? 'En retard' : loanStatusLabel(loan.statut)
 }
 
-function statusColor(value) {
-  return { en_cours: 'warning', retour_partiel: 'info', retourne: 'success' }[value] || 'secondary'
+function chipColor(loan) {
+  return isOverdue(loan) ? 'error' : loanStatusColor(loan.statut)
 }
 
 function go(loan) {

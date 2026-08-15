@@ -23,6 +23,11 @@
           </v-card-text>
         </v-card>
       </v-col>
+      <v-col v-if="!filtered.length" cols="12">
+        <v-alert type="info" variant="tonal">
+          {{ inventory.people.length ? 'Aucune personne ne correspond.' : 'Aucune personne enregistrée.' }}
+        </v-alert>
+      </v-col>
     </v-row>
   </div>
 </template>

@@ -15,6 +15,7 @@
             v-for="link in visibleLinks"
             :key="link.to"
             :to="link.to"
+            :exact="link.exact"
             variant="text"
             size="small"
             class="nav-link"
@@ -25,7 +26,7 @@
         </div>
 
         <v-btn v-if="auth.can('loans.write')" variant="text" to="/panier" aria-label="Panier">
-          <v-badge :content="String(cart.count || 0)" color="warning" :model-value="true">
+          <v-badge :content="String(cart.count || 0)" color="warning" :model-value="cart.count > 0">
             <v-icon>mdi-cart-outline</v-icon>
           </v-badge>
         </v-btn>
@@ -47,10 +48,23 @@
               prepend-icon="mdi-account-key-outline"
               to="/utilisateurs"
             />
+            <v-list-item
+              v-if="auth.can('settings.manage')"
+              title="Paramètres"
+              prepend-icon="mdi-cog-outline"
+              to="/parametres"
+            />
             <v-list-item title="Déconnexion" prepend-icon="mdi-logout" @click="logout" />
           </v-list>
         </v-menu>
       </v-app-bar>
+
+      <v-progress-linear
+        v-if="inventory.loading && !inventory.loaded"
+        color="warning"
+        indeterminate
+        absolute
+      />
 
       <v-main>
         <v-container class="py-4 py-md-6" fluid>
@@ -60,16 +74,25 @@
           <router-view />
         </v-container>
       </v-main>
+
+      <v-snackbar v-model="snackOpen" :color="ui.color" timeout="3200" location="bottom">
+        {{ ui.snack }}
+        <template #actions>
+          <v-btn v-if="ui.to" variant="text" :to="ui.to">{{ ui.action || 'Ouvrir' }}</v-btn>
+          <v-btn variant="text" @click="snackOpen = false">OK</v-btn>
+        </template>
+      </v-snackbar>
     </template>
   </v-app>
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useInventoryStore } from '@/stores/inventory'
 import { useCartStore } from '@/stores/cart'
 import { useAuthStore } from '@/stores/auth'
+import { useUiStore } from '@/stores/ui'
 import { ROLES } from '@/domain/auth'
 
 const route = useRoute()
@@ -77,19 +100,31 @@ const router = useRouter()
 const inventory = useInventoryStore()
 const cart = useCartStore()
 const auth = useAuthStore()
+const ui = useUiStore()
+const snackOpen = ref(false)
 
 const isLogin = computed(() => route.name === 'login')
 
 const links = [
-  { to: '/', title: 'Tableau de bord', short: 'Accueil', permission: 'items.read' },
+  { to: '/', title: 'Tableau de bord', short: 'Accueil', permission: 'items.read', exact: true },
   { to: '/inventaire', title: 'Inventaire', short: 'Pièces', permission: 'items.read' },
   { to: '/emprunts', title: 'Emprunts', short: 'Emprunts', permission: 'loans.read' },
   { to: '/personnes', title: 'Personnes', short: 'Personnes', permission: 'people.read' },
-  { to: '/parametres', title: 'Paramètres', short: 'Réglages', permission: 'settings.manage' },
 ]
 
 const visibleLinks = computed(() => links.filter((link) => auth.can(link.permission)))
 const roleLabel = computed(() => ROLES.find((role) => role.id === auth.user?.role)?.label || auth.user?.role)
+
+watch(
+  () => ui.snack,
+  (value) => {
+    snackOpen.value = Boolean(value)
+  },
+)
+
+watch(snackOpen, (open) => {
+  if (!open) ui.clear()
+})
 
 async function logout() {
   await auth.logout()

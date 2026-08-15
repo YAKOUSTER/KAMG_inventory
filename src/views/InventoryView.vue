@@ -61,6 +61,7 @@
       :items="filtered"
       item-value="id"
       hover
+      :items-per-page="25"
       @click:row="(_e, { item }) => $router.push({ name: 'item-detail', params: { id: item.id } })"
     >
       <template #item.photo="{ item }">
@@ -80,7 +81,9 @@
         <ItemCard :item="item" />
       </v-col>
       <v-col v-if="!filtered.length" cols="12">
-        <v-alert type="info" variant="tonal">Aucune fiche ne correspond aux filtres.</v-alert>
+        <v-alert type="info" variant="tonal">
+          {{ inventory.items.length ? 'Aucune fiche ne correspond aux filtres.' : 'Aucune fiche pour le moment.' }}
+        </v-alert>
       </v-col>
     </v-row>
   </div>

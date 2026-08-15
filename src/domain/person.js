@@ -1,4 +1,7 @@
 import { normalizeImages } from './images.js'
+import { displayDate, formatDate } from './dates.js'
+
+export { displayDate, formatDate }
 
 export const PERSON_MEASUREMENTS = [
   { key: 'hauteur', label: 'Taille / stature (cm)' },
@@ -51,19 +54,6 @@ export function normalizePerson(input = {}, { id, now } = {}) {
   person.createdAt = person.createdAt || stamp
   person.updatedAt = stamp
   return person
-}
-
-export function formatDate(value) {
-  if (!value) return ''
-  return String(value).slice(0, 10)
-}
-
-export function displayDate(value) {
-  const iso = formatDate(value)
-  if (!iso || iso.length < 10) return iso
-  const [year, month, day] = iso.split('-')
-  if (!day) return iso
-  return `${day}/${month}/${year}`
 }
 
 export function groupLoansByYear(loans = []) {

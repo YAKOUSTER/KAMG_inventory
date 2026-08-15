@@ -14,11 +14,13 @@ import {
   returnLoanItems,
   listItems,
   importDb,
+  exportDb,
   ensureDb,
   saveUpload,
   login,
   createUser,
   getBootstrap,
+  getLoan,
 } from './store.js'
 
 async function tmpOptions() {
@@ -195,5 +197,85 @@ describe('json store', () => {
       ['2026', '2024'],
     )
     assert.equal(detail.loansByYear[0].loans[0].titre, 'Spectacle')
+  })
+
+  it('déroule un emprunt réel : sortie, retour partiel daté, clôture', async () => {
+    const jupe = await createItem(
+      { code: 'JUP-WF', nom: 'Jupe', categorie: 'piece_costume', disponibilite: 'Disponible' },
+      options,
+    )
+    const gilet = await createItem(
+      { code: 'GIL-WF', nom: 'Gilet', categorie: 'piece_costume', disponibilite: 'Disponible' },
+      options,
+    )
+    const person = await createPerson({ nom: 'Sterenn' }, options)
+    const loan = await createLoan(
+      {
+        personId: person.id,
+        titre: 'Répétition',
+        items: [{ itemId: jupe.id }, { itemId: gilet.id }],
+      },
+      options,
+    )
+    assert.equal(loan.statut, 'en_cours')
+    assert.match(loan.dateEmprunt, /^\d{4}-\d{2}-\d{2}$/)
+    assert.equal((await getItem(jupe.id, options)).disponibilite, 'Emprunté')
+
+    const partial = await returnLoanItems(loan.id, [jupe.id], { ...options, dateRetour: '2026-08-10' })
+    assert.equal(partial.statut, 'retour_partiel')
+    assert.equal(partial.items.find((line) => line.itemId === jupe.id).returnedAt, '2026-08-10')
+    assert.equal((await getItem(jupe.id, options)).disponibilite, 'Disponible')
+    assert.equal((await getItem(gilet.id, options)).disponibilite, 'Emprunté')
+
+    const done = await returnLoanItems(loan.id, [], { ...options, dateRetour: '2026-08-15T22:00:00.000Z' })
+    assert.equal(done.statut, 'retourne')
+    assert.equal(done.dateRetour, '2026-08-15')
+    assert.equal((await getLoan(loan.id, options)).items.every((line) => line.returnedAt), true)
+    await assert.rejects(() => returnLoanItems(loan.id, [], options), /Aucune pièce/)
+  })
+
+  it('refuse un échantillon, un doublon, ou une pièce déjà sortie', async () => {
+    const sample = await createItem(
+      { code: 'ECH-WF', nom: 'Toile', categorie: 'echantillon', disponibilite: 'Disponible' },
+      options,
+    )
+    const jupe = await createItem(
+      { code: 'JUP-WF2', nom: 'Jupe', categorie: 'piece_costume', disponibilite: 'Disponible' },
+      options,
+    )
+    const person = await createPerson({ nom: 'Yann' }, options)
+    await assert.rejects(
+      () => createLoan({ personId: person.id, items: [{ itemId: sample.id }] }, options),
+      /pas disponible/,
+    )
+    await createLoan({ personId: person.id, items: [{ itemId: jupe.id }] }, options)
+    await assert.rejects(
+      () => createLoan({ personId: person.id, items: [{ itemId: jupe.id }] }, options),
+      /pas disponible/,
+    )
+    const gilet = await createItem(
+      { code: 'GIL-WF2', nom: 'Gilet', categorie: 'piece_costume', disponibilite: 'Disponible' },
+      options,
+    )
+    await assert.rejects(
+      () =>
+        createLoan(
+          { personId: person.id, items: [{ itemId: gilet.id }, { itemId: gilet.id }] },
+          options,
+        ),
+      /deux fois/,
+    )
+  })
+
+  it('exporte sans sessions et conserve les comptes à l’import', async () => {
+    await login('admin', 'admin', options)
+    const dump = await exportDb(options)
+    assert.deepEqual(dump.sessions, [])
+    assert.ok(dump.users.length)
+    const beforeUsers = dump.users.length
+    await importDb({ items: [], people: [], loans: [] }, options)
+    const after = await exportDb(options)
+    assert.equal(after.users.length, beforeUsers)
+    assert.deepEqual(after.sessions, [])
   })
 })

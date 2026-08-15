@@ -166,8 +166,12 @@ async function save() {
 
 async function remove(user) {
   if (!confirm(`Supprimer le compte ${user.login} ?`)) return
-  await api.deleteUser(user.id)
-  await load()
+  try {
+    await api.deleteUser(user.id)
+    await load()
+  } catch (err) {
+    error.value = err.message
+  }
 }
 
 onMounted(load)

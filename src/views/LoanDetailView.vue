@@ -10,9 +10,7 @@
         {{ loan.personName }}
       </router-link>
     </div>
-    <v-chip class="mb-6" size="small" :color="loan.statut === 'retourne' ? 'success' : 'warning'" variant="tonal">
-      {{ statusLabel(loan.statut) }}
-    </v-chip>
+    <v-chip class="mb-6" size="small" :color="chipColor" variant="tonal">{{ chipLabel }}</v-chip>
 
     <v-list density="compact" class="mb-6">
       <v-list-item :title="displayDate(loan.dateEmprunt)" subtitle="Date d’emprunt" />
@@ -23,7 +21,12 @@
     <v-card variant="outlined">
       <v-card-title>Pièces</v-card-title>
       <v-card-text>
-        <div v-for="line in loan.items" :key="line.itemId" class="piece-line">
+        <div
+          v-for="line in loan.items"
+          :key="line.itemId"
+          class="piece-line"
+          @click="toggle(line)"
+        >
           <v-checkbox
             v-if="auth.can('loans.write') && !line.returnedAt"
             v-model="selectedIds"
@@ -31,9 +34,10 @@
             hide-details
             density="compact"
             class="flex-grow-0"
+            @click.stop
           />
           <div class="flex-grow-1">
-            <router-link :to="{ name: 'item-detail', params: { id: line.itemId } }" class="text-subtitle-2">
+            <router-link :to="{ name: 'item-detail', params: { id: line.itemId } }" class="text-subtitle-2" @click.stop>
               {{ line.code }} — {{ line.nom }}
             </router-link>
             <div class="text-body-2 text-medium-emphasis">
@@ -61,11 +65,12 @@
           <v-btn color="primary" :loading="saving" @click="returnAll">Tout retourner</v-btn>
         </div>
         <p class="text-caption text-medium-emphasis mt-3 mb-0">
-          Chaque pièce retournée est datée (sélection ou tout d’un coup). Vous pouvez revenir plus tard pour le reste.
+          Chaque pièce retournée est datée. Vous pouvez revenir plus tard pour le reste.
         </p>
       </v-card-text>
     </v-card>
   </div>
+  <v-skeleton-loader v-else-if="loading" type="article, list-item-two-line, list-item-two-line" />
   <v-alert v-else-if="error" type="error">{{ error }}</v-alert>
 </template>
 
@@ -74,30 +79,46 @@ import { computed, ref, watch } from 'vue'
 import { api } from '@/services/api'
 import { useAuthStore } from '@/stores/auth'
 import { useInventoryStore } from '@/stores/inventory'
-import { displayDate } from '@/domain/person'
+import { useUiStore } from '@/stores/ui'
+import { displayDate, todayLocal } from '@/domain/dates'
+import { isOverdue, loanStatusColor, loanStatusLabel } from '@/domain/loans'
 
 const props = defineProps({ id: { type: String, required: true } })
 const auth = useAuthStore()
 const inventory = useInventoryStore()
+const ui = useUiStore()
 const loan = ref(null)
 const selectedIds = ref([])
-const dateRetour = ref(new Date().toISOString().slice(0, 10))
+const dateRetour = ref(todayLocal())
 const saving = ref(false)
+const loading = ref(false)
 const error = ref('')
 
 const hasOpen = computed(() => loan.value?.items?.some((line) => !line.returnedAt))
+const overdue = computed(() => isOverdue(loan.value))
+const chipLabel = computed(() => (overdue.value ? 'En retard' : loanStatusLabel(loan.value?.statut)))
+const chipColor = computed(() => (overdue.value ? 'error' : loanStatusColor(loan.value?.statut)))
 
-function statusLabel(status) {
-  return { en_cours: 'En cours', retour_partiel: 'Retour partiel', retourne: 'Retourné' }[status] || status
+function toggle(line) {
+  if (!auth.can('loans.write') || line.returnedAt) return
+  const id = line.itemId
+  if (selectedIds.value.includes(id)) {
+    selectedIds.value = selectedIds.value.filter((itemId) => itemId !== id)
+  } else {
+    selectedIds.value = [...selectedIds.value, id]
+  }
 }
 
 async function load() {
   error.value = ''
+  loading.value = true
   try {
     loan.value = await api.loan(props.id)
     selectedIds.value = []
   } catch (err) {
     error.value = err.message
+  } finally {
+    loading.value = false
   }
 }
 
@@ -106,6 +127,7 @@ async function returnSelected() {
 }
 
 async function returnAll() {
+  if (!confirm('Retourner toutes les pièces encore en cours à la date indiquée ?')) return
   await doReturn([])
 }
 
@@ -115,7 +137,8 @@ async function doReturn(itemIds) {
   try {
     loan.value = await api.returnLoan(props.id, itemIds, dateRetour.value)
     selectedIds.value = []
-    await inventory.refresh({ force: true })
+    inventory.patchLoan(loan.value)
+    ui.notify(loan.value.statut === 'retourne' ? 'Emprunt clôturé' : 'Retour enregistré')
   } catch (err) {
     error.value = err.message
   } finally {
@@ -133,6 +156,7 @@ watch(() => props.id, load, { immediate: true })
   align-items: flex-start;
   padding: 12px 0;
   border-bottom: 1px solid #ecece4;
+  cursor: pointer;
 }
 a {
   text-decoration: none;

@@ -22,7 +22,7 @@
       <v-col cols="12" md="7">
         <v-card variant="outlined">
           <v-card-title>Dernières pièces</v-card-title>
-          <v-list>
+          <v-list v-if="recent.length">
             <v-list-item
               v-for="item in recent"
               :key="item.id"
@@ -35,6 +35,7 @@
               </template>
             </v-list-item>
           </v-list>
+          <v-card-text v-else class="text-medium-emphasis">Aucune fiche pour le moment.</v-card-text>
         </v-card>
       </v-col>
       <v-col cols="12" md="5">
@@ -46,8 +47,12 @@
               :key="loan.id"
               :to="{ name: 'loan-detail', params: { id: loan.id } }"
               :title="loan.titre"
-              :subtitle="`${loan.personName} · ${loan.dateEmprunt}`"
-            />
+              :subtitle="`${loan.personName} · ${displayDate(loan.dateEmprunt)}`"
+            >
+              <template #append>
+                <v-chip v-if="isOverdue(loan)" size="x-small" color="error" variant="tonal">Retard</v-chip>
+              </template>
+            </v-list-item>
           </v-list>
           <v-card-text v-else class="text-medium-emphasis">Aucun emprunt en cours.</v-card-text>
         </v-card>
@@ -61,6 +66,8 @@ import { computed, onMounted } from 'vue'
 import { useInventoryStore } from '@/stores/inventory'
 import { useAuthStore } from '@/stores/auth'
 import { CATEGORIES, categoryLabel } from '@/domain/taxonomy'
+import { displayDate } from '@/domain/dates'
+import { isOverdue } from '@/domain/loans'
 import StatusChip from '@/components/StatusChip.vue'
 
 const inventory = useInventoryStore()

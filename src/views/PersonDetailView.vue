@@ -4,6 +4,13 @@
       <v-btn variant="text" to="/personnes" prepend-icon="mdi-arrow-left">Personnes</v-btn>
       <v-spacer />
       <v-btn
+        v-if="auth.can('loans.write')"
+        color="primary"
+        :to="{ path: '/panier', query: { person: person.id } }"
+      >
+        Nouvel emprunt
+      </v-btn>
+      <v-btn
         v-if="auth.can('people.write')"
         variant="tonal"
         :to="{ name: 'person-edit', params: { id: person.id } }"
@@ -60,6 +67,7 @@
       </div>
     </v-card>
   </div>
+  <v-skeleton-loader v-else-if="loading" type="article, list-item-two-line" />
   <v-alert v-else-if="error" type="error">{{ error }}</v-alert>
 </template>
 
@@ -70,6 +78,7 @@ import { api } from '@/services/api'
 import { useAuthStore } from '@/stores/auth'
 import { useInventoryStore } from '@/stores/inventory'
 import { PERSON_MEASUREMENTS, displayDate } from '@/domain/person'
+import { useUiStore } from '@/stores/ui'
 import ImageGallery from '@/components/ImageGallery.vue'
 
 const props = defineProps({ id: { type: String, required: true } })
@@ -78,6 +87,8 @@ const auth = useAuthStore()
 const inventory = useInventoryStore()
 const person = ref(null)
 const error = ref('')
+const loading = ref(false)
+const ui = useUiStore()
 
 const filledMeasures = computed(() =>
   PERSON_MEASUREMENTS.filter((field) => {
@@ -92,18 +103,26 @@ function statusLabel(status) {
 
 async function load() {
   error.value = ''
+  loading.value = true
   try {
     person.value = await api.person(props.id)
   } catch (err) {
     error.value = err.message
+  } finally {
+    loading.value = false
   }
 }
 
 async function remove() {
   if (!confirm(`Supprimer ${person.value.nom} ?`)) return
-  await api.deletePerson(props.id)
-    await inventory.refresh({ force: true })
-  router.push('/personnes')
+  try {
+    await api.deletePerson(props.id)
+    inventory.removePerson(props.id)
+    ui.notify('Personne supprimée')
+    router.push('/personnes')
+  } catch (err) {
+    error.value = err.message
+  }
 }
 
 watch(() => props.id, load, { immediate: true })

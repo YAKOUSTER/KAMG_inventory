@@ -39,7 +39,7 @@ async function onSave(payload) {
   error.value = ''
   try {
     const saved = props.id ? await api.updatePerson(props.id, payload) : await api.createPerson(payload)
-    await inventory.refresh({ force: true })
+    inventory.upsertPerson(saved)
     router.push({ name: 'person-detail', params: { id: saved.id } })
   } catch (err) {
     error.value = err.message

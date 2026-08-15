@@ -7,7 +7,7 @@
         v-if="canLoan"
         color="primary"
         :disabled="cart.isInCart(item.id)"
-        @click="cart.add(item)"
+        @click="addToCart"
       >
         {{ cart.isInCart(item.id) ? 'Déjà au panier' : 'Ajouter au panier' }}
       </v-btn>
@@ -76,13 +76,14 @@
           v-for="entry in item.loanHistory"
           :key="entry.loanId"
           :to="{ name: 'loan-detail', params: { id: entry.loanId } }"
-          :title="`${entry.personName} — ${entry.dateEmprunt}`"
-          :subtitle="`Retour : ${entry.dateRetour || 'en cours'}${entry.comment ? ' · ' + entry.comment : ''}`"
+          :title="`${entry.personName} — ${displayDate(entry.dateEmprunt)}`"
+          :subtitle="`Retour : ${entry.dateRetour ? displayDate(entry.dateRetour) : 'en cours'}${entry.comment ? ' · ' + entry.comment : ''}`"
         />
       </v-list>
       <v-card-text v-else>Aucun emprunt enregistré pour cette fiche.</v-card-text>
     </v-card>
   </div>
+  <v-skeleton-loader v-else-if="loading" type="article, list-item-two-line" />
   <v-alert v-else-if="error" type="error">{{ error }}</v-alert>
 </template>
 
@@ -95,6 +96,8 @@ import { useInventoryStore } from '@/stores/inventory'
 import { useAuthStore } from '@/stores/auth'
 import { MEASUREMENT_FIELDS, categoryIcon, categoryLabel, visibleMeasurements } from '@/domain/taxonomy'
 import { isLoanable } from '@/domain/item'
+import { useUiStore } from '@/stores/ui'
+import { displayDate } from '@/domain/dates'
 import ItemCard from '@/components/ItemCard.vue'
 import StatusChip from '@/components/StatusChip.vue'
 import ImageGallery from '@/components/ImageGallery.vue'
@@ -106,6 +109,8 @@ const inventory = useInventoryStore()
 const auth = useAuthStore()
 const item = ref(null)
 const error = ref('')
+const loading = ref(false)
+const ui = useUiStore()
 
 const canLoan = computed(() => auth.can('loans.write') && isLoanable(item.value))
 
@@ -159,18 +164,31 @@ const measureRows = computed(() => {
 
 async function load() {
   error.value = ''
+  loading.value = true
   try {
     item.value = await api.item(props.id)
   } catch (err) {
     error.value = err.message
+  } finally {
+    loading.value = false
   }
+}
+
+function addToCart() {
+  cart.add(item.value)
+  ui.notify(`${item.value.code} ajoutée au panier`, { to: '/panier', action: 'Panier' })
 }
 
 async function remove() {
   if (!confirm('Supprimer cette fiche ?')) return
-  await api.deleteItem(props.id)
-    await inventory.refresh({ force: true })
-  router.push('/inventaire')
+  try {
+    await api.deleteItem(props.id)
+    inventory.removeItem(props.id)
+    ui.notify('Fiche supprimée')
+    router.push('/inventaire')
+  } catch (err) {
+    error.value = err.message
+  }
 }
 
 watch(() => props.id, load, { immediate: true })

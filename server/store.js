@@ -4,9 +4,10 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { randomUUID } from 'node:crypto'
 import { DEFAULT_REFERENTIELS } from '../src/domain/taxonomy.js'
-import { normalizeItem } from '../src/domain/item.js'
+import { isLoanable, normalizeItem } from '../src/domain/item.js'
 import { ROLE_PRESETS, can, publicUser } from '../src/domain/auth.js'
 import { groupLoansByYear, normalizePerson } from '../src/domain/person.js'
+import { todayLocal, formatDate } from '../src/domain/dates.js'
 import { hashPassword, randomToken, verifyPassword } from './password.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -136,7 +137,8 @@ export function withDb(mutator, options = {}) {
 }
 
 export async function exportDb(options = {}) {
-  return readDb(options)
+  const db = await readDb(options)
+  return { ...db, sessions: [] }
 }
 
 export async function importDb(payload, options = {}) {
@@ -144,8 +146,8 @@ export async function importDb(payload, options = {}) {
   const db = ensureShape(payload)
   if (!db.users.length && current.users.length) {
     db.users = current.users
-    db.sessions = current.sessions || []
   }
+  db.sessions = current.sessions || []
   await writeDb(db, options)
   return db
 }
@@ -307,12 +309,15 @@ export async function createLoan(payload, options = {}) {
     if (!person) throw Object.assign(new Error('Personne introuvable'), { status: 400 })
     const itemIds = (payload.items || []).map((i) => i.itemId || i.id)
     if (!itemIds.length) throw Object.assign(new Error('Le panier est vide'), { status: 400 })
+    if (new Set(itemIds).size !== itemIds.length) {
+      throw Object.assign(new Error('Le panier contient deux fois la même pièce'), { status: 400 })
+    }
     const lines = []
     for (const itemId of itemIds) {
       const item = db.items.find((i) => i.id === itemId)
       if (!item) throw Object.assign(new Error('Pièce introuvable'), { status: 400 })
-      if (item.disponibilite !== 'Disponible') {
-        throw Object.assign(new Error(`${item.code} n'est pas disponible`), { status: 409 })
+      if (!isLoanable(item)) {
+        throw Object.assign(new Error(`${item.code} n'est pas disponible à l'emprunt`), { status: 409 })
       }
       const comment = (payload.items || []).find((i) => (i.itemId || i.id) === itemId)?.comment || ''
       item.disponibilite = 'Emprunté'
@@ -321,9 +326,9 @@ export async function createLoan(payload, options = {}) {
     }
     const loan = {
       id: randomUUID(),
-      titre: payload.titre || `Emprunt ${person.nom}`,
+      titre: (payload.titre || '').trim() || `Emprunt ${person.nom}`,
       personId: person.id,
-      dateEmprunt: payload.dateEmprunt || new Date().toISOString().slice(0, 10),
+      dateEmprunt: payload.dateEmprunt || todayLocal(),
       dateRetourPrevue: payload.dateRetourPrevue || '',
       dateRetour: null,
       statut: 'en_cours',
@@ -339,8 +344,15 @@ export async function returnLoanItems(loanId, itemIds, options = {}) {
   return withDb((db) => {
     const loan = db.loans.find((l) => l.id === loanId)
     if (!loan) throw Object.assign(new Error('Emprunt introuvable'), { status: 404 })
-    const targets = itemIds?.length ? itemIds : loan.items.filter((i) => !i.returnedAt).map((i) => i.itemId)
-    const dateRetour = (options.dateRetour || new Date().toISOString()).slice(0, 10)
+    const requested = itemIds?.length ? itemIds : loan.items.filter((i) => !i.returnedAt).map((i) => i.itemId)
+    const targets = requested.filter((itemId) => {
+      const line = loan.items.find((i) => i.itemId === itemId)
+      return line && !line.returnedAt
+    })
+    if (!targets.length) {
+      throw Object.assign(new Error('Aucune pièce à retourner'), { status: 400 })
+    }
+    const dateRetour = formatDate(options.dateRetour || todayLocal())
     for (const itemId of targets) {
       const line = loan.items.find((i) => i.itemId === itemId)
       if (!line || line.returnedAt) continue
