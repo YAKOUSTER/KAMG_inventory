@@ -31,31 +31,37 @@
             <v-icon>mdi-delete-outline</v-icon>
           </v-btn>
         </div>
-        <v-text-field
-          class="mt-2"
-          :model-value="item.comment"
-          label="Commentaire (état, note de sortie…)"
-          hide-details
-          @update:model-value="cart.setComment(item.id, $event)"
-        />
+        <FieldRow label="Commentaire" hint="état, note de sortie…" class="mt-2">
+          <v-text-field
+            :model-value="item.comment"
+            hide-details
+            @update:model-value="cart.setComment(item.id, $event)"
+          />
+        </FieldRow>
       </div>
     </div>
 
-    <div v-if="cart.items.length" class="mt-6">
-          <v-autocomplete
-            v-model="personId"
-            :items="peopleItems"
-            item-title="title"
-            item-value="id"
-            label="Emprunteur"
-            :disabled="!peopleItems.length"
-          />
+    <div v-if="cart.items.length" class="mt-6 form-fields">
+          <FieldRow label="Emprunteur">
+            <v-autocomplete
+              v-model="personId"
+              :items="peopleItems"
+              item-title="title"
+              item-value="id"
+              hide-details
+              :disabled="!peopleItems.length"
+            />
+          </FieldRow>
           <p v-if="!inventory.people.length" class="text-body-2 mb-4">
             Aucune personne enregistrée.
             <router-link v-if="auth.can('people.write')" to="/personnes/nouvelle">Créer une fiche personne</router-link>
           </p>
-          <v-text-field v-model="titre" label="Titre de l'emprunt (spectacle, répétition…)" />
-          <v-text-field v-model="dateRetourPrevue" label="Retour prévu" type="date" />
+          <FieldRow label="Titre de l'emprunt" hint="spectacle, répétition…">
+            <v-text-field v-model="titre" hide-details />
+          </FieldRow>
+          <FieldRow label="Retour prévu">
+            <v-text-field v-model="dateRetourPrevue" hide-details type="date" />
+          </FieldRow>
           <v-alert v-if="error" type="error" class="mb-3">{{ error }}</v-alert>
           <v-btn
             color="primary"
@@ -82,6 +88,7 @@ import { api } from '@/services/api'
 import { isLoanable } from '@/domain/item'
 import { addDays, todayLocal } from '@/domain/dates'
 import { personDisplayName } from '@/domain/person'
+import FieldRow from '@/components/FieldRow.vue'
 
 const cart = useCartStore()
 const inventory = useInventoryStore()
