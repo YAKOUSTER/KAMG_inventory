@@ -15,10 +15,12 @@ describe('permissions', () => {
   it('donne tous les droits à l’admin, pas la création au gestionnaire', () => {
     assert.equal(can(admin, 'items.create'), true)
     assert.equal(can(admin, 'users.manage'), true)
+    assert.equal(can(admin, 'loans.manage'), true)
     assert.equal(can(admin, 'audit.read'), true)
     assert.equal(can(gestion, 'items.update'), true)
     assert.equal(can(gestion, 'items.create'), false)
     assert.equal(can(gestion, 'loans.write'), true)
+    assert.equal(can(gestion, 'loans.manage'), false)
     assert.equal(can(gestion, 'audit.read'), false)
     assert.equal(can(lecteur, 'items.read'), true)
     assert.equal(can(lecteur, 'loans.write'), false)

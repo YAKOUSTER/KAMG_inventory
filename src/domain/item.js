@@ -24,6 +24,7 @@ export function emptyItem(categorie = 'piece_costume') {
     tags: [],
     perle: false,
     broderie: false,
+    bonneReconstitution: false,
     motif: '',
     images: [],
     photoSourceId: '',
@@ -82,6 +83,7 @@ export function normalizeItem(input = {}, { id, now, categoryIds: allowedCategor
   }
   item.code = String(item.code).trim()
   item.nom = String(item.nom).trim()
+  item.bonneReconstitution = Boolean(item.bonneReconstitution)
   item.tags = Array.isArray(item.tags) ? item.tags.filter(Boolean) : []
   item.images = normalizeImages(item.images)
   item.photoSourceId =

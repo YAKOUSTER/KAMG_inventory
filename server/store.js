@@ -492,14 +492,20 @@ export async function createLoan(payload, options = {}) {
     if (new Set(itemIds).size !== itemIds.length) {
       throw Object.assign(new Error('Le panier contient deux fois la même pièce'), { status: 400 })
     }
+    const archiveReturn = formatDate(payload.dateRetour || '')
+    const isArchive = Boolean(archiveReturn)
     const lines = []
     for (const itemId of itemIds) {
       const item = db.items.find((i) => i.id === itemId)
       if (!item) throw Object.assign(new Error('Pièce introuvable'), { status: 400 })
+      const comment = (payload.items || []).find((i) => (i.itemId || i.id) === itemId)?.comment || ''
+      if (isArchive) {
+        lines.push({ itemId, comment, returnedAt: archiveReturn })
+        continue
+      }
       if (!isLoanable(item)) {
         throw Object.assign(new Error(`${item.code} n'est pas disponible à l'emprunt`), { status: 409 })
       }
-      const comment = (payload.items || []).find((i) => (i.itemId || i.id) === itemId)?.comment || ''
       item.disponibilite = 'Emprunté'
       item.updatedAt = new Date().toISOString()
       lines.push({ itemId, comment, returnedAt: null })
@@ -508,10 +514,10 @@ export async function createLoan(payload, options = {}) {
       id: randomUUID(),
       titre: (payload.titre || '').trim() || `Emprunt ${personDisplayName(person)}`,
       personId: person.id,
-      dateEmprunt: payload.dateEmprunt || todayLocal(),
-      dateRetourPrevue: payload.dateRetourPrevue || '',
-      dateRetour: null,
-      statut: 'en_cours',
+      dateEmprunt: formatDate(payload.dateEmprunt) || todayLocal(),
+      dateRetourPrevue: formatDate(payload.dateRetourPrevue) || '',
+      dateRetour: isArchive ? archiveReturn : null,
+      statut: isArchive ? 'retourne' : 'en_cours',
       items: lines,
       createdAt: new Date().toISOString(),
     }
@@ -581,6 +587,122 @@ export async function returnLoanItems(loanId, itemIds, options = {}) {
       },
     })
     return decorateLoan(loan, db)
+  }, options)
+}
+
+function syncLoanStatus(loan) {
+  const open = loan.items.filter((line) => !line.returnedAt)
+  if (!open.length) {
+    loan.statut = 'retourne'
+    if (!loan.dateRetour) {
+      const dates = loan.items.map((line) => line.returnedAt).filter(Boolean).sort()
+      loan.dateRetour = dates.at(-1) || null
+    }
+    return
+  }
+  if (loan.items.some((line) => line.returnedAt)) {
+    loan.statut = 'retour_partiel'
+    loan.dateRetour = null
+    return
+  }
+  loan.statut = 'en_cours'
+  loan.dateRetour = null
+}
+
+export async function updateLoan(id, payload, options = {}) {
+  return withDb((db) => {
+    const loan = db.loans.find((l) => l.id === id)
+    if (!loan) throw Object.assign(new Error('Emprunt introuvable'), { status: 404 })
+
+    if (payload.personId != null) {
+      const person = db.people.find((p) => p.id === payload.personId)
+      if (!person) throw Object.assign(new Error('Personne introuvable'), { status: 400 })
+      loan.personId = person.id
+    }
+    if (payload.titre != null) {
+      loan.titre = String(payload.titre).trim() || loan.titre
+    }
+    if (payload.dateEmprunt != null) {
+      loan.dateEmprunt = formatDate(payload.dateEmprunt) || loan.dateEmprunt
+    }
+    if (payload.dateRetourPrevue != null) {
+      loan.dateRetourPrevue = formatDate(payload.dateRetourPrevue)
+    }
+
+    if (payload.dateRetour != null) {
+      const dateRetour = formatDate(payload.dateRetour)
+      if (dateRetour) {
+        for (const line of loan.items) {
+          if (line.returnedAt) continue
+          line.returnedAt = dateRetour
+          const item = db.items.find((i) => i.id === line.itemId)
+          if (item && item.disponibilite === 'Emprunté') {
+            item.disponibilite = 'Disponible'
+            item.updatedAt = new Date().toISOString()
+          }
+        }
+        loan.dateRetour = dateRetour
+        loan.statut = 'retourne'
+      } else {
+        loan.dateRetour = null
+        syncLoanStatus(loan)
+      }
+    } else {
+      syncLoanStatus(loan)
+    }
+
+    const person = db.people.find((p) => p.id === loan.personId)
+    appendAudit(db, options.actor, {
+      action: 'loan.update',
+      entityType: 'loan',
+      entityId: loan.id,
+      entityLabel: loanLabel(loan, person),
+      summary: `Emprunt modifié — ${loanLabel(loan, person)}`,
+      meta: {
+        personId: loan.personId,
+        personName: personLabel(person),
+        dateEmprunt: loan.dateEmprunt,
+        dateRetour: loan.dateRetour,
+        statut: loan.statut,
+      },
+    })
+    return decorateLoan(loan, db)
+  }, options)
+}
+
+export async function cancelLoan(id, options = {}) {
+  return withDb((db) => {
+    const loan = db.loans.find((l) => l.id === id)
+    if (!loan) throw Object.assign(new Error('Emprunt introuvable'), { status: 404 })
+    if (loan.items.some((line) => line.returnedAt)) {
+      throw Object.assign(
+        new Error('Impossible d’annuler un emprunt avec des retours déjà enregistrés'),
+        { status: 409 },
+      )
+    }
+    const person = db.people.find((p) => p.id === loan.personId)
+    for (const line of loan.items) {
+      const item = db.items.find((i) => i.id === line.itemId)
+      if (item && item.disponibilite === 'Emprunté') {
+        item.disponibilite = 'Disponible'
+        item.updatedAt = new Date().toISOString()
+      }
+    }
+    db.loans = db.loans.filter((entry) => entry.id !== id)
+    appendAudit(db, options.actor, {
+      action: 'loan.cancel',
+      entityType: 'loan',
+      entityId: loan.id,
+      entityLabel: loanLabel(loan, person),
+      summary: `Emprunt annulé — ${loanLabel(loan, person)}`,
+      meta: {
+        personId: loan.personId,
+        personName: personLabel(person),
+        itemIds: loan.items.map((line) => line.itemId),
+        itemCodes: codesForItems(db, loan.items.map((line) => line.itemId)),
+      },
+    })
+    return { id: loan.id, cancelled: true }
   }, options)
 }
 

@@ -42,6 +42,14 @@
         <FieldRow v-if="!isFourniture" label="Disponibilité">
           <v-select v-model="item.disponibilite" :items="referentiels.disponibilites" hide-details />
         </FieldRow>
+        <FieldRow v-if="!isFourniture && !hasStockTracking" label="Reconstitution">
+          <v-checkbox
+            v-model="item.bonneReconstitution"
+            label="Bonne reconstitution validée"
+            hide-details
+            density="compact"
+          />
+        </FieldRow>
         <FieldRow v-if="isFourniture" label="Fournisseur">
           <v-text-field v-model="item.fournisseur" hide-details />
         </FieldRow>

@@ -7,7 +7,12 @@
           <v-text-field v-model="person.prenom" hide-details="auto" :rules="[required]" />
         </FieldRow>
         <FieldRow label="Nom">
-          <v-text-field v-model="person.nom" hide-details="auto" :rules="[required]" />
+          <v-text-field
+            :model-value="person.nom"
+            hide-details="auto"
+            :rules="[required]"
+            @update:model-value="person.nom = String($event || '').toLocaleUpperCase('fr')"
+          />
         </FieldRow>
         <FieldRow v-if="showAnnee" label="Année de promotion">
           <v-select v-model="person.anneeMembre" :items="membershipYears()" hide-details clearable />

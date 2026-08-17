@@ -116,10 +116,29 @@ export function primaryPromotionRole(person) {
   return PROMOTION_ROLE_ORDER.find((id) => roles.includes(id)) || 'autre'
 }
 
+export function foldText(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
+}
+
+export function matchesSearch(haystack, query) {
+  const foldedQuery = foldText(query)
+  if (!foldedQuery) return true
+  const foldedHaystack = foldText(haystack)
+  return foldedQuery
+    .split(/\s+/)
+    .filter(Boolean)
+    .every((token) => foldedHaystack.includes(token))
+}
+
 export function personSearchText(person) {
   return [
     person?.prenom,
     person?.nom,
+    personDisplayName(person),
     personRolesLabel(person),
     person?.email,
     person?.telephone,
@@ -127,7 +146,6 @@ export function personSearchText(person) {
   ]
     .filter(Boolean)
     .join(' ')
-    .toLowerCase()
 }
 
 export function availablePersonYears(people = [], now = new Date()) {
@@ -140,9 +158,9 @@ export function availablePersonYears(people = [], now = new Date()) {
 }
 
 export function filterPeople(people = [], filters = {}) {
-  const q = (filters.search || '').trim().toLowerCase()
+  const q = (filters.search || '').trim()
   return people.filter((person) => {
-    if (q && !personSearchText(person).includes(q)) return false
+    if (q && !matchesSearch(personSearchText(person), q)) return false
     if (filters.annee && filters.annee !== 'Toutes' && personYear(person) !== filters.annee) return false
     if (filters.role && filters.role !== 'Tous') {
       if (!normalizeRoles(person).includes(filters.role)) return false
@@ -248,7 +266,7 @@ export function normalizePerson(input = {}, { id, now } = {}) {
   if (!person.id) throw new Error('id requis')
   if (!person.nom?.trim()) throw new Error('Le nom est requis')
   if (!person.prenom?.trim()) throw new Error('Le prénom est requis')
-  person.nom = String(person.nom).trim()
+  person.nom = String(person.nom).trim().toLocaleUpperCase('fr')
   person.prenom = String(person.prenom).trim()
   person.roles = normalizeRoles(person)
   person.anneeMembre = hasCohortRole(person) ? String(person.anneeMembre || '').trim() : ''

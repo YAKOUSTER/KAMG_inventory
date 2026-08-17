@@ -15,6 +15,8 @@ import {
   getLoan,
   createLoan,
   returnLoanItems,
+  updateLoan,
+  cancelLoan,
   getStats,
   exportDb,
   importDb,
@@ -218,6 +220,16 @@ export function createApiApp() {
         actor: req.user,
       }),
     ),
+  )
+  app.put(
+    '/api/loans/:id',
+    auth('loans.manage'),
+    handle((req) => updateLoan(req.params.id, req.body, { actor: req.user })),
+  )
+  app.delete(
+    '/api/loans/:id',
+    auth('loans.manage'),
+    handle((req) => cancelLoan(req.params.id, { actor: req.user })),
   )
 
   app.get(

@@ -18,6 +18,47 @@
       <DetailRow v-if="loan.dateRetour" label="Retour complet" :value="displayDate(loan.dateRetour)" />
     </div>
 
+    <section v-if="auth.can('loans.manage')" class="page-block">
+      <h2 class="section-label">Gestion de l’emprunt</h2>
+      <div class="form-fields">
+        <FieldRow label="Titre">
+          <v-text-field v-model="editForm.titre" hide-details />
+        </FieldRow>
+        <FieldRow label="Emprunteur">
+          <v-autocomplete
+            v-model="editForm.personId"
+            :items="peopleItems"
+            item-title="title"
+            item-value="id"
+            hide-details
+            :custom-filter="filterPerson"
+          />
+        </FieldRow>
+        <FieldRow label="Date d’emprunt">
+          <v-text-field v-model="editForm.dateEmprunt" hide-details type="date" />
+        </FieldRow>
+        <FieldRow label="Retour prévu">
+          <v-text-field v-model="editForm.dateRetourPrevue" hide-details type="date" clearable />
+        </FieldRow>
+        <FieldRow label="Retour effectué" hint="Renseigner pour clôturer rétroactivement">
+          <v-text-field v-model="editForm.dateRetour" hide-details type="date" clearable />
+        </FieldRow>
+        <v-alert v-if="manageError" type="error" class="mb-3">{{ manageError }}</v-alert>
+        <div class="d-flex flex-wrap ga-2">
+          <v-btn color="primary" :loading="savingEdit" @click="saveLoanEdits">Enregistrer</v-btn>
+          <v-btn
+            v-if="canCancelLoan"
+            color="error"
+            variant="tonal"
+            :loading="cancelling"
+            @click="cancelLoan"
+          >
+            Annuler l’emprunt
+          </v-btn>
+        </div>
+      </div>
+    </section>
+
     <section class="page-block">
       <h2 class="section-label">Pièces</h2>
       <div
@@ -88,17 +129,20 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { api } from '@/services/api'
 import { useAuthStore } from '@/stores/auth'
 import { useInventoryStore } from '@/stores/inventory'
 import { useUiStore } from '@/stores/ui'
-import { displayDate, todayLocal } from '@/domain/dates'
+import { displayDate, formatDate, todayLocal } from '@/domain/dates'
 import { isOverdue, loanStatusColor, loanStatusLabel } from '@/domain/loans'
+import { matchesSearch, personDisplayName } from '@/domain/person'
 import DetailRow from '@/components/DetailRow.vue'
 import FieldRow from '@/components/FieldRow.vue'
 import ReturnItemForm from '@/components/ReturnItemForm.vue'
 
 const props = defineProps({ id: { type: String, required: true } })
+const router = useRouter()
 const auth = useAuthStore()
 const inventory = useInventoryStore()
 const ui = useUiStore()
@@ -108,10 +152,43 @@ const selectedIds = ref([])
 const returnFormRefs = ref({})
 const dateRetour = ref(todayLocal())
 const saving = ref(false)
+const savingEdit = ref(false)
+const cancelling = ref(false)
 const loading = ref(false)
 const error = ref('')
+const manageError = ref('')
+const editForm = ref({
+  titre: '',
+  personId: '',
+  dateEmprunt: '',
+  dateRetourPrevue: '',
+  dateRetour: '',
+})
 
 const loan = computed(() => inventory.loanById(props.id) || remoteLoan.value)
+
+const peopleItems = computed(() =>
+  [...inventory.people]
+    .sort((a, b) => personDisplayName(a).localeCompare(personDisplayName(b), 'fr'))
+    .map((person) => ({ id: person.id, title: personDisplayName(person) })),
+)
+
+const canCancelLoan = computed(() => loan.value?.items?.every((line) => !line.returnedAt))
+
+function filterPerson(_value, query, item) {
+  return matchesSearch(item.raw.title, query)
+}
+
+function syncEditForm() {
+  if (!loan.value) return
+  editForm.value = {
+    titre: loan.value.titre || '',
+    personId: loan.value.personId || '',
+    dateEmprunt: formatDate(loan.value.dateEmprunt),
+    dateRetourPrevue: formatDate(loan.value.dateRetourPrevue),
+    dateRetour: formatDate(loan.value.dateRetour),
+  }
+}
 
 const openLines = computed(() => (loan.value?.items || []).filter((line) => !line.returnedAt))
 
@@ -203,7 +280,48 @@ async function doReturn(itemIds) {
   }
 }
 
+async function saveLoanEdits() {
+  savingEdit.value = true
+  manageError.value = ''
+  try {
+    const updated = await api.updateLoan(props.id, {
+      titre: editForm.value.titre,
+      personId: editForm.value.personId,
+      dateEmprunt: editForm.value.dateEmprunt,
+      dateRetourPrevue: editForm.value.dateRetourPrevue,
+      dateRetour: editForm.value.dateRetour,
+    })
+    inventory.patchLoan(updated)
+    remoteLoan.value = updated
+    await inventory.refresh({ force: true })
+    syncEditForm()
+    ui.notify('Emprunt mis à jour')
+  } catch (err) {
+    manageError.value = err.message
+  } finally {
+    savingEdit.value = false
+  }
+}
+
+async function cancelLoan() {
+  if (!confirm('Annuler cet emprunt et remettre les pièces disponibles ?')) return
+  cancelling.value = true
+  manageError.value = ''
+  try {
+    await api.cancelLoan(props.id)
+    inventory.removeLoan(props.id)
+    await inventory.refresh({ force: true })
+    ui.notify('Emprunt annulé')
+    router.push({ name: 'loans' })
+  } catch (err) {
+    manageError.value = err.message
+  } finally {
+    cancelling.value = false
+  }
+}
+
 watch(() => props.id, load, { immediate: true })
+watch(loan, syncEditForm, { immediate: true })
 </script>
 
 <style scoped>

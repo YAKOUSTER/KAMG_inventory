@@ -31,6 +31,15 @@
         <h1 class="text-h4 page-title mb-2">{{ item.nom }}</h1>
         <div class="text-subtitle-1 mb-3">{{ item.type }}</div>
         <StatusChip :status="item.disponibilite" />
+        <v-chip
+          v-if="item.bonneReconstitution"
+          class="ml-2"
+          size="small"
+          color="success"
+          variant="tonal"
+        >
+          Bonne reconstitution
+        </v-chip>
         <div class="detail-rows mt-5">
           <DetailRow v-for="row in facts" :key="row.label" :label="row.label" :value="row.value || '—'" />
         </div>
@@ -209,6 +218,9 @@ const facts = computed(() => {
     { label: 'Composition', value: item.value.composition },
     { label: 'Couleur', value: item.value.couleur },
     { label: 'État', value: item.value.etat },
+    ...(item.value.bonneReconstitution
+      ? [{ label: 'Reconstitution', value: 'Bonne reconstitution validée' }]
+      : []),
     {
       label: 'Propreté',
       value: item.value.propre == null ? '' : item.value.propre ? 'Propre' : 'Sale',

@@ -19,9 +19,9 @@ describe('normalizePerson', () => {
       { nom: 'Le Gall', prenom: 'Anna', mesures: { tourTaille: 70 } },
       { id: 'p1' },
     )
-    assert.equal(person.nom, 'Le Gall')
+    assert.equal(person.nom, 'LE GALL')
     assert.equal(person.prenom, 'Anna')
-    assert.equal(personDisplayName(person), 'Anna Le Gall')
+    assert.equal(personDisplayName(person), 'Anna LE GALL')
     assert.equal(person.mesures.tourTaille, 70)
     assert.equal(person.mesures.tourTete, null)
     assert.equal(person.images.length, 0)
@@ -94,6 +94,14 @@ describe('filterPeople et promotions', () => {
   it('filtre par année et rôle', () => {
     assert.equal(filterPeople(people, { annee: '2024' }).length, 2)
     assert.equal(filterPeople(people, { role: 'danseur_ado' }).length, 1)
+  })
+
+  it('recherche insensible à la casse et aux accents', () => {
+    const list = [{ id: '5', prenom: 'Léa', nom: 'LE GALL', roles: ['couture'], email: 'lea@exemple.fr' }]
+    assert.equal(filterPeople(list, { search: 'le gall' }).length, 1)
+    assert.equal(filterPeople(list, { search: 'LE GALL' }).length, 1)
+    assert.equal(filterPeople(list, { search: 'lea' }).length, 1)
+    assert.equal(filterPeople(list, { search: 'LEA' }).length, 1)
   })
 
   it('regroupe une promotion par catégories pour une année', () => {

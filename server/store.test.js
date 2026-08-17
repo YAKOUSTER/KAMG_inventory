@@ -12,6 +12,8 @@ import {
   getPerson,
   createLoan,
   returnLoanItems,
+  updateLoan,
+  cancelLoan,
   listItems,
   importDb,
   exportDb,
@@ -88,7 +90,7 @@ describe('json store', () => {
       options,
     )
     assert.equal(loan.statut, 'en_cours')
-    assert.equal(loan.personName, 'Anna Le Gall')
+    assert.equal(loan.personName, 'Anna LE GALL')
     assert.equal((await getItem(jupe.id, options)).disponibilite, 'Emprunté')
 
     const partial = await returnLoanItems(loan.id, [jupe.id], { ...options, dateRetour: '2026-08-01' })
@@ -102,6 +104,61 @@ describe('json store', () => {
     assert.equal(done.items.find((line) => line.itemId === gilet.id).returnedAt, '2026-08-15')
     assert.equal(done.dateRetour, '2026-08-15')
     assert.equal((await getItem(gilet.id, options)).disponibilite, 'Disponible')
+  })
+
+  it('archive un emprunt passé sans bloquer les pièces', async () => {
+    const jupe = await createItem(
+      { code: 'JUP-ARC', nom: 'Jupe archive', categorie: 'piece_costume', disponibilite: 'Disponible' },
+      options,
+    )
+    const person = await createPerson({ nom: 'Archive', prenom: 'Test' }, options)
+    const loan = await createLoan(
+      {
+        personId: person.id,
+        dateEmprunt: '2024-06-01',
+        dateRetour: '2024-06-10',
+        items: [{ itemId: jupe.id }],
+      },
+      options,
+    )
+    assert.equal(loan.statut, 'retourne')
+    assert.equal(loan.dateEmprunt, '2024-06-01')
+    assert.equal(loan.dateRetour, '2024-06-10')
+    assert.equal(loan.items[0].returnedAt, '2024-06-10')
+    assert.equal((await getItem(jupe.id, options)).disponibilite, 'Disponible')
+  })
+
+  it('modifie et annule un emprunt', async () => {
+    const jupe = await createItem(
+      { code: 'JUP-MNG', nom: 'Jupe manage', categorie: 'piece_costume', disponibilite: 'Disponible' },
+      options,
+    )
+    const person = await createPerson({ nom: 'Manage', prenom: 'Loan' }, options)
+    const loan = await createLoan(
+      { personId: person.id, dateEmprunt: '2026-01-01', items: [{ itemId: jupe.id }] },
+      options,
+    )
+    const updated = await updateLoan(
+      loan.id,
+      { titre: 'Emprunt corrigé', dateEmprunt: '2025-12-20', dateRetourPrevue: '2026-01-15' },
+      options,
+    )
+    assert.equal(updated.titre, 'Emprunt corrigé')
+    assert.equal(updated.dateEmprunt, '2025-12-20')
+    assert.equal(updated.dateRetourPrevue, '2026-01-15')
+
+    const closed = await updateLoan(loan.id, { dateRetour: '2026-01-10' }, options)
+    assert.equal(closed.statut, 'retourne')
+    assert.equal(closed.dateRetour, '2026-01-10')
+    assert.equal((await getItem(jupe.id, options)).disponibilite, 'Disponible')
+
+    const jupe2 = await createItem(
+      { code: 'JUP-CAN', nom: 'Jupe cancel', categorie: 'piece_costume', disponibilite: 'Disponible' },
+      options,
+    )
+    const openLoan = await createLoan({ personId: person.id, items: [{ itemId: jupe2.id }] }, options)
+    await cancelLoan(openLoan.id, options)
+    assert.equal((await getItem(jupe2.id, options)).disponibilite, 'Disponible')
   })
 
   it('refuse de supprimer une pièce empruntée', async () => {
@@ -228,7 +285,7 @@ describe('json store', () => {
       options,
     )
     assert.equal(person.prenom, 'Anna')
-    assert.equal(person.nom, 'Le Gall')
+    assert.equal(person.nom, 'LE GALL')
     assert.deepEqual(person.roles, ['membre', 'danseur_enfant', 'couture'])
     assert.equal(person.anneeMembre, '2026')
   })

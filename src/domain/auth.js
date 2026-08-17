@@ -5,6 +5,7 @@ export const PERMISSIONS = [
   { id: 'items.delete', label: 'Supprimer des pièces' },
   { id: 'loans.read', label: 'Consulter les emprunts' },
   { id: 'loans.write', label: 'Gérer les emprunts (panier, retours)' },
+  { id: 'loans.manage', label: 'Modifier ou annuler un emprunt' },
   { id: 'people.read', label: 'Consulter les personnes' },
   { id: 'people.write', label: 'Modifier les personnes' },
   { id: 'users.manage', label: 'Gérer les comptes et les accès' },

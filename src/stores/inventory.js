@@ -95,6 +95,10 @@ export const useInventoryStore = defineStore('inventory', {
       }
       this.recomputeStats()
     },
+    removeLoan(id) {
+      this.loans = this.loans.filter((loan) => loan.id !== id)
+      this.recomputeStats()
+    },
     setReferentiels(referentiels) {
       this.referentiels = referentiels
     },
