@@ -8,11 +8,14 @@ export const AUDIT_ACTIONS = [
   { id: 'loan.create', label: 'Emprunt créé', entityType: 'loan' },
   { id: 'loan.return', label: 'Retour partiel', entityType: 'loan' },
   { id: 'loan.return_all', label: 'Emprunt clôturé', entityType: 'loan' },
+  { id: 'loan.update', label: 'Emprunt modifié', entityType: 'loan' },
+  { id: 'loan.cancel', label: 'Emprunt annulé', entityType: 'loan' },
   { id: 'user.create', label: 'Compte créé', entityType: 'user' },
   { id: 'user.update', label: 'Compte modifié', entityType: 'user' },
   { id: 'user.delete', label: 'Compte supprimé', entityType: 'user' },
   { id: 'db.import', label: 'Import JSON', entityType: 'db' },
   { id: 'referentiels.update', label: 'Listes de paramétrage', entityType: 'settings' },
+  { id: 'audit.clear', label: 'Journal vidé', entityType: 'settings' },
   { id: 'stock.adjust', label: 'Mouvement de stock', entityType: 'item' },
 ]
 

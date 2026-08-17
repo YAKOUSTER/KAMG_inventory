@@ -28,17 +28,20 @@
       </v-col>
       <v-col cols="12" md="7">
         <div class="text-overline">{{ item.code }} · {{ categoryLabel(item.categorie, referentiels) }}</div>
-        <h1 class="text-h4 page-title mb-2">{{ item.nom }}</h1>
+        <div class="d-flex align-center flex-wrap ga-2 mb-2">
+          <h1 class="text-h5 text-md-h4 page-title mb-0">{{ item.nom }}</h1>
+          <v-icon v-if="reconstitutionGood" size="22" color="warning" title="Reconstitution validée">mdi-sparkles</v-icon>
+        </div>
         <div class="text-subtitle-1 mb-3">{{ item.type }}</div>
         <StatusChip :status="item.disponibilite" />
         <v-chip
-          v-if="item.bonneReconstitution"
+          v-if="item.erreurReconstitution"
           class="ml-2"
           size="small"
-          color="success"
+          color="error"
           variant="tonal"
         >
-          Bonne reconstitution
+          Erreur de reconstitution
         </v-chip>
         <div class="detail-rows mt-5">
           <DetailRow v-for="row in facts" :key="row.label" :label="row.label" :value="row.value || '—'" />
@@ -178,7 +181,7 @@ import ImageGallery from '@/components/ImageGallery.vue'
 import { formatStock, hasStock } from '@/domain/stock'
 import { usesInheritedPhotos } from '@/domain/images'
 import { countOpenTasks, openTasks, completeTask, syncDisponibiliteAfterReturn } from '@/domain/itemTasks'
-import { personDisplayName } from '@/domain/person'
+import { isReconstitutionGood } from '@/domain/reconstitution'
 
 const props = defineProps({ id: { type: String, required: true } })
 const router = useRouter()
@@ -192,6 +195,7 @@ const ui = useUiStore()
 const referentiels = computed(() => inventory.resolvedReferentiels)
 
 const canLoan = computed(() => auth.can('loans.write') && isLoanable(item.value))
+const reconstitutionGood = computed(() => isReconstitutionGood(item.value))
 
 const pendingTasks = computed(() => openTasks(item.value))
 
@@ -213,14 +217,18 @@ const facts = computed(() => {
   if (!item.value) return []
   const rows = [
     { label: 'Époque', value: item.value.epoque },
-    { label: 'Origine', value: item.value.origine },
+    { label: 'Origine', value: (item.value.origines || []).join(' · ') },
     { label: 'Matière', value: item.value.materiau },
     { label: 'Composition', value: item.value.composition },
-    { label: 'Couleur', value: item.value.couleur },
+    { label: 'Couleurs', value: (item.value.couleurs || []).join(' · ') },
+    { label: 'Techniques', value: (item.value.techniques || []).join(' · ') },
+    { label: 'Autres tags', value: (item.value.tags || []).join(' · ') },
     { label: 'État', value: item.value.etat },
-    ...(item.value.bonneReconstitution
-      ? [{ label: 'Reconstitution', value: 'Bonne reconstitution validée' }]
-      : []),
+    ...(item.value.erreurReconstitution
+      ? [{ label: 'Reconstitution', value: 'Erreur signalée' }]
+      : reconstitutionGood.value
+        ? [{ label: 'Reconstitution', value: 'Validée' }]
+        : []),
     {
       label: 'Propreté',
       value: item.value.propre == null ? '' : item.value.propre ? 'Propre' : 'Sale',

@@ -34,6 +34,16 @@
         @update:model-value="load"
       />
       <v-btn variant="text" prepend-icon="mdi-refresh" :loading="loading" @click="load">Actualiser</v-btn>
+      <v-btn
+        v-if="auth.can('audit.manage')"
+        variant="tonal"
+        color="error"
+        prepend-icon="mdi-delete-sweep"
+        :loading="clearing"
+        @click="clearJournal"
+      >
+        Vider le journal
+      </v-btn>
     </div>
 
     <v-alert v-if="error" type="error" class="mb-4">{{ error }}</v-alert>
@@ -81,11 +91,15 @@ import { computed, onMounted, ref } from 'vue'
 import { api } from '@/services/api'
 import { AUDIT_ACTIONS, auditActionLabel, auditEntityRoute } from '@/domain/audit'
 import { displayDateTime } from '@/domain/dates'
+import { useAuthStore } from '@/stores/auth'
+
+const auth = useAuthStore()
 
 const entries = ref([])
 const total = ref(0)
 const loading = ref(false)
 const loadingMore = ref(false)
+const clearing = ref(false)
 const error = ref('')
 const filterAction = ref(null)
 const filterEntity = ref(null)
@@ -133,6 +147,20 @@ async function loadMore() {
     error.value = err.message
   } finally {
     loadingMore.value = false
+  }
+}
+
+async function clearJournal() {
+  if (!confirm('Vider tout le journal d’activité ? Cette action est irréversible.')) return
+  clearing.value = true
+  error.value = ''
+  try {
+    await api.clearAudit()
+    await load()
+  } catch (err) {
+    error.value = err.message
+  } finally {
+    clearing.value = false
   }
 }
 

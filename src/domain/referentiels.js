@@ -75,6 +75,9 @@ export function normalizeReferentiels(input = {}) {
     input.disponibilites?.length ? input.disponibilites : base.disponibilites,
   )
   merged.couleurs = uniqueStrings(input.couleurs?.length ? input.couleurs : base.couleurs)
+  merged.origines = uniqueStrings(input.origines?.length ? input.origines : base.origines)
+  merged.techniques = uniqueStrings(input.techniques?.length ? input.techniques : base.techniques)
+  merged.tags = uniqueStrings(input.tags?.length ? input.tags : base.tags)
   merged.tailles = uniqueStrings(input.tailles?.length ? input.tailles : base.tailles)
   merged.modesAcquisition = uniqueStrings(
     input.modesAcquisition?.length ? input.modesAcquisition : base.modesAcquisition,
@@ -87,6 +90,15 @@ export function normalizeReferentiels(input = {}) {
   }
   merged.typesParCategorie = types
   return merged
+}
+
+export function mergeReferentielsFromItem(referentiels, item) {
+  const next = normalizeReferentiels(referentiels)
+  next.origines = uniqueStrings([...(next.origines || []), ...(item.origines || [])])
+  next.couleurs = uniqueStrings([...(next.couleurs || []), ...(item.couleurs || [])])
+  next.techniques = uniqueStrings([...(next.techniques || []), ...(item.techniques || [])])
+  next.tags = uniqueStrings([...(next.tags || []), ...(item.tags || [])])
+  return next
 }
 
 export function categoriesWithMeta(referentiels) {

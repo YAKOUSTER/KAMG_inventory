@@ -4,7 +4,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { randomUUID } from 'node:crypto'
 import { DEFAULT_REFERENTIELS } from '../src/domain/taxonomy.js'
-import { normalizeReferentiels, validateReferentiels, categoryIds } from '../src/domain/referentiels.js'
+import { normalizeReferentiels, validateReferentiels, categoryIds, mergeReferentielsFromItem } from '../src/domain/referentiels.js'
 import { isLoanable, normalizeItem } from '../src/domain/item.js'
 import { appendStockMovement, countLowStock } from '../src/domain/stock.js'
 import { applyReturnUpdate, countOpenTasks } from '../src/domain/itemTasks.js'
@@ -65,7 +65,15 @@ function ensureShape(raw) {
   if (!raw || typeof raw !== 'object') return db
   db.meta = { ...db.meta, ...(raw.meta || {}) }
   db.referentiels = normalizeReferentiels({ ...DEFAULT_REFERENTIELS, ...(raw.referentiels || {}) })
-  db.items = Array.isArray(raw.items) ? raw.items : []
+  const allowedCategories = categoryIds(db.referentiels)
+  db.items = (Array.isArray(raw.items) ? raw.items : []).map((item) => {
+    if (!item?.id) return item
+    try {
+      return normalizeItem({ ...item }, { id: item.id, categoryIds: allowedCategories })
+    } catch {
+      return item
+    }
+  })
   db.people = Array.isArray(raw.people) ? raw.people : []
   db.loans = Array.isArray(raw.loans) ? raw.loans : []
   db.users = Array.isArray(raw.users) ? raw.users : []
@@ -223,6 +231,21 @@ export async function listAudit(query = {}, options = {}) {
   }
 }
 
+export async function clearAudit(options = {}) {
+  return withDb((db) => {
+    const count = (db.auditLog || []).length
+    db.auditLog = []
+    appendAudit(db, options.actor, {
+      action: 'audit.clear',
+      entityType: 'settings',
+      entityId: 'audit',
+      entityLabel: 'Journal d’activité',
+      summary: `Journal d’activité vidé (${count} entrée(s) supprimée(s))`,
+    })
+    return { cleared: count }
+  }, options)
+}
+
 export async function listItems(options = {}) {
   const db = await readDb(options)
   return db.items
@@ -273,6 +296,7 @@ export async function createItem(payload, options = {}) {
       throw Object.assign(new Error(`Le code ${item.code} existe déjà`), { status: 409 })
     }
     db.items.push(item)
+    db.referentiels = mergeReferentielsFromItem(db.referentiels, item)
     appendAudit(db, options.actor, {
       action: 'item.create',
       entityType: 'item',
@@ -295,6 +319,7 @@ export async function updateItem(id, payload, options = {}) {
     const clash = db.items.find((i) => i.id !== id && i.code.toLowerCase() === item.code.toLowerCase())
     if (clash) throw Object.assign(new Error(`Le code ${item.code} existe déjà`), { status: 409 })
     db.items[index] = item
+    db.referentiels = mergeReferentielsFromItem(db.referentiels, item)
     appendAudit(db, options.actor, {
       action: 'item.update',
       entityType: 'item',

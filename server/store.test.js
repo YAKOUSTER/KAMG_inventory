@@ -174,9 +174,9 @@ describe('json store', () => {
   it('met à jour une pièce et lie deux fiches', async () => {
     const jupe = await createItem({ code: 'JUP-02', nom: 'Jupe', categorie: 'piece_costume' }, options)
     const tablier = await createItem({ code: 'TAB-02', nom: 'Tablier', categorie: 'piece_costume' }, options)
-    await updateItem(jupe.id, { linkedItemIds: [tablier.id], couleur: 'Noir' }, options)
+    await updateItem(jupe.id, { linkedItemIds: [tablier.id], couleurs: ['Noir'] }, options)
     const detail = await getItem(jupe.id, options)
-    assert.equal(detail.couleur, 'Noir')
+    assert.deepEqual(detail.couleurs, ['Noir'])
     assert.equal(detail.linkedItems[0].id, tablier.id)
   })
 

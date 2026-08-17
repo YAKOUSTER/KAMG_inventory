@@ -7,7 +7,8 @@ export const DEFAULT_STOCK_UNITS = ['pièce', 'm', 'cm', 'bobine', 'rouleau', 'c
 const DEFAULT_UNIT_BY_TYPE = {
   Fil: 'bobine',
   Bouton: 'pièce',
-  Tissu: 'm',
+  "Cire d'abeille": 'pièce',
+  'Coton démaquillant': 'pièce',
   Bobine: 'bobine',
   Cannetille: 'm',
   'Ruban / galon': 'm',

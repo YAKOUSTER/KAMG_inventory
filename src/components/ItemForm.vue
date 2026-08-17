@@ -33,8 +33,8 @@
         <FieldRow label="Époque">
           <v-select v-model="item.epoque" :items="withBlank(referentiels.epoques)" hide-details />
         </FieldRow>
-        <FieldRow v-if="!isFourniture" label="Origine / pays / cercle">
-          <v-text-field v-model="item.origine" hide-details />
+        <FieldRow v-if="!isFourniture" label="Origine / pays / cercle" hint="ex. Pays Glazig — saisissez puis Entrée">
+          <TagCombobox v-model="item.origines" :suggestions="referentiels.origines" />
         </FieldRow>
         <FieldRow v-if="!isFourniture" label="État">
           <v-select v-model="item.etat" :items="withBlank(referentiels.etats)" hide-details />
@@ -42,10 +42,10 @@
         <FieldRow v-if="!isFourniture" label="Disponibilité">
           <v-select v-model="item.disponibilite" :items="referentiels.disponibilites" hide-details />
         </FieldRow>
-        <FieldRow v-if="!isFourniture && !hasStockTracking" label="Reconstitution">
+        <FieldRow v-if="showReconstitutionField" label="Reconstitution">
           <v-checkbox
-            v-model="item.bonneReconstitution"
-            label="Bonne reconstitution validée"
+            v-model="item.erreurReconstitution"
+            label="Erreur de reconstitution (historiquement incorrecte)"
             hide-details
             density="compact"
           />
@@ -53,7 +53,11 @@
         <FieldRow v-if="isFourniture" label="Fournisseur">
           <v-text-field v-model="item.fournisseur" hide-details />
         </FieldRow>
-        <FieldRow v-if="!isFourniture" label="Propriétaire / déposant">
+        <FieldRow
+          v-if="!isFourniture"
+          label="Propriétaire"
+          hint="Si la pièce appartient à une personne qui la prête au cercle"
+        >
           <v-text-field v-model="item.proprietaire" hide-details />
         </FieldRow>
         <FieldRow label="Localisation" hint="armoire, tiroir…">
@@ -70,31 +74,24 @@
         </FieldRow>
       </div>
       <div class="form-fields-grid form-fields-grid--3 mt-2">
-        <FieldRow label="Matière">
+        <FieldRow label="Matière" hint="Fibres ou matériau principal (lin, laine, coton…)">
           <v-text-field v-model="item.materiau" hide-details />
         </FieldRow>
-        <FieldRow label="Composition">
+        <FieldRow label="Composition" hint="Détail chiffré ou mixte (ex. 80 % coton, 20 % polyester)">
           <v-text-field v-model="item.composition" hide-details />
         </FieldRow>
-        <FieldRow label="Couleur">
-          <v-combobox v-model="item.couleur" :items="referentiels.couleurs" hide-details />
+        <FieldRow label="Couleurs">
+          <TagCombobox v-model="item.couleurs" :suggestions="referentiels.couleurs" />
         </FieldRow>
       </div>
-      <v-row v-if="!isFourniture" class="mt-2">
-        <v-col cols="12" md="3">
-          <v-checkbox v-model="item.perle" label="Perlé" hide-details />
-        </v-col>
-        <v-col cols="12" md="3">
-          <v-checkbox v-model="item.broderie" label="Brodé" hide-details />
-        </v-col>
-        <v-col v-if="item.perle || item.broderie" cols="12" md="6">
-          <FieldRow label="Motif">
-            <v-text-field v-model="item.motif" hide-details />
-          </FieldRow>
-        </v-col>
-      </v-row>
-      <FieldRow label="Mots-clés" class="mt-2">
-        <v-combobox v-model="item.tags" :items="[]" hide-details multiple chips closable-chips />
+      <FieldRow v-if="!isFourniture" label="Techniques" class="mt-2" hint="Perlé, brodé…">
+        <TagCombobox v-model="item.techniques" :suggestions="referentiels.techniques" />
+      </FieldRow>
+      <FieldRow v-if="!isFourniture && item.techniques.length" label="Motif" class="mt-2">
+        <v-text-field v-model="item.motif" hide-details />
+      </FieldRow>
+      <FieldRow label="Autres tags" class="mt-2">
+        <TagCombobox v-model="item.tags" :suggestions="referentiels.tags" />
       </FieldRow>
     </section>
 
@@ -171,9 +168,6 @@
     <section v-if="item.categorie === 'piece_collection'" class="form-block">
       <h2 class="section-label">Collection / conservation</h2>
       <div class="form-fields-grid form-fields-grid--3">
-        <FieldRow label="N° inventaire patrimonial">
-          <v-text-field v-model="item.numeroInventaire" hide-details />
-        </FieldRow>
         <FieldRow label="Mode d'acquisition">
           <v-select v-model="item.modeAcquisition" :items="withBlank(referentiels.modesAcquisition)" hide-details />
         </FieldRow>
@@ -291,7 +285,8 @@ import { computed, reactive, ref, watch } from 'vue'
 import { MEASUREMENT_FIELDS, visibleMeasurements } from '@/domain/taxonomy'
 import { categoriesWithMeta } from '@/domain/referentiels'
 import { useInventoryStore } from '@/stores/inventory'
-import { emptyItem } from '@/domain/item'
+import { emptyItem, normalizeStringList } from '@/domain/item'
+import { showReconstitutionErrorField } from '@/domain/reconstitution'
 import {
   defaultStockUnit,
   hasStock,
@@ -302,6 +297,7 @@ import {
 import { normalizeImages, effectiveImages } from '@/domain/images'
 import { normalizeAttachments } from '@/domain/attachments'
 import FieldRow from './FieldRow.vue'
+import TagCombobox from './TagCombobox.vue'
 import ItemPhotos from './ItemPhotos.vue'
 import ItemAttachments from './ItemAttachments.vue'
 
@@ -323,7 +319,13 @@ const required = (v) => !!v || 'Champ requis'
 
 function assign(source) {
   Object.assign(item, emptyItem(source?.categorie), source || {})
-  if (!Array.isArray(item.tags)) item.tags = []
+  item.origines = normalizeStringList(item.origines?.length ? item.origines : item.origine)
+  item.couleurs = normalizeStringList(item.couleurs?.length ? item.couleurs : item.couleur)
+  item.techniques = normalizeStringList(item.techniques)
+  item.tags = normalizeStringList(item.tags)
+  if (item.perle && !item.techniques.includes('Perlé')) item.techniques.push('Perlé')
+  if (item.broderie && !item.techniques.includes('Brodé')) item.techniques.push('Brodé')
+  item.erreurReconstitution = Boolean(item.erreurReconstitution ?? false)
   item.images = normalizeImages(item.images)
   item.attachments = normalizeAttachments(item.attachments)
   if (!Array.isArray(item.linkedItemIds)) item.linkedItemIds = []
@@ -371,6 +373,7 @@ watch(
 
 const isFourniture = computed(() => checkFourniture(item))
 const hasStockTracking = computed(() => hasStock(item))
+const showReconstitutionField = computed(() => showReconstitutionErrorField(item))
 const stockUnitItems = computed(() => {
   const units = stockUnitsFor(item)
   const current = item.stockUnite

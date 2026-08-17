@@ -6,6 +6,7 @@
           <v-icon v-if="!cover" size="40" color="primary">{{ catIcon }}</v-icon>
         </div>
         <StatusChip v-if="compact" class="thumb-status" :status="item.disponibilite" size="x-small" />
+        <v-icon v-if="reconstitutionGood" class="thumb-sparkle" size="18" color="warning">mdi-sparkles</v-icon>
         <v-btn
           v-if="showLoan && compact"
           class="thumb-cart"
@@ -23,13 +24,19 @@
 
       <v-card-text class="item-card__body">
         <template v-if="compact">
-          <div class="item-card__title">{{ item.nom }}</div>
+          <div class="item-card__title d-flex align-center ga-1">
+            <span>{{ item.nom }}</span>
+            <v-icon v-if="reconstitutionGood" size="16" color="warning">mdi-sparkles</v-icon>
+          </div>
           <div class="item-card__meta">{{ item.code }}</div>
           <div v-if="hasStock(item)" class="item-card__stock">{{ formatStock(item) }}</div>
         </template>
         <template v-else>
           <div class="text-caption text-medium-emphasis">{{ item.code }} · {{ catLabel }}</div>
-          <div class="text-subtitle-1 font-weight-bold">{{ item.nom }}</div>
+          <div class="text-subtitle-1 font-weight-bold d-flex align-center ga-1">
+            {{ item.nom }}
+            <v-icon v-if="reconstitutionGood" size="18" color="warning">mdi-sparkles</v-icon>
+          </div>
           <div class="text-body-2 mt-1">{{ item.type }}</div>
           <div v-if="hasStock(item)" class="text-body-2 mt-1 font-weight-medium">{{ formatStock(item) }}</div>
           <StatusChip class="mt-2" :status="item.disponibilite" />
@@ -59,6 +66,7 @@ import { categoryIcon, categoryLabel } from '@/domain/taxonomy'
 import { coverSrc } from '@/domain/images'
 import { isLoanable } from '@/domain/item'
 import { formatStock, hasStock } from '@/domain/stock'
+import { isReconstitutionGood } from '@/domain/reconstitution'
 import { useCartStore } from '@/stores/cart'
 import { useAuthStore } from '@/stores/auth'
 import { useInventoryStore } from '@/stores/inventory'
@@ -81,6 +89,7 @@ const cover = computed(() => coverSrc(props.item, (id) => inventory.itemById(id)
 const loanable = computed(() => isLoanable(props.item))
 const inCart = computed(() => cart.isInCart(props.item.id))
 const showLoan = computed(() => auth.can('loans.write') && (loanable.value || inCart.value))
+const reconstitutionGood = computed(() => isReconstitutionGood(props.item))
 
 function add() {
   cart.add(props.item)
@@ -121,6 +130,13 @@ function add() {
   position: absolute;
   top: 8px;
   left: 8px;
+}
+
+.thumb-sparkle {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  filter: drop-shadow(0 1px 2px rgba(44, 51, 44, 0.35));
 }
 
 .thumb-cart {

@@ -79,4 +79,5 @@ export const api = {
     const qs = params.toString()
     return request(`/api/audit${qs ? `?${qs}` : ''}`)
   },
+  clearAudit: () => request('/api/audit', { method: 'DELETE' }),
 }

@@ -11,6 +11,7 @@ export const PERMISSIONS = [
   { id: 'users.manage', label: 'Gérer les comptes et les accès' },
   { id: 'settings.manage', label: 'Paramètres, import/export et listes' },
   { id: 'audit.read', label: 'Consulter le journal d’activité' },
+  { id: 'audit.manage', label: 'Vider le journal d’activité' },
 ]
 
 export const ROLES = [

@@ -19,44 +19,60 @@
     </div>
 
     <section v-if="auth.can('loans.manage')" class="page-block">
-      <h2 class="section-label">Gestion de l’emprunt</h2>
-      <div class="form-fields">
-        <FieldRow label="Titre">
-          <v-text-field v-model="editForm.titre" hide-details />
-        </FieldRow>
-        <FieldRow label="Emprunteur">
-          <v-autocomplete
-            v-model="editForm.personId"
-            :items="peopleItems"
-            item-title="title"
-            item-value="id"
-            hide-details
-            :custom-filter="filterPerson"
-          />
-        </FieldRow>
-        <FieldRow label="Date d’emprunt">
-          <v-text-field v-model="editForm.dateEmprunt" hide-details type="date" />
-        </FieldRow>
-        <FieldRow label="Retour prévu">
-          <v-text-field v-model="editForm.dateRetourPrevue" hide-details type="date" clearable />
-        </FieldRow>
-        <FieldRow label="Retour effectué" hint="Renseigner pour clôturer rétroactivement">
-          <v-text-field v-model="editForm.dateRetour" hide-details type="date" clearable />
-        </FieldRow>
-        <v-alert v-if="manageError" type="error" class="mb-3">{{ manageError }}</v-alert>
-        <div class="d-flex flex-wrap ga-2">
-          <v-btn color="primary" :loading="savingEdit" @click="saveLoanEdits">Enregistrer</v-btn>
-          <v-btn
-            v-if="canCancelLoan"
-            color="error"
-            variant="tonal"
-            :loading="cancelling"
-            @click="cancelLoan"
-          >
-            Annuler l’emprunt
-          </v-btn>
-        </div>
+      <div class="d-flex flex-wrap align-center ga-2 mb-3">
+        <h2 class="section-label mb-0">Gestion de l’emprunt</h2>
+        <v-spacer />
+        <v-btn
+          v-if="!showEditForm"
+          variant="tonal"
+          size="small"
+          prepend-icon="mdi-pencil"
+          @click="showEditForm = true"
+        >
+          Modifier l’emprunt
+        </v-btn>
       </div>
+
+      <v-expand-transition>
+        <div v-if="showEditForm" class="form-fields">
+          <FieldRow label="Titre">
+            <v-text-field v-model="editForm.titre" hide-details />
+          </FieldRow>
+          <FieldRow label="Emprunteur">
+            <v-autocomplete
+              v-model="editForm.personId"
+              :items="peopleItems"
+              item-title="title"
+              item-value="id"
+              hide-details
+              :custom-filter="filterPerson"
+            />
+          </FieldRow>
+          <FieldRow label="Date d’emprunt">
+            <v-text-field v-model="editForm.dateEmprunt" hide-details type="date" />
+          </FieldRow>
+          <FieldRow label="Retour prévu">
+            <v-text-field v-model="editForm.dateRetourPrevue" hide-details type="date" clearable />
+          </FieldRow>
+          <FieldRow label="Retour effectué" hint="Renseigner pour clôturer rétroactivement">
+            <v-text-field v-model="editForm.dateRetour" hide-details type="date" clearable />
+          </FieldRow>
+          <v-alert v-if="manageError" type="error" class="mb-3">{{ manageError }}</v-alert>
+          <div class="d-flex flex-wrap ga-2">
+            <v-btn color="primary" :loading="savingEdit" @click="saveLoanEdits">Enregistrer</v-btn>
+            <v-btn variant="text" @click="showEditForm = false">Fermer</v-btn>
+            <v-btn
+              v-if="canCancelLoan"
+              color="error"
+              variant="tonal"
+              :loading="cancelling"
+              @click="cancelLoan"
+            >
+              Annuler l’emprunt
+            </v-btn>
+          </div>
+        </div>
+      </v-expand-transition>
     </section>
 
     <section class="page-block">
@@ -157,6 +173,7 @@ const cancelling = ref(false)
 const loading = ref(false)
 const error = ref('')
 const manageError = ref('')
+const showEditForm = ref(false)
 const editForm = ref({
   titre: '',
   personId: '',

@@ -84,9 +84,17 @@
         </v-expansion-panel-text>
       </v-expansion-panel>
 
-      <v-expansion-panel title="Couleurs, tailles, acquisitions">
+      <v-expansion-panel title="Tags et suggestions">
         <v-expansion-panel-text>
+          <ReferentielListEditor v-model="draft.origines" label="Origines / pays / cercles" hint="Pays Glazig, Bretagne…" />
           <ReferentielListEditor v-model="draft.couleurs" label="Couleurs" />
+          <ReferentielListEditor v-model="draft.techniques" label="Techniques" hint="Perlé, Brodé…" />
+          <ReferentielListEditor v-model="draft.tags" label="Autres tags" />
+        </v-expansion-panel-text>
+      </v-expansion-panel>
+
+      <v-expansion-panel title="Tailles, acquisitions, stock">
+        <v-expansion-panel-text>
           <ReferentielListEditor v-model="draft.tailles" label="Tailles générales" />
           <ReferentielListEditor v-model="draft.modesAcquisition" label="Modes d’acquisition" />
           <ReferentielListEditor v-model="draft.unitesStock" label="Unités de stock" hint="pièce, m, bobine…" />

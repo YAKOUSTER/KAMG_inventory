@@ -1,8 +1,48 @@
 import { CATEGORY_IDS } from './taxonomy.js'
 import { normalizeAttachments } from './attachments.js'
 import { normalizeImages } from './images.js'
-import { defaultStockUnit, hasStock, isFourniture, normalizeStockFields } from './stock.js'
+import { defaultStockUnit, hasStock, normalizeStockFields } from './stock.js'
 import { normalizeItemCareFields } from './itemTasks.js'
+
+export function normalizeStringList(value) {
+  if (Array.isArray(value)) {
+    return [
+      ...new Set(
+        value.map((entry) => String(entry || '').trim()).filter(Boolean),
+      ),
+    ]
+  }
+  if (typeof value === 'string' && value.trim()) return [value.trim()]
+  return []
+}
+
+function migrateLegacyItemFields(item) {
+  if (!item.origines?.length && item.origine) {
+    item.origines = normalizeStringList(item.origine)
+  }
+  if (!item.couleurs?.length && item.couleur) {
+    item.couleurs = normalizeStringList(item.couleur)
+  }
+
+  item.origines = normalizeStringList(item.origines)
+  item.couleurs = normalizeStringList(item.couleurs)
+  item.techniques = normalizeStringList(item.techniques)
+  item.tags = normalizeStringList(item.tags)
+
+  if (item.perle && !item.techniques.includes('Perlé')) item.techniques.push('Perlé')
+  if (item.broderie && !item.techniques.includes('Brodé')) item.techniques.push('Brodé')
+
+  if ('bonneReconstitution' in item && !('erreurReconstitution' in item)) {
+    item.erreurReconstitution = false
+  }
+  item.erreurReconstitution = Boolean(item.erreurReconstitution)
+
+  delete item.origine
+  delete item.couleur
+  delete item.perle
+  delete item.broderie
+  delete item.bonneReconstitution
+}
 
 export function emptyItem(categorie = 'piece_costume') {
   return {
@@ -13,18 +53,17 @@ export function emptyItem(categorie = 'piece_costume') {
     nom: '',
     description: '',
     epoque: '',
-    origine: '',
+    origines: [],
     materiau: '',
     composition: '',
     etat: '',
-    couleur: '',
+    couleurs: [],
+    techniques: [],
     disponibilite: 'Disponible',
     proprietaire: '',
     localisation: '',
     tags: [],
-    perle: false,
-    broderie: false,
-    bonneReconstitution: false,
+    erreurReconstitution: false,
     motif: '',
     images: [],
     photoSourceId: '',
@@ -81,10 +120,9 @@ export function normalizeItem(input = {}, { id, now, categoryIds: allowedCategor
   if (!allowed.includes(item.categorie)) {
     throw new Error(`Catégorie inconnue : ${item.categorie}`)
   }
+  migrateLegacyItemFields(item)
   item.code = String(item.code).trim()
   item.nom = String(item.nom).trim()
-  item.bonneReconstitution = Boolean(item.bonneReconstitution)
-  item.tags = Array.isArray(item.tags) ? item.tags.filter(Boolean) : []
   item.images = normalizeImages(item.images)
   item.photoSourceId =
     item.photoSourceId && String(item.photoSourceId).trim() !== item.id
@@ -105,6 +143,17 @@ export function normalizeItem(input = {}, { id, now, categoryIds: allowedCategor
   return item
 }
 
+export function itemTagValues(item) {
+  const couleurs = item.couleurs?.length ? item.couleurs : item.couleur ? [item.couleur] : []
+  const origines = item.origines?.length ? item.origines : item.origine ? [item.origine] : []
+  return [
+    ...origines,
+    ...couleurs,
+    ...(item.techniques || []),
+    ...(item.tags || []),
+  ]
+}
+
 export function itemSearchText(item) {
   return [
     item.code,
@@ -113,15 +162,13 @@ export function itemSearchText(item) {
     item.description,
     item.materiau,
     item.composition,
-    item.couleur,
-    item.origine,
     item.proprietaire,
     item.localisation,
     item.motif,
     item.numeroInventaire,
     item.provenance,
     item.stockReference,
-    ...(item.tags || []),
+    ...itemTagValues(item),
     ...(normalizeImages(item.images).map((img) => img.legende)),
     ...(normalizeAttachments(item.attachments).flatMap((att) => [att.label, att.filename])),
   ]
@@ -137,6 +184,6 @@ export function loanableStatuses() {
 export function isLoanable(item) {
   return (
     item?.disponibilite === 'Disponible' &&
-    !['echantillon', 'fourniture'].includes(item?.categorie)
+    !['echantillon', 'fourniture', 'tissu'].includes(item?.categorie)
   )
 }

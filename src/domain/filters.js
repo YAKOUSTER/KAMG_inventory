@@ -21,7 +21,12 @@ export function filterItems(items, filters = {}) {
     if (filters.etat && filters.etat !== 'Tout' && item.etat !== filters.etat) return false
     if (filters.couleur && filters.couleur !== 'Tout') {
       const wanted = filters.couleur.toLowerCase()
-      if ((item.couleur || '').toLowerCase() !== wanted) return false
+      const colors = item.couleurs?.length
+        ? item.couleurs
+        : item.couleur
+          ? [item.couleur]
+          : []
+      if (!colors.some((color) => String(color).toLowerCase() === wanted)) return false
     }
     if (filters.taille && filters.taille !== 'Tout' && item.tailleLettre !== filters.taille) return false
     if (filters.type && filters.type !== 'Tout' && item.type !== filters.type) return false
