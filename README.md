@@ -6,6 +6,12 @@ Les données sont stockées dans un **fichier JSON** (`data/db.json`), sans base
 
 Héritage du vestiaire Korriganed Ar Meilhoù Glas (mesures par type de pièce, pièces liées, emprunts). Pensé pour un usage **mobile** (emprunts et retours sur téléphone). Le logo officiel du cercle est dans `public/logo-kamg.png` (fond transparent), avec `public/favicon.png` et `public/apple-touch-icon.png`.
 
+Pour remplacer le logo : déposer le fichier PNG/JPG (fond blanc acceptable) dans `public/logo-source.png`, puis :
+
+```bash
+npm run logo:build
+```
+
 ## Démarrer
 
 ```bash
