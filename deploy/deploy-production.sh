@@ -21,6 +21,9 @@ cd /var/www/kamg
 git fetch origin "$BRANCH"
 git pull origin "$BRANCH"
 npm ci
+if [[ -f public/logo-source.png ]]; then
+  npm run logo:build
+fi
 npm run build
 systemctl restart kamg
 sleep 2

@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "bash -c 'test -f public/logo-source.png && npm run logo:build || true'",
     "build": "vite build",
     "preview": "vite preview",
     "start": "NODE_ENV=production node server/index.js",
