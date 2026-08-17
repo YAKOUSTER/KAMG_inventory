@@ -1,13 +1,12 @@
 <template>
   <v-form ref="form" @submit.prevent="submit">
     <section class="form-block">
-      <div class="d-flex flex-wrap ga-2">
+      <div class="category-tabs d-flex flex-wrap ga-2">
         <v-btn
           v-for="cat in categories"
           :key="cat.id"
           type="button"
-          size="small"
-          class="text-none"
+          class="text-none category-tab"
           :variant="item.categorie === cat.id ? 'flat' : 'text'"
           :color="item.categorie === cat.id ? 'primary' : undefined"
           @click="item.categorie = cat.id"
@@ -428,6 +427,21 @@ async function submit() {
 </script>
 
 <style scoped>
+.category-tabs {
+  margin-bottom: 4px;
+}
+
+.category-tab {
+  min-height: 48px;
+  padding-inline: 18px;
+  font-size: 0.95rem;
+  letter-spacing: 0.01em;
+}
+
+.category-tab :deep(.v-icon) {
+  font-size: 1.25rem;
+}
+
 .form-actions {
   position: sticky;
   bottom: 0;

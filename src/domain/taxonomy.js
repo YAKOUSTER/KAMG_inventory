@@ -1,10 +1,10 @@
 export const CATEGORIES = [
-  { id: 'echantillon', label: 'Échantillon', icon: 'mdi-texture-box', plural: 'Échantillons' },
   { id: 'piece_costume', label: 'Pièce de costume', icon: 'mdi-tshirt-crew', plural: 'Pièces de costume' },
+  { id: 'accessoire', label: 'Accessoire', icon: 'mdi-hat-fedora', plural: 'Accessoires' },
   { id: 'piece_collection', label: 'Pièce de collection', icon: 'mdi-bank', plural: 'Pièces de collection' },
   { id: 'tissu', label: 'Tissu', icon: 'mdi-roller-shade', plural: 'Tissus' },
-  { id: 'accessoire', label: 'Accessoire', icon: 'mdi-hat-fedora', plural: 'Accessoires' },
   { id: 'fourniture', label: 'Fourniture', icon: 'mdi-package-variant-closed', plural: 'Fournitures' },
+  { id: 'echantillon', label: 'Échantillon', icon: 'mdi-texture-box', plural: 'Échantillons' },
 ]
 
 export const CATEGORY_IDS = CATEGORIES.map((c) => c.id)

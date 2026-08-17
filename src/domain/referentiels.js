@@ -4,6 +4,8 @@ const CATEGORY_META = Object.fromEntries(
   CATEGORIES.map((cat) => [cat.id, { icon: cat.icon, plural: cat.plural }]),
 )
 
+const CATEGORY_ORDER = Object.fromEntries(CATEGORIES.map((cat, index) => [cat.id, index]))
+
 const REQUIRED_DISPONIBILITES = ['Disponible', 'Emprunté']
 
 export function slugCategoryId(label) {
@@ -57,6 +59,13 @@ function normalizeCategories(categories = []) {
     })
 }
 
+function sortCategories(categories = []) {
+  return [...categories].sort((a, b) => {
+    const diff = (CATEGORY_ORDER[a.id] ?? 999) - (CATEGORY_ORDER[b.id] ?? 999)
+    return diff !== 0 ? diff : a.label.localeCompare(b.label, 'fr')
+  })
+}
+
 export function normalizeReferentiels(input = {}, { mergeMissingCategories = true } = {}) {
   const base = structuredClone(DEFAULT_REFERENTIELS)
   const merged = {
@@ -68,12 +77,14 @@ export function normalizeReferentiels(input = {}, { mergeMissingCategories = tru
     },
   }
 
-  merged.categories = mergeMissingCategories
-    ? normalizeCategories([
-        ...(input.categories?.length ? input.categories : base.categories),
-        ...(input.categories?.length ? base.categories : []),
-      ])
-    : normalizeCategories(input.categories?.length ? input.categories : base.categories)
+  merged.categories = sortCategories(
+    mergeMissingCategories
+      ? normalizeCategories([
+          ...(input.categories?.length ? input.categories : base.categories),
+          ...(input.categories?.length ? base.categories : []),
+        ])
+      : normalizeCategories(input.categories?.length ? input.categories : base.categories),
+  )
   merged.epoques = uniqueStrings(input.epoques?.length ? input.epoques : base.epoques)
   merged.etats = uniqueStrings(input.etats?.length ? input.etats : base.etats)
   merged.disponibilites = uniqueStrings(

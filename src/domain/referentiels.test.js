@@ -34,6 +34,20 @@ describe('normalizeReferentiels', () => {
     assert.ok(refs.categories.some((cat) => cat.id === 'fourniture'))
     assert.ok(Array.isArray(refs.typesParCategorie.fourniture))
   })
+
+  it('respecte l’ordre métier des catégories', () => {
+    const refs = normalizeReferentiels({
+      categories: [
+        { id: 'echantillon', label: 'Échantillon' },
+        { id: 'fourniture', label: 'Fourniture' },
+        { id: 'piece_costume', label: 'Pièce de costume' },
+      ],
+    })
+    assert.deepEqual(
+      refs.categories.map((cat) => cat.id),
+      ['piece_costume', 'accessoire', 'piece_collection', 'tissu', 'fourniture', 'echantillon'],
+    )
+  })
 })
 
 describe('categoriesWithMeta', () => {
