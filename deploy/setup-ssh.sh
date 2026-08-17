@@ -15,8 +15,19 @@ if [[ -z "${KAMG_SSH_PRIVATE_KEY:-}" ]]; then
 fi
 
 umask 077
-printf '%s\n' "$KAMG_SSH_PRIVATE_KEY" > "$KEY_PATH"
+# Cursor Secrets accepte parfois la clé sur une seule ligne avec des \n littéraux.
+if [[ "$KAMG_SSH_PRIVATE_KEY" != *$'\n'* ]]; then
+  printf '%b' "$KAMG_SSH_PRIVATE_KEY" > "$KEY_PATH"
+else
+  printf '%s' "$KAMG_SSH_PRIVATE_KEY" > "$KEY_PATH"
+fi
 chmod 600 "$KEY_PATH"
+
+if ! ssh-keygen -y -f "$KEY_PATH" >/dev/null 2>&1; then
+  echo "Secret KAMG_SSH_PRIVATE_KEY invalide (vérifiez le format OPENSSH privé, pas la clé publique)."
+  rm -f "$KEY_PATH"
+  exit 1
+fi
 
 if command -v ssh-keyscan >/dev/null 2>&1; then
   ssh-keyscan -H "$KAMG_HOST" >> "$KNOWN_HOSTS" 2>/dev/null || true
