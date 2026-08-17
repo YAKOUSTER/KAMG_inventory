@@ -16,11 +16,12 @@
       <v-spacer />
       <v-btn
         size="small"
-        variant="text"
+        variant="tonal"
         color="primary"
         :disabled="inCart || !loanable"
-        @click="add"
+        @click.stop="add"
       >
+        <v-icon start size="18">mdi-cart-plus</v-icon>
         {{ inCart ? 'Au panier' : 'Emprunter' }}
       </v-btn>
     </v-card-actions>

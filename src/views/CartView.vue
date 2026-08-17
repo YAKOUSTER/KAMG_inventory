@@ -1,13 +1,16 @@
 <template>
   <div>
-    <div class="d-flex flex-wrap align-center ga-3 mb-4">
+    <div class="d-flex flex-wrap align-center ga-3 mb-2 page-header">
       <h1 class="text-h5 text-md-h4 page-title">Panier</h1>
+      <v-chip v-if="cart.items.length" size="small" color="primary" variant="tonal">
+        {{ cart.items.length }} pièce{{ cart.items.length > 1 ? 's' : '' }}
+      </v-chip>
       <v-spacer />
       <v-btn variant="text" to="/inventaire">Continuer l’inventaire</v-btn>
     </div>
 
     <v-alert v-if="!cart.items.length" type="info" variant="tonal">
-      Le panier est vide. Ouvrez une fiche disponible et touchez « Ajouter au panier ».
+      Le panier est vide. Parcourez l’inventaire et touchez « Emprunter » sur les pièces disponibles.
       <div class="mt-3">
         <v-btn color="primary" to="/inventaire">Voir l’inventaire</v-btn>
       </div>
@@ -18,62 +21,54 @@
       <v-btn class="ml-2" size="small" variant="text" @click="dropUnavailable">Retirer du panier</v-btn>
     </v-alert>
 
-    <div v-if="cart.items.length">
-      <div v-for="item in cart.items" :key="item.id" class="stack-item">
-        <div class="d-flex align-start ga-2">
-          <div class="flex-grow-1">
-            <router-link :to="{ name: 'item-detail', params: { id: item.id } }" class="text-subtitle-2">
-              {{ item.code }} — {{ item.nom }}
-            </router-link>
-            <div class="text-caption text-medium-emphasis">{{ item.type }} · {{ item.tailleLettre }}</div>
-          </div>
-          <v-btn icon variant="text" aria-label="Retirer" @click="cart.remove(item.id)">
-            <v-icon>mdi-delete-outline</v-icon>
-          </v-btn>
-        </div>
-        <FieldRow label="Commentaire" hint="état, note de sortie…" class="mt-2">
-          <v-text-field
-            :model-value="item.comment"
+    <v-row v-if="cart.items.length" class="mb-6">
+      <v-col v-for="line in cart.items" :key="line.id" cols="12" sm="6" lg="4">
+        <CartItemCard
+          :line="line"
+          :item="inventory.itemById(line.id)"
+          :unavailable="isUnavailable(line.id)"
+          @remove="cart.remove"
+          @comment="cart.setComment"
+        />
+      </v-col>
+    </v-row>
+
+    <section v-if="cart.items.length" class="page-block cart-checkout">
+      <h2 class="section-label">Finaliser l’emprunt</h2>
+      <div class="form-fields">
+        <FieldRow label="Emprunteur">
+          <v-autocomplete
+            v-model="personId"
+            :items="peopleItems"
+            item-title="title"
+            item-value="id"
             hide-details
-            @update:model-value="cart.setComment(item.id, $event)"
+            :disabled="!peopleItems.length"
           />
         </FieldRow>
-      </div>
-    </div>
-
-    <div v-if="cart.items.length" class="mt-6 form-fields">
-          <FieldRow label="Emprunteur">
-            <v-autocomplete
-              v-model="personId"
-              :items="peopleItems"
-              item-title="title"
-              item-value="id"
-              hide-details
-              :disabled="!peopleItems.length"
-            />
-          </FieldRow>
-          <p v-if="!inventory.people.length" class="text-body-2 mb-4">
-            Aucune personne enregistrée.
-            <router-link v-if="auth.can('people.write')" to="/personnes/nouvelle">Créer une fiche personne</router-link>
-          </p>
-          <FieldRow label="Titre de l'emprunt" hint="spectacle, répétition…">
-            <v-text-field v-model="titre" hide-details />
-          </FieldRow>
-          <FieldRow label="Retour prévu">
-            <v-text-field v-model="dateRetourPrevue" hide-details type="date" />
-          </FieldRow>
-          <v-alert v-if="error" type="error" class="mb-3">{{ error }}</v-alert>
-          <v-btn
-            color="primary"
-            block
-            size="large"
-            :disabled="!personId || Boolean(unavailable.length)"
-            :loading="saving"
-            @click="validate"
-          >
+        <p v-if="!inventory.people.length" class="text-body-2 mb-4">
+          Aucune personne enregistrée.
+          <router-link v-if="auth.can('people.write')" to="/personnes/nouvelle">Créer une fiche personne</router-link>
+        </p>
+        <FieldRow label="Titre de l'emprunt" hint="spectacle, répétition…">
+          <v-text-field v-model="titre" hide-details />
+        </FieldRow>
+        <FieldRow label="Retour prévu">
+          <v-text-field v-model="dateRetourPrevue" hide-details type="date" />
+        </FieldRow>
+        <v-alert v-if="error" type="error" class="mb-3">{{ error }}</v-alert>
+        <v-btn
+          color="primary"
+          block
+          size="large"
+          :disabled="!personId || Boolean(unavailable.length)"
+          :loading="saving"
+          @click="validate"
+        >
           Valider l'emprunt
         </v-btn>
       </div>
+    </section>
   </div>
 </template>
 
@@ -88,6 +83,7 @@ import { api } from '@/services/api'
 import { isLoanable } from '@/domain/item'
 import { addDays, todayLocal } from '@/domain/dates'
 import { personDisplayName } from '@/domain/person'
+import CartItemCard from '@/components/CartItemCard.vue'
 import FieldRow from '@/components/FieldRow.vue'
 
 const cart = useCartStore()
@@ -103,10 +99,7 @@ const saving = ref(false)
 const error = ref('')
 
 const unavailable = computed(() =>
-  cart.items.filter((line) => {
-    const item = inventory.itemById(line.id)
-    return !item || !isLoanable(item)
-  }),
+  cart.items.filter((line) => isUnavailable(line.id)),
 )
 
 const peopleItems = computed(() =>
@@ -114,6 +107,11 @@ const peopleItems = computed(() =>
     .sort((a, b) => personDisplayName(a).localeCompare(personDisplayName(b), 'fr'))
     .map((person) => ({ id: person.id, title: personDisplayName(person) })),
 )
+
+function isUnavailable(id) {
+  const item = inventory.itemById(id)
+  return !item || !isLoanable(item)
+}
 
 function dropUnavailable() {
   unavailable.value.forEach((line) => cart.remove(line.id))
@@ -144,6 +142,9 @@ async function validate() {
 </script>
 
 <style scoped>
+.cart-checkout {
+  max-width: 520px;
+}
 a {
   color: #53736a;
   text-decoration: none;

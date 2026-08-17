@@ -81,6 +81,18 @@
       <template #item.stock="{ item }">
         {{ isFourniture(item) ? formatStock(item) : '—' }}
       </template>
+      <template #item.cart="{ item }">
+        <v-btn
+          v-if="canAddToCart(item)"
+          size="small"
+          variant="tonal"
+          color="primary"
+          :disabled="cart.isInCart(item.id)"
+          @click.stop="addToCart(item)"
+        >
+          {{ cart.isInCart(item.id) ? 'Au panier' : 'Emprunter' }}
+        </v-btn>
+      </template>
     </v-data-table>
 
     <v-row v-else>
@@ -102,16 +114,21 @@ import { useRoute, useRouter } from 'vue-router'
 import { useDisplay } from 'vuetify'
 import { useInventoryStore } from '@/stores/inventory'
 import { useAuthStore } from '@/stores/auth'
+import { useCartStore } from '@/stores/cart'
+import { useUiStore } from '@/stores/ui'
 import { MEASUREMENT_FIELDS, categoryLabel } from '@/domain/taxonomy'
 import { categoriesWithMeta } from '@/domain/referentiels'
 import { coverSrc } from '@/domain/images'
 import { formatStock, isFourniture } from '@/domain/stock'
 import { filterItems } from '@/domain/filters'
+import { isLoanable } from '@/domain/item'
 import ItemCard from '@/components/ItemCard.vue'
 import StatusChip from '@/components/StatusChip.vue'
 
 const inventory = useInventoryStore()
 const auth = useAuthStore()
+const cart = useCartStore()
+const ui = useUiStore()
 const referentiels = computed(() => inventory.resolvedReferentiels)
 const route = useRoute()
 const router = useRouter()
@@ -167,17 +184,33 @@ const itemById = (id) => inventory.itemById(id)
 const withAll = (list) => ['Tout', ...list]
 const filtered = computed(() => filterItems(inventory.items, filters))
 
-const headers = [
-  { title: '', key: 'photo', sortable: false, width: 56 },
-  { title: 'Code', key: 'code' },
-  { title: 'Nom', key: 'nom' },
-  { title: 'Catégorie', key: 'categorie' },
-  { title: 'Type', key: 'type' },
-  { title: 'Époque', key: 'epoque' },
-  { title: 'État', key: 'etat' },
-  { title: 'Stock', key: 'stock', sortable: false },
-  { title: 'Disponibilité', key: 'disponibilite' },
-]
+const headers = computed(() => {
+  const base = [
+    { title: '', key: 'photo', sortable: false, width: 56 },
+    { title: 'Code', key: 'code' },
+    { title: 'Nom', key: 'nom' },
+    { title: 'Catégorie', key: 'categorie' },
+    { title: 'Type', key: 'type' },
+    { title: 'Époque', key: 'epoque' },
+    { title: 'État', key: 'etat' },
+    { title: 'Stock', key: 'stock', sortable: false },
+    { title: 'Disponibilité', key: 'disponibilite' },
+  ]
+  if (auth.can('loans.write')) {
+    base.push({ title: 'Panier', key: 'cart', sortable: false, width: 120 })
+  }
+  return base
+})
+
+function canAddToCart(item) {
+  return auth.can('loans.write') && (isLoanable(item) || cart.isInCart(item.id))
+}
+
+function addToCart(item) {
+  if (cart.isInCart(item.id)) return
+  cart.add(item)
+  ui.notify(`${item.code} ajoutée au panier`, { to: '/panier', action: 'Panier' })
+}
 
 function resetFilters() {
   Object.assign(filters, defaultFilters(), { categorie: 'Tout' })
