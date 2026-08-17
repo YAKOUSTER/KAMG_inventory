@@ -6,7 +6,7 @@ import { randomUUID } from 'node:crypto'
 import { DEFAULT_REFERENTIELS } from '../src/domain/taxonomy.js'
 import { isLoanable, normalizeItem } from '../src/domain/item.js'
 import { ROLE_PRESETS, can, publicUser } from '../src/domain/auth.js'
-import { groupLoansByYear, normalizePerson } from '../src/domain/person.js'
+import { groupLoansByYear, normalizePerson, personDisplayName } from '../src/domain/person.js'
 import { todayLocal, formatDate } from '../src/domain/dates.js'
 import { hashPassword, randomToken, verifyPassword } from './password.js'
 
@@ -170,7 +170,7 @@ export async function getItem(id, options = {}) {
       return {
         loanId: loan.id,
         titre: loan.titre,
-        personName: person?.nom || '',
+        personName: personDisplayName(person),
         dateEmprunt: loan.dateEmprunt,
         dateRetour: line?.returnedAt || loan.dateRetour,
         comment: line?.comment || '',
@@ -284,7 +284,7 @@ function decorateLoan(loan, db) {
   })
   return {
     ...loan,
-    personName: person?.nom || '',
+    personName: personDisplayName(person),
     items,
   }
 }
@@ -326,7 +326,7 @@ export async function createLoan(payload, options = {}) {
     }
     const loan = {
       id: randomUUID(),
-      titre: (payload.titre || '').trim() || `Emprunt ${person.nom}`,
+      titre: (payload.titre || '').trim() || `Emprunt ${personDisplayName(person)}`,
       personId: person.id,
       dateEmprunt: payload.dateEmprunt || todayLocal(),
       dateRetourPrevue: payload.dateRetourPrevue || '',

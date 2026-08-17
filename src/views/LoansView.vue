@@ -67,6 +67,7 @@ import { useInventoryStore } from '@/stores/inventory'
 import { useAuthStore } from '@/stores/auth'
 import { displayDate } from '@/domain/dates'
 import { isOverdue, loanPiecesLabel, loanStatusColor, loanStatusLabel } from '@/domain/loans'
+import { personDisplayName } from '@/domain/person'
 
 const inventory = useInventoryStore()
 const auth = useAuthStore()
@@ -77,7 +78,9 @@ const status = ref('actifs')
 
 const peopleItems = computed(() => [
   { title: 'Tout', value: 'Tout' },
-  ...inventory.people.map((p) => ({ title: p.nom, value: p.id })),
+  ...[...inventory.people]
+    .sort((a, b) => personDisplayName(a).localeCompare(personDisplayName(b), 'fr'))
+    .map((p) => ({ title: personDisplayName(p), value: p.id })),
 ])
 
 const statusItems = [

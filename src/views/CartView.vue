@@ -44,11 +44,11 @@
     <div v-if="cart.items.length" class="mt-6">
           <v-autocomplete
             v-model="personId"
-            :items="inventory.people"
-            item-title="nom"
+            :items="peopleItems"
+            item-title="title"
             item-value="id"
             label="Emprunteur"
-            :disabled="!inventory.people.length"
+            :disabled="!peopleItems.length"
           />
           <p v-if="!inventory.people.length" class="text-body-2 mb-4">
             Aucune personne enregistrée.
@@ -81,6 +81,7 @@ import { useUiStore } from '@/stores/ui'
 import { api } from '@/services/api'
 import { isLoanable } from '@/domain/item'
 import { addDays, todayLocal } from '@/domain/dates'
+import { personDisplayName } from '@/domain/person'
 
 const cart = useCartStore()
 const inventory = useInventoryStore()
@@ -99,6 +100,12 @@ const unavailable = computed(() =>
     const item = inventory.itemById(line.id)
     return !item || !isLoanable(item)
   }),
+)
+
+const peopleItems = computed(() =>
+  [...inventory.people]
+    .sort((a, b) => personDisplayName(a).localeCompare(personDisplayName(b), 'fr'))
+    .map((person) => ({ id: person.id, title: personDisplayName(person) })),
 )
 
 function dropUnavailable() {

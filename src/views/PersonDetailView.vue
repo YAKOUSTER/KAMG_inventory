@@ -26,8 +26,10 @@
         <ImageGallery :item="person" placeholder-icon="mdi-account" />
       </v-col>
       <v-col cols="12" md="8">
-        <h1 class="text-h4 page-title">{{ person.nom }}</h1>
-        <div class="text-subtitle-1 mb-4">{{ person.role }}</div>
+        <h1 class="text-h4 page-title">{{ personDisplayName(person) }}</h1>
+        <div v-if="roleChips.length" class="d-flex flex-wrap ga-2 mb-4">
+          <v-chip v-for="label in roleChips" :key="label" size="small" variant="tonal">{{ label }}</v-chip>
+        </div>
         <v-list density="compact">
           <v-list-item v-if="person.telephone" :title="person.telephone" subtitle="Téléphone" />
           <v-list-item v-if="person.email" :title="person.email" subtitle="Courriel" />
@@ -77,7 +79,7 @@ import { useRouter } from 'vue-router'
 import { api } from '@/services/api'
 import { useAuthStore } from '@/stores/auth'
 import { useInventoryStore } from '@/stores/inventory'
-import { PERSON_MEASUREMENTS, displayDate } from '@/domain/person'
+import { PERSON_MEASUREMENTS, displayDate, personDisplayName, personRoleLabels } from '@/domain/person'
 import { useUiStore } from '@/stores/ui'
 import ImageGallery from '@/components/ImageGallery.vue'
 
@@ -97,6 +99,8 @@ const filledMeasures = computed(() =>
   }),
 )
 
+const roleChips = computed(() => personRoleLabels(person.value))
+
 function statusLabel(status) {
   return { en_cours: 'En cours', retour_partiel: 'Retour partiel', retourne: 'Retourné' }[status] || status
 }
@@ -114,7 +118,7 @@ async function load() {
 }
 
 async function remove() {
-  if (!confirm(`Supprimer ${person.value.nom} ?`)) return
+  if (!confirm(`Supprimer ${personDisplayName(person.value)} ?`)) return
   try {
     await api.deletePerson(props.id)
     inventory.removePerson(props.id)

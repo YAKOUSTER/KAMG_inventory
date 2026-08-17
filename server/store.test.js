@@ -72,7 +72,7 @@ describe('json store', () => {
       { code: 'GIL-01', nom: 'Gilet', categorie: 'piece_costume', disponibilite: 'Disponible' },
       options,
     )
-    const person = await createPerson({ nom: 'Anna R.' }, options)
+    const person = await createPerson({ nom: 'Le Gall', prenom: 'Anna' }, options)
     const loan = await createLoan(
       {
         personId: person.id,
@@ -84,6 +84,7 @@ describe('json store', () => {
       options,
     )
     assert.equal(loan.statut, 'en_cours')
+    assert.equal(loan.personName, 'Anna Le Gall')
     assert.equal((await getItem(jupe.id, options)).disponibilite, 'Emprunté')
 
     const partial = await returnLoanItems(loan.id, [jupe.id], { ...options, dateRetour: '2026-08-01' })
@@ -104,7 +105,7 @@ describe('json store', () => {
       { code: 'TAB-01', nom: 'Tablier', categorie: 'piece_costume', disponibilite: 'Disponible' },
       options,
     )
-    const person = await createPerson({ nom: 'Mikael' }, options)
+    const person = await createPerson({ nom: 'Le Berre', prenom: 'Mikael' }, options)
     await createLoan({ personId: person.id, items: [{ itemId: item.id }] }, options)
     await assert.rejects(() => deleteItem(item.id, options), /empruntée/)
   })
@@ -169,6 +170,22 @@ describe('json store', () => {
     assert.equal(user.passwordHash, undefined)
   })
 
+  it('enregistre nom, prénom et plusieurs rôles', async () => {
+    const person = await createPerson(
+      {
+        nom: 'Le Gall',
+        prenom: 'Anna',
+        roles: ['membre', 'danseur_enfant', 'couture'],
+        anneeMembre: '2026',
+      },
+      options,
+    )
+    assert.equal(person.prenom, 'Anna')
+    assert.equal(person.nom, 'Le Gall')
+    assert.deepEqual(person.roles, ['membre', 'danseur_enfant', 'couture'])
+    assert.equal(person.anneeMembre, '2026')
+  })
+
   it('regroupe l’historique d’emprunts d’une personne par année', async () => {
     const jupe = await createItem(
       { code: 'JUP-HIST', nom: 'Jupe', categorie: 'piece_costume', disponibilite: 'Disponible' },
@@ -179,7 +196,7 @@ describe('json store', () => {
       options,
     )
     const person = await createPerson(
-      { nom: 'Anna R.', mesures: { tourTaille: 70, pointure: 38 } },
+      { nom: 'Le Gall', prenom: 'Anna', mesures: { tourTaille: 70, pointure: 38 } },
       options,
     )
     await createLoan(
@@ -208,7 +225,7 @@ describe('json store', () => {
       { code: 'GIL-WF', nom: 'Gilet', categorie: 'piece_costume', disponibilite: 'Disponible' },
       options,
     )
-    const person = await createPerson({ nom: 'Sterenn' }, options)
+    const person = await createPerson({ nom: 'Fonseca', prenom: 'Sterenn' }, options)
     const loan = await createLoan(
       {
         personId: person.id,
@@ -243,7 +260,7 @@ describe('json store', () => {
       { code: 'JUP-WF2', nom: 'Jupe', categorie: 'piece_costume', disponibilite: 'Disponible' },
       options,
     )
-    const person = await createPerson({ nom: 'Yann' }, options)
+    const person = await createPerson({ nom: 'Prigent', prenom: 'Yann' }, options)
     await assert.rejects(
       () => createLoan({ personId: person.id, items: [{ itemId: sample.id }] }, options),
       /pas disponible/,

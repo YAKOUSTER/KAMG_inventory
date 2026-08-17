@@ -482,8 +482,10 @@
   "people": [
     {
       "id": "person-anna",
-      "nom": "Anna Le Gall",
-      "role": "Danseuse",
+      "nom": "Le Gall",
+      "prenom": "Anna",
+      "roles": ["membre", "danseur_loisir"],
+      "anneeMembre": "2026",
       "telephone": "",
       "email": "",
       "notes": "Taille M, jupe bigoudène.",
@@ -507,8 +509,10 @@
     },
     {
       "id": "person-yann",
-      "nom": "Yann Prigent",
-      "role": "Danseur",
+      "nom": "Prigent",
+      "prenom": "Yann",
+      "roles": ["membre", "danseur_concours"],
+      "anneeMembre": "2026",
       "telephone": "",
       "email": "",
       "notes": "",

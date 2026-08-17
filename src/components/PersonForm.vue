@@ -4,10 +4,25 @@
       <h2 class="section-label">Identité</h2>
       <v-row>
         <v-col cols="12" md="6">
-          <v-text-field v-model="person.nom" label="Nom" :rules="[required]" />
+          <v-text-field v-model="person.prenom" label="Prénom" :rules="[required]" />
         </v-col>
         <v-col cols="12" md="6">
-          <v-text-field v-model="person.role" label="Rôle (danseuse, costumier…)" />
+          <v-text-field v-model="person.nom" label="Nom" :rules="[required]" />
+        </v-col>
+        <v-col cols="12">
+          <div class="section-label">Rôles</div>
+        </v-col>
+        <v-col v-for="role in PERSON_ROLES" :key="role.id" cols="12" sm="6" md="4">
+          <v-checkbox
+            v-model="person.roles"
+            :value="role.id"
+            :label="role.label"
+            hide-details
+            density="compact"
+          />
+        </v-col>
+        <v-col v-if="person.roles.includes('membre')" cols="12" md="4">
+          <v-select v-model="person.anneeMembre" :items="membershipYears()" label="Année" clearable />
         </v-col>
         <v-col cols="12" md="6">
           <v-text-field v-model="person.telephone" label="Téléphone" />
@@ -26,7 +41,7 @@
 
     <section class="form-block">
       <h2 class="section-label">Photo</h2>
-      <ItemPhotos v-model="person.images" :code="person.nom || 'personne'" />
+      <ItemPhotos v-model="person.images" :code="photoCode" />
     </section>
 
     <section class="form-block">
@@ -46,9 +61,16 @@
 </template>
 
 <script setup>
-import { reactive, ref, watch } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import { DEFAULT_REFERENTIELS } from '@/domain/taxonomy'
-import { PERSON_MEASUREMENTS, emptyPerson } from '@/domain/person'
+import {
+  PERSON_MEASUREMENTS,
+  PERSON_ROLES,
+  emptyPerson,
+  membershipYears,
+  normalizeRoles,
+  personDisplayName,
+} from '@/domain/person'
 import { normalizeImages } from '@/domain/images'
 import ItemPhotos from './ItemPhotos.vue'
 
@@ -62,6 +84,7 @@ const emit = defineEmits(['save'])
 const form = ref(null)
 const person = reactive(emptyPerson())
 const required = (v) => !!v || 'Champ requis'
+const photoCode = computed(() => personDisplayName(person) || 'personne')
 
 watch(
   () => props.initial,
@@ -69,6 +92,7 @@ watch(
     Object.assign(person, emptyPerson(), value || {})
     person.images = normalizeImages(person.images)
     person.mesures = { ...emptyPerson().mesures, ...(value?.mesures || {}) }
+    person.roles = normalizeRoles(value || person)
   },
   { immediate: true, deep: true },
 )
@@ -80,6 +104,7 @@ async function submit() {
     ...person,
     images: normalizeImages(person.images),
     mesures: { ...emptyPerson().mesures, ...person.mesures },
+    roles: [...person.roles],
   })
 }
 </script>

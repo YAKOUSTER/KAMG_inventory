@@ -17,8 +17,8 @@
             <v-icon v-if="!coverSrc(person)" size="40" color="primary">mdi-account</v-icon>
           </div>
           <div class="pt-3">
-            <div class="text-subtitle-1 font-weight-bold">{{ person.nom }}</div>
-            <div class="text-body-2">{{ person.role }}</div>
+            <div class="text-subtitle-1 font-weight-bold">{{ personDisplayName(person) }}</div>
+            <div v-if="personRolesLabel(person)" class="text-body-2">{{ personRolesLabel(person) }}</div>
             <div v-if="person.tailleLettre" class="text-caption">Taille {{ person.tailleLettre }}</div>
           </div>
         </router-link>
@@ -37,6 +37,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useInventoryStore } from '@/stores/inventory'
 import { useAuthStore } from '@/stores/auth'
 import { coverSrc } from '@/domain/images'
+import { personDisplayName, personRolesLabel } from '@/domain/person'
 
 const inventory = useInventoryStore()
 const auth = useAuthStore()
@@ -44,9 +45,22 @@ const search = ref('')
 
 const filtered = computed(() => {
   const q = search.value.trim().toLowerCase()
-  return inventory.people.filter((person) =>
-    !q || [person.nom, person.role, person.email, person.telephone].filter(Boolean).join(' ').toLowerCase().includes(q),
-  )
+  return [...inventory.people]
+    .sort((a, b) => personDisplayName(a).localeCompare(personDisplayName(b), 'fr'))
+    .filter((person) => {
+      if (!q) return true
+      const haystack = [
+        person.prenom,
+        person.nom,
+        personRolesLabel(person),
+        person.email,
+        person.telephone,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase()
+      return haystack.includes(q)
+    })
 })
 
 onMounted(() => inventory.refresh().catch(() => {}))

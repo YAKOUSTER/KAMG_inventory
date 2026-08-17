@@ -35,7 +35,7 @@ Vous pouvez ensuite **personnaliser les cases à cocher** d’un compte, comme d
 - Recherche et filtres, vue tableau (ordinateur) ou cartes (téléphone)
 - Pièces liées, **photos locales** (plusieurs vues, légende, photo principale — fichiers dans `data/uploads`, comme AppMEUR)
 - Panier d’emprunt, **fiche d’emprunt en page** : retour de certaines pièces ou de tout, **chaque retour est daté**
-- Fiche personne (photo, mensurations pour une tenue complète, historique d’emprunts **par année**)
+- Fiche personne (nom, prénom, plusieurs rôles, photo, mensurations pour une tenue complète, historique d’emprunts **par année**)
 - Export / import JSON (page Paramètres) — les comptes déjà créés sont conservés si le dump n’en contient pas
 
 ## Production
