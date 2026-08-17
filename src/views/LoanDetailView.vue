@@ -12,11 +12,11 @@
     </div>
     <v-chip class="mb-6" size="small" :color="chipColor" variant="tonal">{{ chipLabel }}</v-chip>
 
-    <v-list density="compact" class="mb-6">
-      <v-list-item :title="displayDate(loan.dateEmprunt)" subtitle="Date d’emprunt" />
-      <v-list-item v-if="loan.dateRetourPrevue" :title="displayDate(loan.dateRetourPrevue)" subtitle="Retour prévu" />
-      <v-list-item v-if="loan.dateRetour" :title="displayDate(loan.dateRetour)" subtitle="Retour complet" />
-    </v-list>
+    <div class="detail-rows mb-6">
+      <DetailRow label="Date d’emprunt" :value="displayDate(loan.dateEmprunt)" />
+      <DetailRow v-if="loan.dateRetourPrevue" label="Retour prévu" :value="displayDate(loan.dateRetourPrevue)" />
+      <DetailRow v-if="loan.dateRetour" label="Retour complet" :value="displayDate(loan.dateRetour)" />
+    </div>
 
     <section class="page-block">
       <h2 class="section-label">Pièces</h2>
@@ -51,7 +51,9 @@
 
     <section v-if="auth.can('loans.write') && hasOpen" class="page-block">
       <h2 class="section-label">Enregistrer un retour</h2>
-      <v-text-field v-model="dateRetour" label="Date de retour" type="date" />
+      <FieldRow label="Date de retour">
+        <v-text-field v-model="dateRetour" hide-details type="date" />
+      </FieldRow>
       <v-alert v-if="error" type="error" class="mb-3">{{ error }}</v-alert>
       <div class="d-flex flex-wrap ga-2">
         <v-btn color="warning" :disabled="!selectedIds.length" :loading="saving" @click="returnSelected">
@@ -76,6 +78,8 @@ import { useInventoryStore } from '@/stores/inventory'
 import { useUiStore } from '@/stores/ui'
 import { displayDate, todayLocal } from '@/domain/dates'
 import { isOverdue, loanStatusColor, loanStatusLabel } from '@/domain/loans'
+import DetailRow from '@/components/DetailRow.vue'
+import FieldRow from '@/components/FieldRow.vue'
 
 const props = defineProps({ id: { type: String, required: true } })
 const auth = useAuthStore()

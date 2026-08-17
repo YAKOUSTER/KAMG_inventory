@@ -20,156 +20,157 @@
 
     <section class="form-block">
       <h2 class="section-label">Identification</h2>
-      <v-row>
-        <v-col cols="12" md="4">
-          <v-select
-            v-model="item.type"
-            :items="typesForCategory"
-            label="Type"
-            :rules="[required]"
-          />
-        </v-col>
-        <v-col cols="12" md="3">
-          <v-text-field v-model="item.code" label="Code d'inventaire" :rules="[required]" />
-        </v-col>
-        <v-col cols="12" md="5">
-          <v-text-field v-model="item.nom" label="Nom" :rules="[required]" />
-        </v-col>
-        <v-col cols="12" md="4">
-          <v-select v-model="item.epoque" :items="withBlank(referentiels.epoques)" label="Époque" />
-        </v-col>
-        <v-col cols="12" md="4">
-          <v-text-field v-model="item.origine" label="Origine / pays / cercle" />
-        </v-col>
-        <v-col cols="12" md="4">
-          <v-select v-model="item.etat" :items="withBlank(referentiels.etats)" label="État" />
-        </v-col>
-        <v-col cols="12" md="4">
-          <v-select v-model="item.disponibilite" :items="referentiels.disponibilites" label="Disponibilité" />
-        </v-col>
-        <v-col cols="12" md="4">
-          <v-text-field v-model="item.proprietaire" label="Propriétaire / déposant" />
-        </v-col>
-        <v-col cols="12" md="4">
-          <v-text-field v-model="item.localisation" label="Localisation (armoire, tiroir…)" />
-        </v-col>
-      </v-row>
+      <div class="form-fields-grid form-fields-grid--3">
+        <FieldRow label="Type">
+          <v-select v-model="item.type" :items="typesForCategory" hide-details="auto" :rules="[required]" />
+        </FieldRow>
+        <FieldRow label="Code d'inventaire">
+          <v-text-field v-model="item.code" hide-details="auto" :rules="[required]" />
+        </FieldRow>
+        <FieldRow label="Nom">
+          <v-text-field v-model="item.nom" hide-details="auto" :rules="[required]" />
+        </FieldRow>
+        <FieldRow label="Époque">
+          <v-select v-model="item.epoque" :items="withBlank(referentiels.epoques)" hide-details />
+        </FieldRow>
+        <FieldRow label="Origine / pays / cercle">
+          <v-text-field v-model="item.origine" hide-details />
+        </FieldRow>
+        <FieldRow label="État">
+          <v-select v-model="item.etat" :items="withBlank(referentiels.etats)" hide-details />
+        </FieldRow>
+        <FieldRow label="Disponibilité">
+          <v-select v-model="item.disponibilite" :items="referentiels.disponibilites" hide-details />
+        </FieldRow>
+        <FieldRow label="Propriétaire / déposant">
+          <v-text-field v-model="item.proprietaire" hide-details />
+        </FieldRow>
+        <FieldRow label="Localisation" hint="armoire, tiroir…">
+          <v-text-field v-model="item.localisation" hide-details />
+        </FieldRow>
+      </div>
     </section>
 
     <section class="form-block">
       <h2 class="section-label">Description matérielle</h2>
-      <v-row>
-        <v-col cols="12">
-          <v-textarea v-model="item.description" label="Description" rows="3" />
-        </v-col>
-        <v-col cols="12" md="4">
-          <v-text-field v-model="item.materiau" label="Matière" />
-        </v-col>
-        <v-col cols="12" md="4">
-          <v-text-field v-model="item.composition" label="Composition" />
-        </v-col>
-        <v-col cols="12" md="4">
-          <v-combobox v-model="item.couleur" :items="referentiels.couleurs" label="Couleur" />
-        </v-col>
+      <div class="form-fields">
+        <FieldRow label="Description" align-top>
+          <v-textarea v-model="item.description" hide-details rows="3" />
+        </FieldRow>
+      </div>
+      <div class="form-fields-grid form-fields-grid--3 mt-2">
+        <FieldRow label="Matière">
+          <v-text-field v-model="item.materiau" hide-details />
+        </FieldRow>
+        <FieldRow label="Composition">
+          <v-text-field v-model="item.composition" hide-details />
+        </FieldRow>
+        <FieldRow label="Couleur">
+          <v-combobox v-model="item.couleur" :items="referentiels.couleurs" hide-details />
+        </FieldRow>
+      </div>
+      <v-row class="mt-2">
         <v-col cols="12" md="3">
           <v-checkbox v-model="item.perle" label="Perlé" hide-details />
         </v-col>
         <v-col cols="12" md="3">
           <v-checkbox v-model="item.broderie" label="Brodé" hide-details />
         </v-col>
-        <v-col cols="12" md="6" v-if="item.perle || item.broderie">
-          <v-text-field v-model="item.motif" label="Motif" />
-        </v-col>
-        <v-col cols="12">
-          <v-combobox v-model="item.tags" :items="[]" label="Mots-clés" multiple chips closable-chips />
+        <v-col v-if="item.perle || item.broderie" cols="12" md="6">
+          <FieldRow label="Motif">
+            <v-text-field v-model="item.motif" hide-details />
+          </FieldRow>
         </v-col>
       </v-row>
+      <FieldRow label="Mots-clés" class="mt-2">
+        <v-combobox v-model="item.tags" :items="[]" hide-details multiple chips closable-chips />
+      </FieldRow>
     </section>
 
     <section v-if="item.categorie === 'tissu' || item.categorie === 'echantillon'" class="form-block">
       <h2 class="section-label">{{ item.categorie === 'tissu' ? 'Tissu' : 'Échantillon' }}</h2>
-      <v-row>
-        <v-col cols="12" md="4">
-          <v-text-field v-model="item.armure" label="Armure / technique" />
-        </v-col>
+      <div class="form-fields-grid form-fields-grid--3">
+        <FieldRow label="Armure / technique">
+          <v-text-field v-model="item.armure" hide-details />
+        </FieldRow>
         <template v-if="item.categorie === 'tissu'">
-          <v-col cols="12" md="4">
-            <v-text-field v-model.number="item.laize" label="Laize (cm)" type="number" />
-          </v-col>
-          <v-col cols="12" md="4">
-            <v-text-field v-model.number="item.metrage" label="Métrage restant (m)" type="number" step="0.1" />
-          </v-col>
-          <v-col cols="12" md="4">
-            <v-text-field v-model.number="item.raccordMotif" label="Raccord de motif (cm)" type="number" />
-          </v-col>
-          <v-col cols="12" md="4">
-            <v-text-field v-model.number="item.grammage" label="Grammage (g/m²)" type="number" />
-          </v-col>
-          <v-col cols="12" md="4">
-            <v-text-field v-model="item.fournisseur" label="Fournisseur" />
-          </v-col>
+          <FieldRow label="Laize (cm)">
+            <v-text-field v-model.number="item.laize" hide-details type="number" />
+          </FieldRow>
+          <FieldRow label="Métrage restant (m)">
+            <v-text-field v-model.number="item.metrage" hide-details type="number" step="0.1" />
+          </FieldRow>
+          <FieldRow label="Raccord de motif (cm)">
+            <v-text-field v-model.number="item.raccordMotif" hide-details type="number" />
+          </FieldRow>
+          <FieldRow label="Grammage (g/m²)">
+            <v-text-field v-model.number="item.grammage" hide-details type="number" />
+          </FieldRow>
+          <FieldRow label="Fournisseur">
+            <v-text-field v-model="item.fournisseur" hide-details />
+          </FieldRow>
         </template>
         <template v-else>
-          <v-col cols="12" md="4">
-            <v-text-field v-model.number="item.largeurEchantillon" label="Largeur (cm)" type="number" />
-          </v-col>
-          <v-col cols="12" md="4">
-            <v-text-field v-model.number="item.hauteurEchantillon" label="Hauteur (cm)" type="number" />
-          </v-col>
-          <v-col cols="12" md="4">
-            <v-text-field v-model.number="item.grammage" label="Grammage (g/m²)" type="number" />
-          </v-col>
-          <v-col cols="12" md="8">
+          <FieldRow label="Largeur (cm)">
+            <v-text-field v-model.number="item.largeurEchantillon" hide-details type="number" />
+          </FieldRow>
+          <FieldRow label="Hauteur (cm)">
+            <v-text-field v-model.number="item.hauteurEchantillon" hide-details type="number" />
+          </FieldRow>
+          <FieldRow label="Grammage (g/m²)">
+            <v-text-field v-model.number="item.grammage" hide-details type="number" />
+          </FieldRow>
+          <FieldRow label="Pièce source" hint="si extrait d'un costume">
             <v-select
               v-model="item.pieceSourceId"
               :items="pieceOptions"
               item-title="label"
               item-value="id"
-              label="Pièce source (si extrait d'un costume)"
+              hide-details
               clearable
             />
-          </v-col>
+          </FieldRow>
         </template>
-      </v-row>
+      </div>
     </section>
 
     <section v-if="item.categorie === 'piece_collection'" class="form-block">
       <h2 class="section-label">Collection / conservation</h2>
-      <v-row>
-        <v-col cols="12" md="4">
-          <v-text-field v-model="item.numeroInventaire" label="N° d'inventaire patrimonial" />
-        </v-col>
-        <v-col cols="12" md="4">
-          <v-select v-model="item.modeAcquisition" :items="withBlank(referentiels.modesAcquisition)" label="Mode d'acquisition" />
-        </v-col>
-        <v-col cols="12" md="4">
-          <v-text-field v-model="item.dateAcquisition" label="Date d'acquisition" type="date" />
-        </v-col>
-        <v-col cols="12">
-          <v-text-field v-model="item.provenance" label="Provenance" />
-        </v-col>
-        <v-col cols="12">
-          <v-textarea v-model="item.notesConservation" label="Notes de conservation" rows="3" />
-        </v-col>
-      </v-row>
+      <div class="form-fields-grid form-fields-grid--3">
+        <FieldRow label="N° inventaire patrimonial">
+          <v-text-field v-model="item.numeroInventaire" hide-details />
+        </FieldRow>
+        <FieldRow label="Mode d'acquisition">
+          <v-select v-model="item.modeAcquisition" :items="withBlank(referentiels.modesAcquisition)" hide-details />
+        </FieldRow>
+        <FieldRow label="Date d'acquisition">
+          <v-text-field v-model="item.dateAcquisition" hide-details type="date" />
+        </FieldRow>
+        <FieldRow label="Provenance" class="form-fields-grid__span-2">
+          <v-text-field v-model="item.provenance" hide-details />
+        </FieldRow>
+      </div>
+      <FieldRow label="Notes de conservation" align-top class="mt-2">
+        <v-textarea v-model="item.notesConservation" hide-details rows="3" />
+      </FieldRow>
     </section>
 
     <section v-if="showCostumeMeasures" class="form-block">
       <h2 class="section-label">Mesures</h2>
-      <v-row>
-        <v-col cols="12" md="4">
-          <v-select v-model="item.tailleLettre" :items="withBlank(referentiels.tailles)" label="Taille générale" />
-        </v-col>
-        <v-col v-for="field in activeMeasureFields" :key="field.key" cols="12" md="4">
-          <v-text-field v-model.number="item[field.key]" :label="field.label" type="number" />
-        </v-col>
-        <v-col cols="12" md="4">
-          <v-text-field v-model.number="item.longueurVariable" label="Longueur de…" type="number" />
-        </v-col>
-        <v-col cols="12" md="8">
-          <v-text-field v-model="item.variable" label="Élément mesuré (velours, dentelle, moire…)" />
-        </v-col>
-      </v-row>
+      <div class="form-fields-grid form-fields-grid--3">
+        <FieldRow label="Taille générale">
+          <v-select v-model="item.tailleLettre" :items="withBlank(referentiels.tailles)" hide-details />
+        </FieldRow>
+        <FieldRow v-for="field in activeMeasureFields" :key="field.key" :label="field.label">
+          <v-text-field v-model.number="item[field.key]" hide-details type="number" />
+        </FieldRow>
+        <FieldRow label="Longueur de…">
+          <v-text-field v-model.number="item.longueurVariable" hide-details type="number" />
+        </FieldRow>
+        <FieldRow label="Élément mesuré" hint="velours, dentelle, moire…">
+          <v-text-field v-model="item.variable" hide-details />
+        </FieldRow>
+      </div>
     </section>
 
     <section class="form-block">
@@ -183,23 +184,23 @@
 
     <section class="form-block">
       <h2 class="section-label">Liens et notes</h2>
-      <v-row>
-        <v-col cols="12">
+      <div class="form-fields">
+        <FieldRow label="Pièces liées">
           <v-autocomplete
             v-model="item.linkedItemIds"
             :items="pieceOptions"
             item-title="label"
             item-value="id"
-            label="Pièces liées"
+            hide-details
             multiple
             chips
             closable-chips
           />
-        </v-col>
-        <v-col v-if="item.categorie !== 'piece_collection'" cols="12">
-          <v-textarea v-model="item.notesConservation" label="Notes" rows="2" />
-        </v-col>
-      </v-row>
+        </FieldRow>
+        <FieldRow v-if="item.categorie !== 'piece_collection'" label="Notes" align-top>
+          <v-textarea v-model="item.notesConservation" hide-details rows="2" />
+        </FieldRow>
+      </div>
     </section>
 
     <div class="d-flex ga-3 justify-end form-actions">
@@ -214,6 +215,7 @@ import { computed, reactive, ref, watch } from 'vue'
 import { CATEGORIES, DEFAULT_REFERENTIELS, MEASUREMENT_FIELDS, visibleMeasurements } from '@/domain/taxonomy'
 import { emptyItem } from '@/domain/item'
 import { normalizeImages } from '@/domain/images'
+import FieldRow from './FieldRow.vue'
 import ItemPhotos from './ItemPhotos.vue'
 
 const props = defineProps({

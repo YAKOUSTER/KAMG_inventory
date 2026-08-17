@@ -2,16 +2,28 @@
   <v-form ref="form" @submit.prevent="submit">
     <section class="form-block">
       <h2 class="section-label">Identité</h2>
+      <div class="form-fields-grid form-fields-grid--2">
+        <FieldRow label="Prénom">
+          <v-text-field v-model="person.prenom" hide-details="auto" :rules="[required]" />
+        </FieldRow>
+        <FieldRow label="Nom">
+          <v-text-field v-model="person.nom" hide-details="auto" :rules="[required]" />
+        </FieldRow>
+        <FieldRow v-if="person.roles.includes('membre')" label="Année">
+          <v-select v-model="person.anneeMembre" :items="membershipYears()" hide-details clearable />
+        </FieldRow>
+        <FieldRow label="Téléphone">
+          <v-text-field v-model="person.telephone" hide-details />
+        </FieldRow>
+        <FieldRow label="Courriel">
+          <v-text-field v-model="person.email" hide-details />
+        </FieldRow>
+        <FieldRow label="Taille générale">
+          <v-select v-model="person.tailleLettre" :items="['', ...DEFAULT_REFERENTIELS.tailles]" hide-details />
+        </FieldRow>
+      </div>
+      <div class="section-label mt-5 mb-2">Rôles</div>
       <v-row>
-        <v-col cols="12" md="6">
-          <v-text-field v-model="person.prenom" label="Prénom" :rules="[required]" />
-        </v-col>
-        <v-col cols="12" md="6">
-          <v-text-field v-model="person.nom" label="Nom" :rules="[required]" />
-        </v-col>
-        <v-col cols="12">
-          <div class="section-label">Rôles</div>
-        </v-col>
         <v-col v-for="role in PERSON_ROLES" :key="role.id" cols="12" sm="6" md="4">
           <v-checkbox
             v-model="person.roles"
@@ -21,22 +33,10 @@
             density="compact"
           />
         </v-col>
-        <v-col v-if="person.roles.includes('membre')" cols="12" md="4">
-          <v-select v-model="person.anneeMembre" :items="membershipYears()" label="Année" clearable />
-        </v-col>
-        <v-col cols="12" md="6">
-          <v-text-field v-model="person.telephone" label="Téléphone" />
-        </v-col>
-        <v-col cols="12" md="6">
-          <v-text-field v-model="person.email" label="Courriel" />
-        </v-col>
-        <v-col cols="12" md="4">
-          <v-select v-model="person.tailleLettre" :items="['', ...DEFAULT_REFERENTIELS.tailles]" label="Taille générale" />
-        </v-col>
-        <v-col cols="12">
-          <v-textarea v-model="person.notes" label="Notes" rows="2" />
-        </v-col>
       </v-row>
+      <FieldRow label="Notes" align-top class="mt-4">
+        <v-textarea v-model="person.notes" hide-details rows="2" />
+      </FieldRow>
     </section>
 
     <section class="form-block">
@@ -46,11 +46,11 @@
 
     <section class="form-block">
       <h2 class="section-label">Mensurations pour une tenue complète</h2>
-      <v-row>
-        <v-col v-for="field in PERSON_MEASUREMENTS" :key="field.key" cols="12" sm="6" md="4">
-          <v-text-field v-model.number="person.mesures[field.key]" :label="field.label" type="number" />
-        </v-col>
-      </v-row>
+      <div class="form-fields-grid form-fields-grid--2">
+        <FieldRow v-for="field in PERSON_MEASUREMENTS" :key="field.key" :label="field.label">
+          <v-text-field v-model.number="person.mesures[field.key]" hide-details type="number" />
+        </FieldRow>
+      </div>
     </section>
 
     <div class="d-flex ga-3 justify-end form-actions">
@@ -72,6 +72,7 @@ import {
   personDisplayName,
 } from '@/domain/person'
 import { normalizeImages } from '@/domain/images'
+import FieldRow from './FieldRow.vue'
 import ItemPhotos from './ItemPhotos.vue'
 
 const props = defineProps({

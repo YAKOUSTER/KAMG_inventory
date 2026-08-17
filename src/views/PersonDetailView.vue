@@ -30,11 +30,11 @@
         <div v-if="roleChips.length" class="d-flex flex-wrap ga-2 mb-4">
           <v-chip v-for="label in roleChips" :key="label" size="small" variant="tonal">{{ label }}</v-chip>
         </div>
-        <v-list class="detail-facts" density="comfortable">
-          <v-list-item v-if="person.telephone" :title="person.telephone" subtitle="Téléphone" />
-          <v-list-item v-if="person.email" :title="person.email" subtitle="Courriel" />
-          <v-list-item v-if="person.tailleLettre" :title="person.tailleLettre" subtitle="Taille générale" />
-        </v-list>
+        <div class="detail-rows">
+          <DetailRow v-if="person.telephone" label="Téléphone" :value="person.telephone" />
+          <DetailRow v-if="person.email" label="Courriel" :value="person.email" />
+          <DetailRow v-if="person.tailleLettre" label="Taille générale" :value="person.tailleLettre" />
+        </div>
       </v-col>
     </v-row>
 
@@ -86,6 +86,7 @@ import { useInventoryStore } from '@/stores/inventory'
 import { PERSON_MEASUREMENTS, displayDate, personDisplayName, personRoleLabels } from '@/domain/person'
 import { useUiStore } from '@/stores/ui'
 import ImageGallery from '@/components/ImageGallery.vue'
+import DetailRow from '@/components/DetailRow.vue'
 
 const props = defineProps({ id: { type: String, required: true } })
 const router = useRouter()

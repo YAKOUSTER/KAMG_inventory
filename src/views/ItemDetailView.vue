@@ -31,9 +31,9 @@
         <h1 class="text-h4 page-title mb-2">{{ item.nom }}</h1>
         <div class="text-subtitle-1 mb-3">{{ item.type }}</div>
         <StatusChip :status="item.disponibilite" />
-        <v-list class="mt-5 detail-facts" density="comfortable">
-          <v-list-item v-for="row in facts" :key="row.label" :title="row.value || '—'" :subtitle="row.label" />
-        </v-list>
+        <div class="detail-rows mt-5">
+          <DetailRow v-for="row in facts" :key="row.label" :label="row.label" :value="row.value || '—'" />
+        </div>
       </v-col>
     </v-row>
 
@@ -97,6 +97,7 @@ import { isLoanable } from '@/domain/item'
 import { useUiStore } from '@/stores/ui'
 import { displayDate } from '@/domain/dates'
 import ItemCard from '@/components/ItemCard.vue'
+import DetailRow from '@/components/DetailRow.vue'
 import StatusChip from '@/components/StatusChip.vue'
 import ImageGallery from '@/components/ImageGallery.vue'
 

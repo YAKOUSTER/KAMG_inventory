@@ -154,9 +154,8 @@ onMounted(() => {
   color: inherit;
 }
 .brand-logo {
-  height: 52px;
+  height: 56px;
   width: auto;
-  max-width: 56px;
   flex-shrink: 0;
   object-fit: contain;
   display: block;
