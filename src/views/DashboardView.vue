@@ -16,6 +16,19 @@
     </div>
 
     <div class="d-flex flex-wrap" style="gap: 3rem">
+      <section v-if="auth.can('items.read')" id="a-faire" class="flex-grow-1" style="min-width: 260px">
+        <div class="section-label">À faire</div>
+        <v-list v-if="taskRows.length" lines="two" class="pa-0">
+          <v-list-item
+            v-for="row in taskRows"
+            :key="`${row.item.id}-${row.task.id}`"
+            :to="{ name: 'item-detail', params: { id: row.item.id } }"
+            :title="row.task.text"
+            :subtitle="`${row.item.code} — ${row.item.nom}`"
+          />
+        </v-list>
+        <p v-else class="text-medium-emphasis">Rien à traiter pour le moment.</p>
+      </section>
       <section class="flex-grow-1" style="min-width: 260px">
         <div class="section-label">Dernières pièces</div>
         <v-list v-if="recent.length" lines="two" class="pa-0">
@@ -62,6 +75,7 @@ import { categoryLabel } from '@/domain/taxonomy'
 import { categoriesWithMeta } from '@/domain/referentiels'
 import { displayDate } from '@/domain/dates'
 import { isOverdue } from '@/domain/loans'
+import { itemsWithOpenTasks } from '@/domain/itemTasks'
 import StatusChip from '@/components/StatusChip.vue'
 
 const inventory = useInventoryStore()
@@ -91,8 +105,21 @@ const cards = computed(() => {
       to: { path: '/inventaire', query: { stockBas: '1' } },
     })
   }
+  if (stats.openTasks) {
+    list.push({
+      label: 'Actions à faire',
+      value: stats.openTasks,
+      to: { path: '/', hash: '#a-faire' },
+    })
+  }
   return list
 })
+
+const taskRows = computed(() =>
+  itemsWithOpenTasks(inventory.items)
+    .flatMap(({ item, tasks }) => tasks.map((task) => ({ item, task })))
+    .slice(0, 8),
+)
 
 const recent = computed(() =>
   [...inventory.items].sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || '')).slice(0, 6),

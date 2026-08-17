@@ -205,6 +205,7 @@ export function createApiApp() {
     handle((req) =>
       returnLoanItems(req.params.id, req.body?.itemIds, {
         dateRetour: req.body?.dateRetour,
+        updates: req.body?.updates,
         actor: req.user,
       }),
     ),

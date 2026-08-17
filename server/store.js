@@ -7,6 +7,7 @@ import { DEFAULT_REFERENTIELS } from '../src/domain/taxonomy.js'
 import { normalizeReferentiels, validateReferentiels, categoryIds } from '../src/domain/referentiels.js'
 import { isLoanable, normalizeItem } from '../src/domain/item.js'
 import { appendStockMovement, countLowStock } from '../src/domain/stock.js'
+import { applyReturnUpdate, countOpenTasks } from '../src/domain/itemTasks.js'
 import { ROLE_PRESETS, can, publicUser } from '../src/domain/auth.js'
 import { groupLoansByYear, normalizePerson, personDisplayName } from '../src/domain/person.js'
 import { todayLocal, formatDate } from '../src/domain/dates.js'
@@ -426,6 +427,8 @@ function decorateLoan(loan, db) {
       nom: item?.nom,
       type: item?.type,
       disponibilite: item?.disponibilite,
+      etat: item?.etat,
+      propre: item?.propre,
     }
   })
   return {
@@ -518,7 +521,10 @@ export async function returnLoanItems(loanId, itemIds, options = {}) {
       line.returnedAt = dateRetour
       const item = db.items.find((i) => i.id === itemId)
       if (item) {
-        item.disponibilite = 'Disponible'
+        applyReturnUpdate(item, (options.updates || {})[itemId] || {}, {
+          loanId,
+          defaultPersonId: loan.personId,
+        })
         item.updatedAt = new Date().toISOString()
       }
     }
@@ -558,6 +564,7 @@ function statsFrom(db) {
     available: db.items.filter((i) => i.disponibilite === 'Disponible').length,
     borrowed: db.items.filter((i) => i.disponibilite === 'Emprunté').length,
     lowStock: countLowStock(db.items),
+    openTasks: countOpenTasks(db.items),
     people: db.people.length,
     activeLoans: db.loans.filter((l) => l.statut !== 'retourne').length,
   }

@@ -54,15 +54,31 @@
       <FieldRow label="Date de retour">
         <v-text-field v-model="dateRetour" hide-details type="date" />
       </FieldRow>
-      <v-alert v-if="error" type="error" class="mb-3">{{ error }}</v-alert>
-      <div class="d-flex flex-wrap ga-2">
+
+      <div v-if="openLines.length" class="mt-4">
+        <div class="text-body-2 text-medium-emphasis mb-3">
+          Renseignez l’état de chaque pièce (la fiche sera mise à jour au retour).
+        </div>
+        <ReturnItemForm
+          v-for="line in openLines"
+          :key="line.itemId"
+          :ref="(el) => setReturnFormRef(line.itemId, el)"
+          :line="enrichedLine(line)"
+          :etats="referentiels.etats"
+          :people="inventory.people"
+          :default-person-id="loan.personId"
+        />
+      </div>
+
+      <v-alert v-if="error" type="error" class="mb-3 mt-4">{{ error }}</v-alert>
+      <div class="d-flex flex-wrap ga-2 mt-4">
         <v-btn color="warning" :disabled="!selectedIds.length" :loading="saving" @click="returnSelected">
           Retourner la sélection
         </v-btn>
         <v-btn color="primary" :loading="saving" @click="returnAll">Tout retourner</v-btn>
       </div>
       <p class="text-caption text-medium-emphasis mt-3 mb-0">
-        Chaque pièce retournée est datée. Vous pouvez revenir plus tard pour le reste.
+        Chaque pièce retournée est datée. Les actions à faire apparaissent sur l’accueil.
       </p>
     </section>
   </div>
@@ -80,19 +96,33 @@ import { displayDate, todayLocal } from '@/domain/dates'
 import { isOverdue, loanStatusColor, loanStatusLabel } from '@/domain/loans'
 import DetailRow from '@/components/DetailRow.vue'
 import FieldRow from '@/components/FieldRow.vue'
+import ReturnItemForm from '@/components/ReturnItemForm.vue'
 
 const props = defineProps({ id: { type: String, required: true } })
 const auth = useAuthStore()
 const inventory = useInventoryStore()
 const ui = useUiStore()
+const referentiels = computed(() => inventory.resolvedReferentiels)
 const remoteLoan = ref(null)
 const selectedIds = ref([])
+const returnFormRefs = ref({})
 const dateRetour = ref(todayLocal())
 const saving = ref(false)
 const loading = ref(false)
 const error = ref('')
 
 const loan = computed(() => inventory.loanById(props.id) || remoteLoan.value)
+
+const openLines = computed(() => (loan.value?.items || []).filter((line) => !line.returnedAt))
+
+function enrichedLine(line) {
+  const item = inventory.itemById(line.itemId)
+  return {
+    ...line,
+    etat: line.etat ?? item?.etat ?? '',
+    propre: line.propre ?? item?.propre ?? null,
+  }
+}
 
 const hasOpen = computed(() => loan.value?.items?.some((line) => !line.returnedAt))
 const overdue = computed(() => isOverdue(loan.value))
@@ -107,6 +137,20 @@ function toggle(line) {
   } else {
     selectedIds.value = [...selectedIds.value, id]
   }
+}
+
+function setReturnFormRef(itemId, el) {
+  if (el) returnFormRefs.value[itemId] = el
+  else delete returnFormRefs.value[itemId]
+}
+
+function buildUpdates(itemIds) {
+  const updates = {}
+  for (const itemId of itemIds) {
+    const form = returnFormRefs.value[itemId]
+    if (form?.payload) updates[itemId] = form.payload()
+  }
+  return updates
 }
 
 async function load() {
@@ -139,9 +183,17 @@ async function doReturn(itemIds) {
   saving.value = true
   error.value = ''
   try {
-    const updated = await api.returnLoan(props.id, itemIds, dateRetour.value)
+    const openIds = (loan.value?.items || []).filter((line) => !line.returnedAt).map((line) => line.itemId)
+    const targets = itemIds.length ? itemIds : openIds
+    const updated = await api.returnLoan(props.id, {
+      itemIds,
+      dateRetour: dateRetour.value,
+      updates: buildUpdates(targets),
+    })
     selectedIds.value = []
+    returnFormRefs.value = {}
     inventory.patchLoan(updated)
+    await inventory.refresh({ force: true })
     remoteLoan.value = updated
     ui.notify(updated.statut === 'retourne' ? 'Emprunt clôturé' : 'Retour enregistré')
   } catch (err) {

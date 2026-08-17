@@ -44,6 +44,26 @@
       </router-link>.
     </p>
 
+    <section v-if="pendingTasks.length" class="page-block">
+      <h2 class="section-label">Actions à faire</h2>
+      <v-list lines="two">
+        <v-list-item v-for="task in pendingTasks" :key="task.id">
+          <v-list-item-title>{{ task.text }}</v-list-item-title>
+          <template #append>
+            <v-btn
+              v-if="auth.can('items.update')"
+              size="small"
+              variant="text"
+              color="primary"
+              @click="markTaskDone(task.id)"
+            >
+              Fait
+            </v-btn>
+          </template>
+        </v-list-item>
+      </v-list>
+    </section>
+
     <section v-if="item?.categorie === 'fourniture'" class="page-block">
       <ItemStockPanel
         :item="item"
@@ -148,6 +168,8 @@ import ItemStockPanel from '@/components/ItemStockPanel.vue'
 import ImageGallery from '@/components/ImageGallery.vue'
 import { formatStock } from '@/domain/stock'
 import { usesInheritedPhotos } from '@/domain/images'
+import { countOpenTasks, openTasks, completeTask, syncDisponibiliteAfterReturn } from '@/domain/itemTasks'
+import { personDisplayName } from '@/domain/person'
 
 const props = defineProps({ id: { type: String, required: true } })
 const router = useRouter()
@@ -162,6 +184,22 @@ const referentiels = computed(() => inventory.resolvedReferentiels)
 
 const canLoan = computed(() => auth.can('loans.write') && isLoanable(item.value))
 
+const pendingTasks = computed(() => openTasks(item.value))
+
+async function markTaskDone(taskId) {
+  if (!item.value) return
+  const next = structuredClone(item.value)
+  completeTask(next, taskId)
+  syncDisponibiliteAfterReturn(next)
+  try {
+    item.value = await api.updateItem(item.value.id, next)
+    inventory.upsertItem(item.value)
+    ui.notify('Action marquée comme faite')
+  } catch (err) {
+    error.value = err.message
+  }
+}
+
 const facts = computed(() => {
   if (!item.value) return []
   const rows = [
@@ -171,9 +209,22 @@ const facts = computed(() => {
     { label: 'Composition', value: item.value.composition },
     { label: 'Couleur', value: item.value.couleur },
     { label: 'État', value: item.value.etat },
+    {
+      label: 'Propreté',
+      value: item.value.propre == null ? '' : item.value.propre ? 'Propre' : 'Sale',
+    },
     { label: 'Propriétaire', value: item.value.proprietaire },
     { label: 'Localisation', value: item.value.localisation },
   ]
+  if (item.value.propre === false && item.value.pressingPayePar) {
+    rows.push({
+      label: 'Pressing payé par',
+      value:
+        item.value.pressingPayePar === 'cercle'
+          ? 'Le cercle'
+          : personDisplayName(inventory.personById(item.value.pressingPayeParPersonId)) || 'Une personne',
+    })
+  }
   if (item.value.categorie === 'fourniture') {
     rows.push(
       { label: 'Stock', value: formatStock(item.value) },

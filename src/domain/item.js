@@ -2,6 +2,7 @@ import { CATEGORY_IDS } from './taxonomy.js'
 import { normalizeAttachments } from './attachments.js'
 import { normalizeImages } from './images.js'
 import { defaultStockUnit, isFourniture, normalizeStockFields } from './stock.js'
+import { normalizeItemCareFields } from './itemTasks.js'
 
 export function emptyItem(categorie = 'piece_costume') {
   return {
@@ -59,6 +60,10 @@ export function emptyItem(categorie = 'piece_costume') {
     stockSeuil: null,
     stockReference: '',
     stockMouvements: [],
+    propre: null,
+    pressingPayePar: '',
+    pressingPayeParPersonId: '',
+    aFaire: [],
     createdAt: '',
     updatedAt: '',
   }
@@ -91,6 +96,7 @@ export function normalizeItem(input = {}, { id, now, categoryIds: allowedCategor
     item.stockUnite = defaultStockUnit(item.type)
   }
   normalizeStockFields(item)
+  normalizeItemCareFields(item)
   const stamp = now || new Date().toISOString()
   item.createdAt = item.createdAt || stamp
   item.updatedAt = stamp

@@ -57,8 +57,7 @@ export const api = {
   loans: () => request('/api/loans'),
   loan: (id) => request(`/api/loans/${id}`),
   createLoan: (body) => request('/api/loans', { method: 'POST', body }),
-  returnLoan: (id, itemIds, dateRetour) =>
-    request(`/api/loans/${id}/return`, { method: 'PUT', body: { itemIds, dateRetour } }),
+  returnLoan: (id, body) => request(`/api/loans/${id}/return`, { method: 'PUT', body }),
   exportDb: () => request('/api/db'),
   importDb: (body) => request('/api/db', { method: 'PUT', body }),
   referentiels: () => request('/api/referentiels'),

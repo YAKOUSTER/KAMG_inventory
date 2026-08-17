@@ -3,6 +3,7 @@ import { api } from '@/services/api'
 import { countByCategory, filterItems } from '@/domain/filters'
 import { normalizeReferentiels } from '@/domain/referentiels'
 import { countLowStock } from '@/domain/stock'
+import { countOpenTasks } from '@/domain/itemTasks'
 
 function isDenied(error) {
   return /Accès refusé/.test(error?.message || '')
@@ -55,6 +56,7 @@ export const useInventoryStore = defineStore('inventory', {
         available: this.items.filter((item) => item.disponibilite === 'Disponible').length,
         borrowed: this.items.filter((item) => item.disponibilite === 'Emprunté').length,
         lowStock: countLowStock(this.items),
+        openTasks: countOpenTasks(this.items),
         people: this.people.length,
         activeLoans: this.loans.filter((loan) => loan.statut !== 'retourne').length,
       }
