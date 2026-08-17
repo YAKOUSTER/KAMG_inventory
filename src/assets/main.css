@@ -4,6 +4,7 @@
   --kamg-mist: #f4f6f4;
   --kamg-linen: #edede5;
   --kamg-border: rgba(83, 115, 106, 0.18);
+  --kamg-overlay: rgba(244, 246, 244, 0.94);
 }
 
 html,
@@ -16,6 +17,33 @@ body {
   font-family: Karla, "Segoe UI", system-ui, sans-serif;
   background: var(--kamg-mist);
   color: #2c332c;
+}
+
+/* Menus / drawer au-dessus du contenu : brume légère, pas de blanc pur */
+.kamg-nav-drawer.v-navigation-drawer {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.kamg-nav-drawer .v-navigation-drawer__content {
+  background: var(--kamg-overlay) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-right: 1px solid var(--kamg-border);
+}
+
+.kamg-nav-menu.v-overlay__content {
+  background: var(--kamg-overlay) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--kamg-border);
+  border-radius: 16px !important;
+  box-shadow: 0 10px 40px rgba(44, 51, 44, 0.14) !important;
+  overflow: hidden;
+}
+
+.kamg-nav-menu .v-list {
+  background: transparent !important;
 }
 
 a {

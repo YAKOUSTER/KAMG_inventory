@@ -50,7 +50,7 @@
           </v-badge>
         </v-btn>
 
-        <v-menu location="bottom end">
+        <v-menu location="bottom end" :menu-props="{ contentClass: 'kamg-nav-menu' }">
           <template #activator="{ props }">
             <v-btn v-bind="props" variant="text" size="default" class="nav-account ml-1" aria-label="Compte">
               <v-icon start size="24" class="d-none d-sm-inline">mdi-account-circle-outline</v-icon>
@@ -88,8 +88,10 @@
         v-model="drawerOpen"
         temporary
         location="start"
-        class="mobile-drawer d-md-none"
+        color="surface"
+        class="mobile-drawer kamg-nav-drawer d-md-none"
         width="280"
+        scrim="rgba(44, 51, 44, 0.38)"
       >
         <div class="mobile-drawer__header">
           <img :src="LOGO_SRC" :alt="GROUP_NAME" class="mobile-drawer__logo" />
