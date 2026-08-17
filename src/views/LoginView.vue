@@ -64,6 +64,8 @@ async function submit() {
   display: block;
   margin: 0 auto 1.25rem;
   object-fit: contain;
+  background: transparent;
+  filter: drop-shadow(0 2px 8px rgba(44, 51, 74, 0.12));
 }
 .login-title {
   font-size: 1.6rem;

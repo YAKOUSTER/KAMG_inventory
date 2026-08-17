@@ -165,6 +165,7 @@ onMounted(() => {
   flex-shrink: 0;
   object-fit: contain;
   display: block;
+  background: transparent;
 }
 .brand-name {
   font-size: 1.12rem;
