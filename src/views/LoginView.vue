@@ -1,28 +1,59 @@
 <template>
-  <v-container class="fill-height" style="max-width: 440px">
-    <div class="w-100 text-center">
-      <img :src="LOGO_SRC" :alt="GROUP_NAME" class="login-logo" />
-      <h1 class="page-title login-title">{{ APP_TITLE }}</h1>
-      <p class="text-body-2 text-medium-emphasis mb-8">{{ GROUP_NAME }}</p>
-      <v-form @submit.prevent="submit" class="login-form">
-        <FieldRow label="Identifiant">
-          <v-text-field v-model="login" hide-details autocomplete="username" autofocus />
-        </FieldRow>
-        <FieldRow label="Mot de passe">
-          <v-text-field
-            v-model="password"
-            hide-details
-            :type="show ? 'text' : 'password'"
-            autocomplete="current-password"
-            :append-inner-icon="show ? 'mdi-eye-off' : 'mdi-eye'"
-            @click:append-inner="show = !show"
-          />
-        </FieldRow>
-        <v-alert v-if="error" type="error" class="mb-3" density="compact">{{ error }}</v-alert>
-        <v-btn type="submit" color="primary" block size="large" :loading="loading">Entrer</v-btn>
+  <div class="login-page">
+    <div class="login-page__glow login-page__glow--one" aria-hidden="true" />
+    <div class="login-page__glow login-page__glow--two" aria-hidden="true" />
+
+    <div class="login-card">
+      <header class="login-card__header">
+        <img :src="LOGO_SRC" :alt="GROUP_NAME" class="login-card__logo" />
+        <p class="login-card__eyebrow">{{ GROUP_NAME }}</p>
+        <h1 class="login-card__title">{{ APP_TITLE }}</h1>
+        <p class="login-card__subtitle">Connectez-vous pour accéder à l’inventaire</p>
+      </header>
+
+      <v-form class="login-card__form" @submit.prevent="submit">
+        <v-text-field
+          v-model="login"
+          label="Identifiant"
+          prepend-inner-icon="mdi-account-outline"
+          variant="outlined"
+          density="comfortable"
+          hide-details="auto"
+          autocomplete="username"
+          autofocus
+          class="login-field"
+        />
+        <v-text-field
+          v-model="password"
+          label="Mot de passe"
+          prepend-inner-icon="mdi-lock-outline"
+          variant="outlined"
+          density="comfortable"
+          hide-details="auto"
+          :type="show ? 'text' : 'password'"
+          autocomplete="current-password"
+          :append-inner-icon="show ? 'mdi-eye-off-outline' : 'mdi-eye-outline'"
+          class="login-field"
+          @click:append-inner="show = !show"
+        />
+
+        <v-alert v-if="error" type="error" variant="tonal" density="compact" class="login-card__alert">
+          {{ error }}
+        </v-alert>
+
+        <v-btn
+          type="submit"
+          color="primary"
+          block
+          size="large"
+          class="login-card__submit"
+          :loading="loading"
+        >
+          Entrer
+        </v-btn>
       </v-form>
     </div>
-  </v-container>
+  </div>
 </template>
 
 <script setup>
@@ -30,7 +61,6 @@ import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { APP_TITLE, GROUP_NAME, LOGO_SRC } from '@/domain/brand'
-import FieldRow from '@/components/FieldRow.vue'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -56,25 +86,126 @@ async function submit() {
 </script>
 
 <style scoped>
-.login-logo {
+.login-page {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  padding: clamp(1.25rem, 4vw, 2.5rem);
+  overflow: hidden;
+}
+
+.login-page__glow {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(64px);
+  opacity: 0.55;
+}
+
+.login-page__glow--one {
+  width: min(420px, 70vw);
+  height: min(420px, 70vw);
+  top: -8%;
+  right: -6%;
+  background: rgba(106, 140, 105, 0.35);
+}
+
+.login-page__glow--two {
+  width: min(360px, 65vw);
+  height: min(360px, 65vw);
+  bottom: -10%;
+  left: -8%;
+  background: rgba(83, 115, 106, 0.28);
+}
+
+.login-card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 420px;
+  padding: clamp(1.75rem, 4vw, 2.25rem);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow:
+    0 24px 64px rgba(44, 51, 44, 0.12),
+    0 2px 8px rgba(44, 51, 44, 0.06);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.login-card__header {
+  text-align: center;
+  margin-bottom: 1.75rem;
+}
+
+.login-card__logo {
   width: auto;
   height: auto;
-  max-width: min(280px, 80vw);
-  max-height: min(280px, 40vh);
+  max-width: min(200px, 62vw);
+  max-height: min(160px, 28vh);
   display: block;
-  margin: 0 auto 1.25rem;
+  margin: 0 auto 1rem;
   object-fit: contain;
-  background: transparent;
-  filter: drop-shadow(0 2px 8px rgba(44, 51, 74, 0.12));
 }
-.login-title {
-  font-size: 1.6rem;
+
+.login-card__eyebrow {
+  margin: 0 0 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--kamg-deep);
+}
+
+.login-card__title {
+  margin: 0;
+  font-size: clamp(1.45rem, 4vw, 1.75rem);
+  font-weight: 700;
   line-height: 1.2;
+  color: #2c332c;
 }
-.login-form {
-  text-align: left;
+
+.login-card__subtitle {
+  margin: 0.65rem 0 0;
+  font-size: 0.92rem;
+  color: rgba(44, 51, 44, 0.62);
+  line-height: 1.45;
 }
-.login-form .field-row {
-  margin-bottom: 0.5rem;
+
+.login-card__form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.login-field :deep(.v-field) {
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.login-card__alert {
+  margin-top: 0.5rem;
+}
+
+.login-card__submit {
+  margin-top: 0.85rem;
+  min-height: 48px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  border-radius: 14px !important;
+}
+
+@media (max-width: 480px) {
+  .login-card {
+    padding: 1.35rem 1.15rem 1.5rem;
+    border-radius: 20px;
+  }
+
+  .login-card__header {
+    margin-bottom: 1.35rem;
+  }
 }
 </style>

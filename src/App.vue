@@ -252,7 +252,10 @@ onMounted(() => {
 
 <style scoped>
 .login-bg {
-  background: linear-gradient(160deg, #53736a 0%, #6a8c69 55%, #edede5 100%);
+  background:
+    radial-gradient(circle at 12% 18%, rgba(106, 140, 105, 0.22), transparent 42%),
+    radial-gradient(circle at 88% 82%, rgba(83, 115, 106, 0.18), transparent 40%),
+    linear-gradient(155deg, #eef2ee 0%, #f8faf8 38%, #e8ece8 100%);
 }
 .brand {
   display: flex;
