@@ -167,7 +167,7 @@ async function save() {
   saving.value = true
   message.value = ''
   try {
-    const saved = await api.updateReferentiels(normalizeReferentiels(draft))
+    const saved = await api.updateReferentiels(normalizeReferentiels(draft, { mergeMissingCategories: false }))
     inventory.setReferentiels(saved)
     Object.assign(draft, saved)
     ok.value = true

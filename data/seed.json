@@ -10,7 +10,8 @@
       { "id": "piece_costume", "label": "Pièce de costume" },
       { "id": "piece_collection", "label": "Pièce de collection" },
       { "id": "tissu", "label": "Tissu" },
-      { "id": "accessoire", "label": "Accessoire" }
+      { "id": "accessoire", "label": "Accessoire" },
+      { "id": "fourniture", "label": "Fourniture" }
     ],
     "epoques": ["1870", "1880", "1890", "1900", "1910", "1920", "1930", "1940", "1950", "Contemporain", "Indéterminée"],
     "etats": ["Très bon", "Bon", "Moyen", "Usé", "Ancien", "À réparer", "Fragile"],

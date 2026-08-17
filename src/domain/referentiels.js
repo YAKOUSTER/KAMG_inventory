@@ -57,7 +57,7 @@ function normalizeCategories(categories = []) {
     })
 }
 
-export function normalizeReferentiels(input = {}) {
+export function normalizeReferentiels(input = {}, { mergeMissingCategories = true } = {}) {
   const base = structuredClone(DEFAULT_REFERENTIELS)
   const merged = {
     ...base,
@@ -68,7 +68,12 @@ export function normalizeReferentiels(input = {}) {
     },
   }
 
-  merged.categories = normalizeCategories(input.categories?.length ? input.categories : base.categories)
+  merged.categories = mergeMissingCategories
+    ? normalizeCategories([
+        ...(input.categories?.length ? input.categories : base.categories),
+        ...(input.categories?.length ? base.categories : []),
+      ])
+    : normalizeCategories(input.categories?.length ? input.categories : base.categories)
   merged.epoques = uniqueStrings(input.epoques?.length ? input.epoques : base.epoques)
   merged.etats = uniqueStrings(input.etats?.length ? input.etats : base.etats)
   merged.disponibilites = uniqueStrings(
@@ -115,7 +120,7 @@ export function categoryIds(referentiels) {
 }
 
 export function validateReferentiels(input, { items = [] } = {}) {
-  const refs = normalizeReferentiels(input)
+  const refs = normalizeReferentiels(input, { mergeMissingCategories: false })
   if (!refs.categories.length) {
     throw new Error('Au moins une catégorie est requise')
   }

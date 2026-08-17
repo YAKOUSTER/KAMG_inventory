@@ -20,6 +20,20 @@ describe('normalizeReferentiels', () => {
     const refs = normalizeReferentiels({ couleurs: ['Rouge', ' rouge ', 'Bleu'] })
     assert.deepEqual(refs.couleurs, ['Rouge', 'Bleu'])
   })
+
+  it('ajoute les catégories par défaut manquantes en base', () => {
+    const partial = [
+      { id: 'echantillon', label: 'Échantillon' },
+      { id: 'piece_costume', label: 'Pièce de costume' },
+      { id: 'piece_collection', label: 'Pièce de collection' },
+      { id: 'tissu', label: 'Tissu' },
+      { id: 'accessoire', label: 'Accessoire' },
+    ]
+    const refs = normalizeReferentiels({ categories: partial })
+    assert.equal(refs.categories.length, 6)
+    assert.ok(refs.categories.some((cat) => cat.id === 'fourniture'))
+    assert.ok(Array.isArray(refs.typesParCategorie.fourniture))
+  })
 })
 
 describe('categoriesWithMeta', () => {
