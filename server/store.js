@@ -311,8 +311,8 @@ export async function adjustStock(id, payload, options = {}) {
     const index = db.items.findIndex((i) => i.id === id)
     if (index === -1) throw Object.assign(new Error('Pièce introuvable'), { status: 404 })
     const current = db.items[index]
-    if (current.categorie !== 'fourniture') {
-      throw Object.assign(new Error('Le stock ne concerne que les fournitures'), { status: 400 })
+    if (current.categorie !== 'fourniture' && current.categorie !== 'tissu') {
+      throw Object.assign(new Error('Le stock ne concerne que les tissus et fournitures'), { status: 400 })
     }
     const motif = String(payload?.motif || '').trim()
     let delta = Number(payload?.delta)

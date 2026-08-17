@@ -1,7 +1,7 @@
 import { CATEGORY_IDS } from './taxonomy.js'
 import { normalizeAttachments } from './attachments.js'
 import { normalizeImages } from './images.js'
-import { defaultStockUnit, isFourniture, normalizeStockFields } from './stock.js'
+import { defaultStockUnit, hasStock, isFourniture, normalizeStockFields } from './stock.js'
 import { normalizeItemCareFields } from './itemTasks.js'
 
 export function emptyItem(categorie = 'piece_costume') {
@@ -92,8 +92,8 @@ export function normalizeItem(input = {}, { id, now, categoryIds: allowedCategor
   item.linkedItemIds = Array.isArray(item.linkedItemIds)
     ? [...new Set(item.linkedItemIds.filter((x) => x && x !== item.id))]
     : []
-  if (isFourniture(item) && !item.stockUnite) {
-    item.stockUnite = defaultStockUnit(item.type)
+  if (hasStock(item) && !item.stockUnite) {
+    item.stockUnite = defaultStockUnit(item.type, item.categorie)
   }
   normalizeStockFields(item)
   normalizeItemCareFields(item)

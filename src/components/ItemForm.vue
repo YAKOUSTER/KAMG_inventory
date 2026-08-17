@@ -18,7 +18,7 @@
       </div>
     </section>
 
-    <section class="form-block">
+    <section class="form-block form-section">
       <h2 class="section-label">Identification</h2>
       <div class="form-fields-grid form-fields-grid--3">
         <FieldRow label="Type">
@@ -54,7 +54,7 @@
       </div>
     </section>
 
-    <section class="form-block">
+    <section class="form-block form-section">
       <h2 class="section-label">Description matérielle</h2>
       <div class="form-fields">
         <FieldRow label="Description" align-top>
@@ -90,18 +90,19 @@
       </FieldRow>
     </section>
 
-    <section v-if="isFourniture" class="form-block">
-      <h2 class="section-label">Stock</h2>
+    <section v-if="hasStockTracking" class="form-block form-section">
+      <h2 class="section-label">Quantité restante</h2>
       <p class="text-body-2 text-medium-emphasis mb-4">
-        Quantités consommables : fil, boutons, cannetille… Le statut (En stock / Stock bas / Rupture) se calcule
-        automatiquement. Les mouvements se gèrent aussi depuis la fiche détail.
+        En {{ isFourniture ? 'pièces, mètres, grammes…' : 'mètres, grammes, rouleaux…' }}.
+        Le statut ({{ isFourniture ? 'En stock' : 'Disponible' }} / Stock bas / Rupture) se calcule automatiquement.
+        Les mouvements se gèrent aussi depuis la fiche détail.
       </p>
       <div class="form-fields-grid form-fields-grid--3">
-        <FieldRow label="Quantité en stock">
+        <FieldRow label="Quantité restante">
           <v-text-field v-model.number="item.stockQuantite" hide-details type="number" min="0" step="any" />
         </FieldRow>
-        <FieldRow label="Unité">
-          <v-select v-model="item.stockUnite" :items="referentiels.unitesStock" hide-details />
+        <FieldRow label="Unité" hint="m, g, pièce…">
+          <v-select v-model="item.stockUnite" :items="stockUnitItems" hide-details />
         </FieldRow>
         <FieldRow label="Seuil d’alerte" hint="alerte stock bas">
           <v-text-field v-model.number="item.stockSeuil" hide-details type="number" min="0" step="any" />
@@ -115,7 +116,7 @@
       </div>
     </section>
 
-    <section v-if="item.categorie === 'tissu' || item.categorie === 'echantillon'" class="form-block">
+    <section v-if="item.categorie === 'tissu' || item.categorie === 'echantillon'" class="form-block form-section">
       <h2 class="section-label">{{ item.categorie === 'tissu' ? 'Tissu' : 'Échantillon' }}</h2>
       <div class="form-fields-grid form-fields-grid--3">
         <FieldRow label="Armure / technique">
@@ -124,9 +125,6 @@
         <template v-if="item.categorie === 'tissu'">
           <FieldRow label="Laize (cm)">
             <v-text-field v-model.number="item.laize" hide-details type="number" />
-          </FieldRow>
-          <FieldRow label="Métrage restant (m)">
-            <v-text-field v-model.number="item.metrage" hide-details type="number" step="0.1" />
           </FieldRow>
           <FieldRow label="Raccord de motif (cm)">
             <v-text-field v-model.number="item.raccordMotif" hide-details type="number" />
@@ -286,7 +284,13 @@ import { MEASUREMENT_FIELDS, visibleMeasurements } from '@/domain/taxonomy'
 import { categoriesWithMeta } from '@/domain/referentiels'
 import { useInventoryStore } from '@/stores/inventory'
 import { emptyItem } from '@/domain/item'
-import { defaultStockUnit, isFourniture as checkFourniture, syncFournitureDisponibilite } from '@/domain/stock'
+import {
+  defaultStockUnit,
+  hasStock,
+  isFourniture as checkFourniture,
+  stockUnitsFor,
+  syncStockDisponibilite,
+} from '@/domain/stock'
 import { normalizeImages, effectiveImages } from '@/domain/images'
 import { normalizeAttachments } from '@/domain/attachments'
 import FieldRow from './FieldRow.vue'
@@ -329,8 +333,11 @@ watch(
     if (item.type && !typesForCategory.value.includes(item.type)) {
       item.type = ''
     }
-    if (checkFourniture(item) && !item.stockUnite) {
-      item.stockUnite = defaultStockUnit(item.type)
+    if (hasStock(item) && !item.stockUnite) {
+      item.stockUnite = defaultStockUnit(item.type, item.categorie)
+    }
+    if (item.categorie === 'tissu' && item.stockQuantite != null) {
+      item.metrage = item.stockQuantite
     }
   },
 )
@@ -338,24 +345,33 @@ watch(
 watch(
   () => item.type,
   (type) => {
-    if (checkFourniture(item) && type) {
-      item.stockUnite = defaultStockUnit(type)
+    if (hasStock(item) && type) {
+      item.stockUnite = defaultStockUnit(type, item.categorie)
     }
   },
 )
 
 watch(
-  () => [item.stockQuantite, item.stockSeuil],
+  () => [item.stockQuantite, item.stockSeuil, item.categorie],
   () => {
-    if (checkFourniture(item)) syncFournitureDisponibilite(item)
+    if (hasStock(item)) {
+      syncStockDisponibilite(item)
+      if (item.categorie === 'tissu') item.metrage = item.stockQuantite
+    }
   },
 )
 
 const isFourniture = computed(() => checkFourniture(item))
+const hasStockTracking = computed(() => hasStock(item))
+const stockUnitItems = computed(() => {
+  const units = stockUnitsFor(item)
+  const current = item.stockUnite
+  return current && !units.includes(current) ? [...units, current] : units
+})
 
 const stockStatusPreview = computed(() => {
-  if (!isFourniture.value) return ''
-  syncFournitureDisponibilite(item)
+  if (!hasStockTracking.value) return ''
+  syncStockDisponibilite(item)
   return item.disponibilite
 })
 

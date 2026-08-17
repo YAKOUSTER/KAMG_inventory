@@ -3,9 +3,11 @@ import assert from 'node:assert/strict'
 import {
   appendStockMovement,
   formatStock,
+  hasStock,
   isStockBas,
+  isTissu,
   normalizeStockFields,
-  syncFournitureDisponibilite,
+  syncStockDisponibilite,
 } from './stock.js'
 import { normalizeItem } from './item.js'
 
@@ -56,7 +58,42 @@ describe('normalizeItem fourniture', () => {
       type: 'Fil',
       stockQuantite: 4,
     })
-    syncFournitureDisponibilite(item)
+    syncStockDisponibilite(item)
     assert.equal(item.disponibilite, 'En stock')
+  })
+})
+
+describe('stock tissu', () => {
+  it('reprend le métrage historique et formate la quantité restante', () => {
+    const item = normalizeStockFields({
+      categorie: 'tissu',
+      type: 'Toile',
+      metrage: 8.5,
+      stockUnite: '',
+    })
+    assert.equal(item.stockQuantite, 8.5)
+    assert.equal(item.stockUnite, 'm')
+    assert.equal(formatStock(item), '8.5 m')
+    assert.equal(item.disponibilite, 'Disponible')
+  })
+
+  it('signale une rupture de tissu', () => {
+    const item = normalizeStockFields({
+      categorie: 'tissu',
+      stockQuantite: 0,
+      stockUnite: 'm',
+    })
+    assert.equal(item.disponibilite, 'Rupture')
+    assert.equal(isStockBas(item), true)
+  })
+
+  it('accepte les grammes comme unité', () => {
+    const item = normalizeStockFields({
+      categorie: 'tissu',
+      stockQuantite: 350,
+      stockUnite: 'g',
+    })
+    assert.equal(formatStock(item), '350 g')
+    assert.equal(hasStock(item), true)
   })
 })

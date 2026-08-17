@@ -1,5 +1,7 @@
 const MAX_MOVEMENTS = 50
 
+export const STOCK_CATEGORIES = ['fourniture', 'tissu']
+
 export const DEFAULT_STOCK_UNITS = ['pièce', 'm', 'cm', 'bobine', 'rouleau', 'carte', 'g', 'kg', 'lot']
 
 const DEFAULT_UNIT_BY_TYPE = {
@@ -16,11 +18,29 @@ const DEFAULT_UNIT_BY_TYPE = {
   Mercerie: 'pièce',
 }
 
+const TISSU_UNITS = ['m', 'cm', 'g', 'kg', 'rouleau', 'bobine', 'pièce', 'lot']
+
+const STOCK_PROTECTED_STATUSES = new Set(['Emprunté', 'Réservé', 'Au pressing', 'En restauration', 'Archivé'])
+
 export function isFourniture(item) {
   return item?.categorie === 'fourniture'
 }
 
-export function defaultStockUnit(type = '') {
+export function isTissu(item) {
+  return item?.categorie === 'tissu'
+}
+
+export function hasStock(item) {
+  return STOCK_CATEGORIES.includes(item?.categorie)
+}
+
+export function stockUnitsFor(item) {
+  if (isTissu(item)) return TISSU_UNITS
+  return DEFAULT_STOCK_UNITS
+}
+
+export function defaultStockUnit(type = '', categorie = 'fourniture') {
+  if (categorie === 'tissu') return 'm'
   return DEFAULT_UNIT_BY_TYPE[type] || 'pièce'
 }
 
@@ -36,8 +56,21 @@ export function normalizeStockMovement(entry = {}, index = 0) {
   }
 }
 
+function migrateTissuMetrage(item) {
+  if (!isTissu(item)) return
+  const metrage = item.metrage
+  const qty = item.stockQuantite
+  if ((qty == null || qty === '') && metrage != null && metrage !== '') {
+    item.stockQuantite = metrage
+    if (!item.stockUnite) item.stockUnite = 'm'
+  }
+  if (item.stockQuantite != null && item.stockQuantite !== '') {
+    item.metrage = Number(item.stockQuantite) || null
+  }
+}
+
 export function normalizeStockFields(item) {
-  if (!isFourniture(item)) {
+  if (!hasStock(item)) {
     item.stockQuantite = null
     item.stockUnite = ''
     item.stockSeuil = null
@@ -46,10 +79,13 @@ export function normalizeStockFields(item) {
     return item
   }
 
+  migrateTissuMetrage(item)
+
   const quantite = item.stockQuantite
   item.stockQuantite =
     quantite == null || quantite === '' ? 0 : Math.max(0, Number(quantite) || 0)
-  item.stockUnite = String(item.stockUnite || defaultStockUnit(item.type)).trim() || 'pièce'
+  item.stockUnite =
+    String(item.stockUnite || defaultStockUnit(item.type, item.categorie)).trim() || 'pièce'
   item.stockSeuil =
     item.stockSeuil == null || item.stockSeuil === '' ? null : Math.max(0, Number(item.stockSeuil) || 0)
   item.stockReference = String(item.stockReference || '').trim()
@@ -57,22 +93,36 @@ export function normalizeStockFields(item) {
     .map(normalizeStockMovement)
     .filter(Boolean)
     .slice(0, MAX_MOVEMENTS)
-  syncFournitureDisponibilite(item)
+  syncStockDisponibilite(item)
+  if (isTissu(item)) migrateTissuMetrage(item)
   return item
 }
 
-export function syncFournitureDisponibilite(item) {
-  if (!isFourniture(item)) return item
+export function syncStockDisponibilite(item) {
+  if (!hasStock(item)) return item
   const qty = Number(item.stockQuantite) || 0
   const seuil = item.stockSeuil == null ? null : Number(item.stockSeuil)
-  if (qty <= 0) item.disponibilite = 'Rupture'
-  else if (seuil != null && qty <= seuil) item.disponibilite = 'Stock bas'
-  else item.disponibilite = 'En stock'
+  if (STOCK_PROTECTED_STATUSES.has(item.disponibilite)) return item
+
+  if (qty <= 0) {
+    item.disponibilite = 'Rupture'
+    return item
+  }
+  if (seuil != null && qty <= seuil) {
+    item.disponibilite = 'Stock bas'
+    return item
+  }
+  item.disponibilite = isFourniture(item) ? 'En stock' : 'Disponible'
   return item
+}
+
+/** @deprecated use syncStockDisponibilite */
+export function syncFournitureDisponibilite(item) {
+  return syncStockDisponibilite(item)
 }
 
 export function isStockBas(item) {
-  if (!isFourniture(item)) return false
+  if (!hasStock(item)) return false
   const qty = Number(item.stockQuantite) || 0
   const seuil = item.stockSeuil == null ? null : Number(item.stockSeuil)
   if (qty <= 0) return true
@@ -81,7 +131,7 @@ export function isStockBas(item) {
 }
 
 export function formatStock(item) {
-  if (!isFourniture(item)) return ''
+  if (!hasStock(item)) return ''
   const qty = Number(item.stockQuantite) || 0
   const unit = item.stockUnite || 'pièce'
   const label = Number.isInteger(qty) ? String(qty) : qty.toFixed(2).replace(/\.?0+$/, '')
@@ -89,7 +139,7 @@ export function formatStock(item) {
 }
 
 export function appendStockMovement(item, { delta, motif = '', auteur = '' } = {}) {
-  if (!isFourniture(item)) throw new Error('Stock réservé aux fournitures')
+  if (!hasStock(item)) throw new Error('Stock réservé aux tissus et fournitures')
   const change = Number(delta) || 0
   if (!change) throw new Error('Mouvement nul')
   const before = Number(item.stockQuantite) || 0
@@ -106,7 +156,8 @@ export function appendStockMovement(item, { delta, motif = '', auteur = '' } = {
     }),
   )
   item.stockMouvements = item.stockMouvements.slice(0, MAX_MOVEMENTS)
-  syncFournitureDisponibilite(item)
+  syncStockDisponibilite(item)
+  if (isTissu(item)) item.metrage = after
   item.updatedAt = new Date().toISOString()
   return item
 }

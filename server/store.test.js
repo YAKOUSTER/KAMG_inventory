@@ -387,6 +387,33 @@ describe('json store', () => {
     assert.equal(adjusted.stockMouvements.length, 1)
   })
 
+  it('gère la quantité restante des tissus', async () => {
+    const session = await login('admin', 'admin', options)
+    const created = await createItem(
+      {
+        code: 'TIS-WF',
+        nom: 'Toile écrue',
+        categorie: 'tissu',
+        type: 'Toile',
+        metrage: 6,
+        stockSeuil: 2,
+      },
+      { ...options, actor: session.user },
+    )
+    assert.equal(created.stockQuantite, 6)
+    assert.equal(created.stockUnite, 'm')
+    assert.equal(created.disponibilite, 'Disponible')
+
+    const adjusted = await adjustStock(
+      created.id,
+      { delta: -5, motif: 'Tablier' },
+      { ...options, actor: session.user },
+    )
+    assert.equal(adjusted.stockQuantite, 1)
+    assert.equal(adjusted.disponibilite, 'Stock bas')
+    assert.equal(adjusted.metrage, 1)
+  })
+
   it('enregistre créations, modifications et retours dans le journal d’audit', async () => {
     const session = await login('admin', 'admin', options)
     const actor = session.user

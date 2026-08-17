@@ -79,7 +79,7 @@
         <StatusChip :status="item.disponibilite" />
       </template>
       <template #item.stock="{ item }">
-        {{ isFourniture(item) ? formatStock(item) : '—' }}
+        {{ hasStock(item) ? formatStock(item) : '—' }}
       </template>
       <template #item.cart="{ item }">
         <v-btn
@@ -119,7 +119,7 @@ import { useUiStore } from '@/stores/ui'
 import { MEASUREMENT_FIELDS, categoryLabel } from '@/domain/taxonomy'
 import { categoriesWithMeta } from '@/domain/referentiels'
 import { coverSrc } from '@/domain/images'
-import { formatStock, isFourniture } from '@/domain/stock'
+import { formatStock, hasStock } from '@/domain/stock'
 import { filterItems } from '@/domain/filters'
 import { isLoanable } from '@/domain/item'
 import ItemCard from '@/components/ItemCard.vue'

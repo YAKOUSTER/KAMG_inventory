@@ -1,7 +1,7 @@
 <template>
   <section class="page-block">
     <div class="d-flex flex-wrap align-center ga-3 mb-4">
-      <h2 class="section-label mb-0">Stock</h2>
+      <h2 class="section-label mb-0">Quantité restante</h2>
       <v-spacer />
       <StatusChip :status="item.disponibilite" />
     </div>

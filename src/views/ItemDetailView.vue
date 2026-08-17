@@ -64,7 +64,7 @@
       </v-list>
     </section>
 
-    <section v-if="item?.categorie === 'fourniture'" class="page-block">
+    <section v-if="hasStock(item)" class="page-block">
       <ItemStockPanel
         :item="item"
         :can-edit="auth.can('items.update')"
@@ -166,7 +166,7 @@ import DetailRow from '@/components/DetailRow.vue'
 import StatusChip from '@/components/StatusChip.vue'
 import ItemStockPanel from '@/components/ItemStockPanel.vue'
 import ImageGallery from '@/components/ImageGallery.vue'
-import { formatStock } from '@/domain/stock'
+import { formatStock, hasStock } from '@/domain/stock'
 import { usesInheritedPhotos } from '@/domain/images'
 import { countOpenTasks, openTasks, completeTask, syncDisponibiliteAfterReturn } from '@/domain/itemTasks'
 import { personDisplayName } from '@/domain/person'
@@ -225,9 +225,9 @@ const facts = computed(() => {
           : personDisplayName(inventory.personById(item.value.pressingPayeParPersonId)) || 'Une personne',
     })
   }
-  if (item.value.categorie === 'fourniture') {
+  if (hasStock(item.value)) {
     rows.push(
-      { label: 'Stock', value: formatStock(item.value) },
+      { label: 'Quantité restante', value: formatStock(item.value) },
       { label: 'Seuil d’alerte', value: item.value.stockSeuil != null ? `${item.value.stockSeuil} ${item.value.stockUnite}` : '' },
       { label: 'Fournisseur', value: item.value.fournisseur },
       { label: 'Réf. fournisseur', value: item.value.stockReference },
@@ -236,8 +236,6 @@ const facts = computed(() => {
   if (item.value.categorie === 'tissu') {
     rows.push(
       { label: 'Laize', value: item.value.laize ? `${item.value.laize} cm` : '' },
-      { label: 'Métrage', value: item.value.metrage ? `${item.value.metrage} m` : '' },
-      { label: 'Fournisseur', value: item.value.fournisseur },
     )
   }
   if (item.value.categorie === 'echantillon') {
