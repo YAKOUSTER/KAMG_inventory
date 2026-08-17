@@ -69,8 +69,8 @@
       @click:row="(_e, { item }) => $router.push({ name: 'item-detail', params: { id: item.id } })"
     >
       <template #item.photo="{ item }">
-        <v-avatar v-if="coverSrc(item)" rounded size="40">
-          <v-img :src="coverSrc(item)" cover />
+        <v-avatar v-if="coverSrc(item, itemById)" rounded size="40">
+          <v-img :src="coverSrc(item, itemById)" cover />
         </v-avatar>
         <v-icon v-else size="20" color="primary">mdi-image-off-outline</v-icon>
       </template>
@@ -163,6 +163,7 @@ const categoryItems = computed(() => [
   { title: 'Tout', value: 'Tout' },
   ...categoriesWithMeta(referentiels.value).map((cat) => ({ title: cat.label, value: cat.id })),
 ])
+const itemById = (id) => inventory.itemById(id)
 const withAll = (list) => ['Tout', ...list]
 const filtered = computed(() => filterItems(inventory.items, filters))
 

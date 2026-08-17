@@ -25,6 +25,7 @@ export function emptyItem(categorie = 'piece_costume') {
     broderie: false,
     motif: '',
     images: [],
+    photoSourceId: '',
     attachments: [],
     linkedItemIds: [],
     tailleLettre: '',
@@ -78,6 +79,10 @@ export function normalizeItem(input = {}, { id, now, categoryIds: allowedCategor
   item.nom = String(item.nom).trim()
   item.tags = Array.isArray(item.tags) ? item.tags.filter(Boolean) : []
   item.images = normalizeImages(item.images)
+  item.photoSourceId =
+    item.photoSourceId && String(item.photoSourceId).trim() !== item.id
+      ? String(item.photoSourceId).trim()
+      : ''
   item.attachments = normalizeAttachments(item.attachments)
   item.linkedItemIds = Array.isArray(item.linkedItemIds)
     ? [...new Set(item.linkedItemIds.filter((x) => x && x !== item.id))]

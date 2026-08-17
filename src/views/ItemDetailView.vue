@@ -24,7 +24,7 @@
 
     <v-row>
       <v-col cols="12" md="5">
-        <ImageGallery :item="item" :placeholder-icon="categoryIcon(item.categorie, referentiels)" />
+        <ImageGallery :item="item" :items="inventory.items" :placeholder-icon="categoryIcon(item.categorie, referentiels)" />
       </v-col>
       <v-col cols="12" md="7">
         <div class="text-overline">{{ item.code }} · {{ categoryLabel(item.categorie, referentiels) }}</div>
@@ -36,6 +36,13 @@
         </div>
       </v-col>
     </v-row>
+
+    <p v-if="usesInheritedPhotos(item) && item.photoSource" class="text-body-2 text-medium-emphasis mb-4">
+      Photos partagées depuis
+      <router-link :to="{ name: 'item-detail', params: { id: item.photoSource.id } }">
+        {{ item.photoSource.code }} — {{ item.photoSource.nom }}
+      </router-link>.
+    </p>
 
     <section v-if="item?.categorie === 'fourniture'" class="page-block">
       <ItemStockPanel
@@ -140,6 +147,7 @@ import StatusChip from '@/components/StatusChip.vue'
 import ItemStockPanel from '@/components/ItemStockPanel.vue'
 import ImageGallery from '@/components/ImageGallery.vue'
 import { formatStock } from '@/domain/stock'
+import { usesInheritedPhotos } from '@/domain/images'
 
 const props = defineProps({ id: { type: String, required: true } })
 const router = useRouter()

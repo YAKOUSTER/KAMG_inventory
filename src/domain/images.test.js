@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { coverSrc, moveImage, normalizeImages, setPrincipal } from './images.js'
+import { coverSrc, effectiveImages, moveImage, normalizeImages, setPrincipal } from './images.js'
 
 describe('normalizeImages', () => {
   it('accepte les anciens chemins en chaîne', () => {
@@ -33,6 +33,27 @@ describe('coverSrc', () => {
       }),
       '/detail.jpg',
     )
+  })
+})
+
+describe('effectiveImages', () => {
+  it('reprend les photos de la fiche modèle si la sienne est vide', () => {
+    const items = [
+      { id: 'm', code: 'CHAU-M', images: [{ src: '/shoe.jpg', principale: true }] },
+      { id: 'v', code: 'CHAU-38', images: [], photoSourceId: 'm' },
+    ]
+    const getItem = (id) => items.find((item) => item.id === id)
+    assert.equal(coverSrc(items[1], getItem), '/shoe.jpg')
+    assert.equal(effectiveImages(items[1], getItem).length, 1)
+  })
+
+  it('garde les photos propres en priorité', () => {
+    const items = [
+      { id: 'm', images: [{ src: '/default.jpg' }] },
+      { id: 'v', images: [{ src: '/own.jpg' }], photoSourceId: 'm' },
+    ]
+    const getItem = (id) => items.find((item) => item.id === id)
+    assert.equal(coverSrc(items[1], getItem), '/own.jpg')
   })
 })
 

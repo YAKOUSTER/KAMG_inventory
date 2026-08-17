@@ -207,6 +207,39 @@
         Les fichiers sont enregistrés à côté du JSON (<code>data/uploads</code>) :
         pas d’hébergement d’images payant. Plusieurs vues par pièce (face, dos, détail, étiquette).
       </p>
+      <FieldRow label="Photos par défaut" hint="même visuel pour plusieurs tailles ou variantes" class="mb-4">
+        <v-autocomplete
+          v-model="item.photoSourceId"
+          :items="photoSourceOptions"
+          item-title="label"
+          item-value="id"
+          hide-details
+          clearable
+          placeholder="Choisir une fiche modèle…"
+        />
+      </FieldRow>
+      <v-alert
+        v-if="inheritedPhotos.length && !ownPhotos.length"
+        type="info"
+        variant="tonal"
+        density="compact"
+        class="mb-4"
+      >
+        Cette fiche affichera les photos de
+        <strong>{{ photoSourceLabel }}</strong>
+        tant qu’elle n’a pas de photo propre.
+      </v-alert>
+      <div v-if="inheritedPhotos.length && !ownPhotos.length" class="d-flex ga-2 mb-4 flex-wrap">
+        <v-img
+          v-for="img in inheritedPhotos.slice(0, 4)"
+          :key="img.id"
+          :src="img.src"
+          width="72"
+          height="72"
+          cover
+          class="rounded"
+        />
+      </div>
       <ItemPhotos v-model="item.images" :code="item.code" />
     </section>
 
@@ -254,7 +287,7 @@ import { categoriesWithMeta } from '@/domain/referentiels'
 import { useInventoryStore } from '@/stores/inventory'
 import { emptyItem } from '@/domain/item'
 import { defaultStockUnit, isFourniture as checkFourniture, syncFournitureDisponibilite } from '@/domain/stock'
-import { normalizeImages } from '@/domain/images'
+import { normalizeImages, effectiveImages } from '@/domain/images'
 import { normalizeAttachments } from '@/domain/attachments'
 import FieldRow from './FieldRow.vue'
 import ItemPhotos from './ItemPhotos.vue'
@@ -342,6 +375,19 @@ const pieceOptions = computed(() =>
     .filter((candidate) => candidate.id !== item.id)
     .map((candidate) => ({ id: candidate.id, label: `${candidate.code} — ${candidate.nom}` })),
 )
+
+const photoSourceOptions = computed(() => pieceOptions.value)
+
+const getItemById = (id) => props.items.find((entry) => entry.id === id)
+
+const ownPhotos = computed(() => normalizeImages(item.images))
+
+const inheritedPhotos = computed(() => effectiveImages(item, getItemById))
+
+const photoSourceLabel = computed(() => {
+  const source = getItemById(item.photoSourceId)
+  return source ? `${source.code} — ${source.nom}` : 'la fiche modèle'
+})
 
 function withBlank(list = []) {
   return list

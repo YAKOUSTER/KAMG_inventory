@@ -123,6 +123,32 @@ describe('json store', () => {
     assert.equal(detail.linkedItems[0].id, tablier.id)
   })
 
+  it('partage les photos via une fiche modèle', async () => {
+    const master = await createItem(
+      {
+        code: 'CHAU-M',
+        nom: 'Chaussure — visuel',
+        categorie: 'piece_costume',
+        type: 'Chaussure',
+        images: [{ src: '/uploads/shoe.jpg', principale: true }],
+      },
+      options,
+    )
+    const variant = await createItem(
+      {
+        code: 'CHAU-38',
+        nom: 'Chaussure 38',
+        categorie: 'piece_costume',
+        type: 'Chaussure',
+        photoSourceId: master.id,
+      },
+      options,
+    )
+    const detail = await getItem(variant.id, options)
+    assert.equal(detail.photoSource.id, master.id)
+    await assert.rejects(() => deleteItem(master.id, options), /photos par défaut/)
+  })
+
   it('importe un dump JSON complet', async () => {
     await importDb(
       {

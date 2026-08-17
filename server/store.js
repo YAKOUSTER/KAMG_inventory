@@ -219,7 +219,15 @@ export async function getItem(id, options = {}) {
         statut: loan.statut,
       }
     })
-  return { ...item, linkedItems: linked.filter((i) => i.id !== id), loanHistory: history }
+  return { ...item, linkedItems: linked.filter((i) => i.id !== id), loanHistory: history, photoSource: photoSourceSummary(db, item) }
+}
+
+function photoSourceSummary(db, item) {
+  const sourceId = String(item.photoSourceId || '').trim()
+  if (!sourceId || sourceId === item.id) return null
+  const source = db.items.find((i) => i.id === sourceId)
+  if (!source) return null
+  return { id: source.id, code: source.code, nom: source.nom }
 }
 
 function referentielCategoryIds(db) {
@@ -314,6 +322,14 @@ export async function deleteItem(id, options = {}) {
     )
     if (activeLoan) {
       throw Object.assign(new Error('Impossible de supprimer une pièce actuellement empruntée'), { status: 409 })
+    }
+    const photoSourceFor = db.items.filter((item) => item.photoSourceId === id)
+    if (photoSourceFor.length) {
+      const codes = photoSourceFor.map((item) => item.code).join(', ')
+      throw Object.assign(
+        new Error(`Impossible de supprimer cette fiche : photos par défaut pour ${codes}`),
+        { status: 409 },
+      )
     }
     const [removed] = db.items.splice(index, 1)
     db.items.forEach((item) => {

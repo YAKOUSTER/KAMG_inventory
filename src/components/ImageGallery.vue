@@ -47,19 +47,24 @@
   <div v-else class="gallery-empty text-center py-12">
     <v-icon size="56" color="primary">{{ placeholderIcon }}</v-icon>
     <div class="text-body-2 text-medium-emphasis mt-2">Pas encore de photo</div>
+    <div v-if="item.photoSourceId" class="text-caption text-medium-emphasis mt-1">
+      Aucune photo propre ni sur la fiche modèle.
+    </div>
   </div>
 </template>
 
 <script setup>
 import { computed, ref, watch } from 'vue'
-import { coverSrc, normalizeImages } from '@/domain/images'
+import { coverSrc, effectiveImages, normalizeImages } from '@/domain/images'
 
 const props = defineProps({
   item: { type: Object, required: true },
+  items: { type: Array, default: () => [] },
   placeholderIcon: { type: String, default: 'mdi-image-off-outline' },
 })
 
-const images = computed(() => normalizeImages(props.item?.images))
+const getItem = (id) => props.items.find((entry) => entry.id === id)
+const images = computed(() => effectiveImages(props.item, getItem))
 const itemNom = computed(() => props.item?.nom || '')
 const index = ref(0)
 const dialog = ref(false)
@@ -67,7 +72,7 @@ const dialog = ref(false)
 watch(
   images,
   (list) => {
-    const cover = coverSrc(props.item)
+    const cover = coverSrc(props.item, getItem)
     const found = list.findIndex((img) => img.src === cover)
     index.value = found >= 0 ? found : 0
   },

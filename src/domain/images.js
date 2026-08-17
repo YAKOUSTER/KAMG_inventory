@@ -38,9 +38,25 @@ export function normalizeImages(images = []) {
   }))
 }
 
-export function coverSrc(item) {
-  const images = normalizeImages(item?.images)
+export function coverSrc(item, getItem) {
+  const images = effectiveImages(item, getItem)
   return images.find((img) => img.principale)?.src || images[0]?.src || ''
+}
+
+export function effectiveImages(item, getItem, depth = 0) {
+  const own = normalizeImages(item?.images)
+  if (own.length) return own
+  if (depth > 5 || !getItem) return []
+  const sourceId = String(item?.photoSourceId || '').trim()
+  if (!sourceId || sourceId === item?.id) return []
+  const source = getItem(sourceId)
+  if (!source) return []
+  if (normalizeImages(source.images).length) return normalizeImages(source.images)
+  return effectiveImages(source, getItem, depth + 1)
+}
+
+export function usesInheritedPhotos(item) {
+  return !normalizeImages(item?.images).length && Boolean(String(item?.photoSourceId || '').trim())
 }
 
 export function setPrincipal(images, id) {
