@@ -37,6 +37,14 @@
       </v-col>
     </v-row>
 
+    <section v-if="item?.categorie === 'fourniture'" class="page-block">
+      <ItemStockPanel
+        :item="item"
+        :can-edit="auth.can('items.update')"
+        @updated="onStockUpdated"
+      />
+    </section>
+
     <section class="page-block">
       <h2 class="section-label">Description</h2>
       <p class="text-multiline text-body-1">{{ item.description || 'Pas de description.' }}</p>
@@ -129,7 +137,9 @@ import { displayDate } from '@/domain/dates'
 import ItemCard from '@/components/ItemCard.vue'
 import DetailRow from '@/components/DetailRow.vue'
 import StatusChip from '@/components/StatusChip.vue'
+import ItemStockPanel from '@/components/ItemStockPanel.vue'
 import ImageGallery from '@/components/ImageGallery.vue'
+import { formatStock } from '@/domain/stock'
 
 const props = defineProps({ id: { type: String, required: true } })
 const router = useRouter()
@@ -156,6 +166,14 @@ const facts = computed(() => {
     { label: 'Propriétaire', value: item.value.proprietaire },
     { label: 'Localisation', value: item.value.localisation },
   ]
+  if (item.value.categorie === 'fourniture') {
+    rows.push(
+      { label: 'Stock', value: formatStock(item.value) },
+      { label: 'Seuil d’alerte', value: item.value.stockSeuil != null ? `${item.value.stockSeuil} ${item.value.stockUnite}` : '' },
+      { label: 'Fournisseur', value: item.value.fournisseur },
+      { label: 'Réf. fournisseur', value: item.value.stockReference },
+    )
+  }
   if (item.value.categorie === 'tissu') {
     rows.push(
       { label: 'Laize', value: item.value.laize ? `${item.value.laize} cm` : '' },
@@ -202,6 +220,11 @@ async function load() {
   } finally {
     loading.value = false
   }
+}
+
+function onStockUpdated(saved) {
+  item.value = saved
+  inventory.upsertItem(saved)
 }
 
 function addToCart() {

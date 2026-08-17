@@ -1,4 +1,5 @@
 import { itemSearchText } from './item.js'
+import { isStockBas } from './stock.js'
 
 function inRange(value, range) {
   if (!range || range.length !== 2) return true
@@ -24,6 +25,7 @@ export function filterItems(items, filters = {}) {
     }
     if (filters.taille && filters.taille !== 'Tout' && item.tailleLettre !== filters.taille) return false
     if (filters.type && filters.type !== 'Tout' && item.type !== filters.type) return false
+    if (filters.stockBas && !isStockBas(item)) return false
     if (!inRange(item.longueur, filters.longueur)) return false
     if (!inRange(item.tourTailleMin, filters.tourTailleMin)) return false
     if (!inRange(item.tourTailleMax, filters.tourTailleMax)) return false

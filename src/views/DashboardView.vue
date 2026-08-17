@@ -72,8 +72,8 @@ const categories = computed(() => categoriesWithMeta(referentiels.value))
 onMounted(() => inventory.refresh().catch(() => {}))
 
 const cards = computed(() => {
-  const stats = inventory.stats || { byCategory: {}, totalItems: 0, activeLoans: 0 }
-  return [
+  const stats = inventory.stats || { byCategory: {}, totalItems: 0, activeLoans: 0, lowStock: 0 }
+  const list = [
     { label: 'Fiches', value: stats.totalItems, to: '/inventaire' },
     ...categories.value.map((cat) => {
       const value = stats.byCategory?.[cat.id] || 0
@@ -84,6 +84,14 @@ const cards = computed(() => {
       }
     }),
   ]
+  if (stats.lowStock) {
+    list.push({
+      label: 'Stock bas',
+      value: stats.lowStock,
+      to: { path: '/inventaire', query: { stockBas: '1' } },
+    })
+  }
+  return list
 })
 
 const recent = computed(() =>

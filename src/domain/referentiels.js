@@ -79,6 +79,7 @@ export function normalizeReferentiels(input = {}) {
   merged.modesAcquisition = uniqueStrings(
     input.modesAcquisition?.length ? input.modesAcquisition : base.modesAcquisition,
   )
+  merged.unitesStock = uniqueStrings(input.unitesStock?.length ? input.unitesStock : base.unitesStock || [])
 
   const types = { ...merged.typesParCategorie }
   for (const category of merged.categories) {

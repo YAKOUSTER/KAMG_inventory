@@ -22,6 +22,7 @@ import {
   getBootstrap,
   getReferentiels,
   updateReferentiels,
+  adjustStock,
   getLoan,
   listAudit,
 } from './store.js'
@@ -332,6 +333,32 @@ describe('json store', () => {
       actor: session.user,
     })
     assert.ok(saved.epoques.includes('2000'))
+  })
+
+  it('gère le stock des fournitures', async () => {
+    const session = await login('admin', 'admin', options)
+    const created = await createItem(
+      {
+        code: 'FOU-01',
+        nom: 'Fil noir',
+        categorie: 'fourniture',
+        type: 'Fil',
+        stockQuantite: 10,
+        stockSeuil: 3,
+        stockUnite: 'bobine',
+      },
+      { ...options, actor: session.user },
+    )
+    assert.equal(created.disponibilite, 'En stock')
+
+    const adjusted = await adjustStock(
+      created.id,
+      { delta: -8, motif: 'Costumes 2026' },
+      { ...options, actor: session.user },
+    )
+    assert.equal(adjusted.stockQuantite, 2)
+    assert.equal(adjusted.disponibilite, 'Stock bas')
+    assert.equal(adjusted.stockMouvements.length, 1)
   })
 
   it('enregistre créations, modifications et retours dans le journal d’audit', async () => {

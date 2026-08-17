@@ -33,16 +33,19 @@
         <FieldRow label="Époque">
           <v-select v-model="item.epoque" :items="withBlank(referentiels.epoques)" hide-details />
         </FieldRow>
-        <FieldRow label="Origine / pays / cercle">
+        <FieldRow v-if="!isFourniture" label="Origine / pays / cercle">
           <v-text-field v-model="item.origine" hide-details />
         </FieldRow>
-        <FieldRow label="État">
+        <FieldRow v-if="!isFourniture" label="État">
           <v-select v-model="item.etat" :items="withBlank(referentiels.etats)" hide-details />
         </FieldRow>
-        <FieldRow label="Disponibilité">
+        <FieldRow v-if="!isFourniture" label="Disponibilité">
           <v-select v-model="item.disponibilite" :items="referentiels.disponibilites" hide-details />
         </FieldRow>
-        <FieldRow label="Propriétaire / déposant">
+        <FieldRow v-if="isFourniture" label="Fournisseur">
+          <v-text-field v-model="item.fournisseur" hide-details />
+        </FieldRow>
+        <FieldRow v-if="!isFourniture" label="Propriétaire / déposant">
           <v-text-field v-model="item.proprietaire" hide-details />
         </FieldRow>
         <FieldRow label="Localisation" hint="armoire, tiroir…">
@@ -69,7 +72,7 @@
           <v-combobox v-model="item.couleur" :items="referentiels.couleurs" hide-details />
         </FieldRow>
       </div>
-      <v-row class="mt-2">
+      <v-row v-if="!isFourniture" class="mt-2">
         <v-col cols="12" md="3">
           <v-checkbox v-model="item.perle" label="Perlé" hide-details />
         </v-col>
@@ -85,6 +88,31 @@
       <FieldRow label="Mots-clés" class="mt-2">
         <v-combobox v-model="item.tags" :items="[]" hide-details multiple chips closable-chips />
       </FieldRow>
+    </section>
+
+    <section v-if="isFourniture" class="form-block">
+      <h2 class="section-label">Stock</h2>
+      <p class="text-body-2 text-medium-emphasis mb-4">
+        Quantités consommables : fil, boutons, cannetille… Le statut (En stock / Stock bas / Rupture) se calcule
+        automatiquement. Les mouvements se gèrent aussi depuis la fiche détail.
+      </p>
+      <div class="form-fields-grid form-fields-grid--3">
+        <FieldRow label="Quantité en stock">
+          <v-text-field v-model.number="item.stockQuantite" hide-details type="number" min="0" step="any" />
+        </FieldRow>
+        <FieldRow label="Unité">
+          <v-select v-model="item.stockUnite" :items="referentiels.unitesStock" hide-details />
+        </FieldRow>
+        <FieldRow label="Seuil d’alerte" hint="alerte stock bas">
+          <v-text-field v-model.number="item.stockSeuil" hide-details type="number" min="0" step="any" />
+        </FieldRow>
+        <FieldRow label="Réf. fournisseur / SKU" class="form-fields-grid__span-2">
+          <v-text-field v-model="item.stockReference" hide-details />
+        </FieldRow>
+        <FieldRow label="Statut calculé">
+          <v-text-field :model-value="stockStatusPreview" hide-details readonly />
+        </FieldRow>
+      </div>
     </section>
 
     <section v-if="item.categorie === 'tissu' || item.categorie === 'echantillon'" class="form-block">
@@ -225,6 +253,7 @@ import { MEASUREMENT_FIELDS, visibleMeasurements } from '@/domain/taxonomy'
 import { categoriesWithMeta } from '@/domain/referentiels'
 import { useInventoryStore } from '@/stores/inventory'
 import { emptyItem } from '@/domain/item'
+import { defaultStockUnit, isFourniture as checkFourniture, syncFournitureDisponibilite } from '@/domain/stock'
 import { normalizeImages } from '@/domain/images'
 import { normalizeAttachments } from '@/domain/attachments'
 import FieldRow from './FieldRow.vue'
@@ -267,8 +296,35 @@ watch(
     if (item.type && !typesForCategory.value.includes(item.type)) {
       item.type = ''
     }
+    if (checkFourniture(item) && !item.stockUnite) {
+      item.stockUnite = defaultStockUnit(item.type)
+    }
   },
 )
+
+watch(
+  () => item.type,
+  (type) => {
+    if (checkFourniture(item) && type) {
+      item.stockUnite = defaultStockUnit(type)
+    }
+  },
+)
+
+watch(
+  () => [item.stockQuantite, item.stockSeuil],
+  () => {
+    if (checkFourniture(item)) syncFournitureDisponibilite(item)
+  },
+)
+
+const isFourniture = computed(() => checkFourniture(item))
+
+const stockStatusPreview = computed(() => {
+  if (!isFourniture.value) return ''
+  syncFournitureDisponibilite(item)
+  return item.disponibilite
+})
 
 const typesForCategory = computed(
   () => referentiels.value.typesParCategorie[item.categorie] || [],

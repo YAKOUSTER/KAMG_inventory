@@ -27,6 +27,7 @@ import {
   createUser,
   updateUser,
   deleteUser,
+  adjustStock,
   getBootstrap,
   getReferentiels,
   updateReferentiels,
@@ -145,6 +146,11 @@ export function createApiApp() {
     '/api/items/:id',
     auth('items.update'),
     handle((req) => updateItem(req.params.id, req.body, { actor: req.user })),
+  )
+  app.post(
+    '/api/items/:id/stock',
+    auth('items.update'),
+    handle((req) => adjustStock(req.params.id, req.body, { actor: req.user })),
   )
   app.delete(
     '/api/items/:id',

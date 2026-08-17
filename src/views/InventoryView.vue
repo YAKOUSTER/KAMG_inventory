@@ -28,6 +28,9 @@
         <v-col cols="12" md="2">
           <v-select v-model="filters.etat" :items="withAll(referentiels.etats)" label="État" hide-details />
         </v-col>
+        <v-col cols="12" md="2">
+          <v-checkbox v-model="filters.stockBas" label="Stock bas / rupture" hide-details density="compact" />
+        </v-col>
       </v-row>
       <v-expand-transition>
         <div v-if="showMeasures" class="mt-4">
@@ -75,6 +78,9 @@
       <template #item.disponibilite="{ item }">
         <StatusChip :status="item.disponibilite" />
       </template>
+      <template #item.stock="{ item }">
+        {{ isFourniture(item) ? formatStock(item) : '—' }}
+      </template>
     </v-data-table>
 
     <v-row v-else>
@@ -99,6 +105,7 @@ import { useAuthStore } from '@/stores/auth'
 import { MEASUREMENT_FIELDS, categoryLabel } from '@/domain/taxonomy'
 import { categoriesWithMeta } from '@/domain/referentiels'
 import { coverSrc } from '@/domain/images'
+import { formatStock, isFourniture } from '@/domain/stock'
 import { filterItems } from '@/domain/filters'
 import ItemCard from '@/components/ItemCard.vue'
 import StatusChip from '@/components/StatusChip.vue'
@@ -122,6 +129,7 @@ function defaultFilters() {
     couleur: 'Tout',
     taille: 'Tout',
     type: 'Tout',
+    stockBas: false,
     longueur: [0, 180],
     tourTailleMin: [0, 150],
     tourTailleMax: [0, 150],
@@ -143,6 +151,14 @@ watch(
   },
 )
 
+watch(
+  () => route.query.stockBas,
+  (value) => {
+    filters.stockBas = value === '1' || value === 'true'
+  },
+  { immediate: true },
+)
+
 const categoryItems = computed(() => [
   { title: 'Tout', value: 'Tout' },
   ...categoriesWithMeta(referentiels.value).map((cat) => ({ title: cat.label, value: cat.id })),
@@ -158,6 +174,7 @@ const headers = [
   { title: 'Type', key: 'type' },
   { title: 'Époque', key: 'epoque' },
   { title: 'État', key: 'etat' },
+  { title: 'Stock', key: 'stock', sortable: false },
   { title: 'Disponibilité', key: 'disponibilite' },
 ]
 

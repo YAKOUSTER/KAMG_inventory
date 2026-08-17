@@ -8,6 +8,7 @@
         <div class="text-caption text-medium-emphasis">{{ item.code }} · {{ catLabel }}</div>
         <div class="text-subtitle-1 font-weight-bold">{{ item.nom }}</div>
         <div class="text-body-2 mt-1">{{ item.type }}</div>
+        <div v-if="isFourniture(item)" class="text-body-2 mt-1 font-weight-medium">{{ formatStock(item) }}</div>
         <StatusChip class="mt-2" :status="item.disponibilite" />
       </v-card-text>
     </router-link>
@@ -31,6 +32,7 @@ import { computed } from 'vue'
 import { categoryIcon, categoryLabel } from '@/domain/taxonomy'
 import { coverSrc } from '@/domain/images'
 import { isLoanable } from '@/domain/item'
+import { formatStock, isFourniture } from '@/domain/stock'
 import { useCartStore } from '@/stores/cart'
 import { useAuthStore } from '@/stores/auth'
 import { useInventoryStore } from '@/stores/inventory'

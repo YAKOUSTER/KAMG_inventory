@@ -12,7 +12,7 @@ describe('normalizeReferentiels', () => {
     const refs = normalizeReferentiels({ epoques: ['2000'] })
     assert.deepEqual(refs.epoques, ['2000'])
     assert.ok(refs.etats.length > 0)
-    assert.ok(refs.categories.length >= 5)
+    assert.ok(refs.categories.length >= 6)
     assert.ok(Array.isArray(refs.typesParCategorie.piece_costume))
   })
 

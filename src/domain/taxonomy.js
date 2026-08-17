@@ -4,6 +4,7 @@ export const CATEGORIES = [
   { id: 'piece_collection', label: 'Pièce de collection', icon: 'mdi-bank', plural: 'Pièces de collection' },
   { id: 'tissu', label: 'Tissu', icon: 'mdi-roller-shade', plural: 'Tissus' },
   { id: 'accessoire', label: 'Accessoire', icon: 'mdi-hat-fedora', plural: 'Accessoires' },
+  { id: 'fourniture', label: 'Fourniture', icon: 'mdi-package-variant-closed', plural: 'Fournitures' },
 ]
 
 export const CATEGORY_IDS = CATEGORIES.map((c) => c.id)
@@ -53,10 +54,36 @@ export const DEFAULT_REFERENTIELS = {
     ],
     tissu: ['Toile', 'Drap', 'Satin', 'Velours', 'Moire', 'Dentelle', 'Tulle', 'Linon', 'Flanelle', 'Serge', 'Autre'],
     accessoire: ['Bijou', 'Broche', 'Bouton', 'Ruban', 'Gant', 'Chaussure', 'Sac', 'Épingle', 'Autre'],
+    fourniture: [
+      'Fil',
+      'Bouton',
+      'Tissu',
+      'Bobine',
+      'Cannetille',
+      'Ruban / galon',
+      'Dentelle',
+      'Élastique',
+      'Fermeture',
+      'Outil',
+      'Mercerie',
+      'Autre',
+    ],
   },
+  unitesStock: ['pièce', 'm', 'cm', 'bobine', 'rouleau', 'carte', 'g', 'kg', 'lot'],
   epoques: ['1870', '1880', '1890', '1900', '1910', '1920', '1930', '1940', '1950', 'Contemporain', 'Indéterminée'],
   etats: ['Très bon', 'Bon', 'Moyen', 'Usé', 'Ancien', 'À réparer', 'Fragile'],
-  disponibilites: ['Disponible', 'Emprunté', 'Réservé', 'Au pressing', 'En restauration', 'Archivé', 'Non empruntable'],
+  disponibilites: [
+    'Disponible',
+    'Emprunté',
+    'En stock',
+    'Stock bas',
+    'Rupture',
+    'Réservé',
+    'Au pressing',
+    'En restauration',
+    'Archivé',
+    'Non empruntable',
+  ],
   couleurs: ['Blanc', 'Écru', 'Noir', 'Rouge', 'Bleu', 'Vert', 'Jaune', 'Rose', 'Doré', 'Argenté', 'Multicolore'],
   tailles: ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', 'Unique'],
   modesAcquisition: ['Don', 'Achat', 'Prêt', 'Fabrication', 'Héritage', 'Inconnu'],
@@ -121,9 +148,9 @@ export function categoryIcon(id, referentiels) {
 }
 
 export function statusColor(status) {
-  if (status === 'Disponible') return 'success'
-  if (status === 'Emprunté') return 'error'
-  if (status === 'En restauration' || status === 'Au pressing') return 'warning'
+  if (status === 'Disponible' || status === 'En stock') return 'success'
+  if (status === 'Emprunté' || status === 'Rupture') return 'error'
+  if (status === 'Stock bas' || status === 'En restauration' || status === 'Au pressing') return 'warning'
   if (status === 'Non empruntable' || status === 'Archivé') return 'grey'
   return 'info'
 }

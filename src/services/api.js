@@ -47,6 +47,7 @@ export const api = {
   item: (id) => request(`/api/items/${id}`),
   createItem: (body) => request('/api/items', { method: 'POST', body }),
   updateItem: (id, body) => request(`/api/items/${id}`, { method: 'PUT', body }),
+  adjustStock: (id, body) => request(`/api/items/${id}/stock`, { method: 'POST', body }),
   deleteItem: (id) => request(`/api/items/${id}`, { method: 'DELETE' }),
   people: () => request('/api/people'),
   person: (id) => request(`/api/people/${id}`),

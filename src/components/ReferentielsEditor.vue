@@ -89,6 +89,7 @@
           <ReferentielListEditor v-model="draft.couleurs" label="Couleurs" />
           <ReferentielListEditor v-model="draft.tailles" label="Tailles générales" />
           <ReferentielListEditor v-model="draft.modesAcquisition" label="Modes d’acquisition" />
+          <ReferentielListEditor v-model="draft.unitesStock" label="Unités de stock" hint="pièce, m, bobine…" />
         </v-expansion-panel-text>
       </v-expansion-panel>
     </v-expansion-panels>

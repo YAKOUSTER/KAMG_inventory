@@ -6,6 +6,7 @@ import { randomUUID } from 'node:crypto'
 import { DEFAULT_REFERENTIELS } from '../src/domain/taxonomy.js'
 import { normalizeReferentiels, validateReferentiels, categoryIds } from '../src/domain/referentiels.js'
 import { isLoanable, normalizeItem } from '../src/domain/item.js'
+import { appendStockMovement, countLowStock } from '../src/domain/stock.js'
 import { ROLE_PRESETS, can, publicUser } from '../src/domain/auth.js'
 import { groupLoansByYear, normalizePerson, personDisplayName } from '../src/domain/person.js'
 import { todayLocal, formatDate } from '../src/domain/dates.js'
@@ -265,6 +266,45 @@ export async function updateItem(id, payload, options = {}) {
   }, options)
 }
 
+export async function adjustStock(id, payload, options = {}) {
+  return withDb((db) => {
+    const index = db.items.findIndex((i) => i.id === id)
+    if (index === -1) throw Object.assign(new Error('Pièce introuvable'), { status: 404 })
+    const current = db.items[index]
+    if (current.categorie !== 'fourniture') {
+      throw Object.assign(new Error('Le stock ne concerne que les fournitures'), { status: 400 })
+    }
+    const motif = String(payload?.motif || '').trim()
+    let delta = Number(payload?.delta)
+    if (payload?.quantite != null && payload?.quantite !== '') {
+      delta = Number(payload.quantite) - (Number(current.stockQuantite) || 0)
+    }
+    if (!delta) throw Object.assign(new Error('Indiquez une quantité à ajouter ou retirer'), { status: 400 })
+    const item = normalizeItem({ ...current }, { id, categoryIds: referentielCategoryIds(db) })
+    appendStockMovement(item, {
+      delta,
+      motif,
+      auteur: options.actor?.nom || options.actor?.login || '',
+    })
+    db.items[index] = item
+    appendAudit(db, options.actor, {
+      action: 'stock.adjust',
+      entityType: 'item',
+      entityId: item.id,
+      entityLabel: itemLabel(item),
+      summary: `Stock ${item.code} : ${delta > 0 ? '+' : ''}${delta} → ${formatStockSummary(item)}`,
+      meta: { delta, quantiteApres: item.stockQuantite, motif },
+    })
+    return item
+  }, options)
+}
+
+function formatStockSummary(item) {
+  const qty = Number(item.stockQuantite) || 0
+  const unit = item.stockUnite || 'pièce'
+  return `${qty} ${unit}`
+}
+
 export async function deleteItem(id, options = {}) {
   return withDb((db) => {
     const index = db.items.findIndex((i) => i.id === id)
@@ -501,6 +541,7 @@ function statsFrom(db) {
     byCategory,
     available: db.items.filter((i) => i.disponibilite === 'Disponible').length,
     borrowed: db.items.filter((i) => i.disponibilite === 'Emprunté').length,
+    lowStock: countLowStock(db.items),
     people: db.people.length,
     activeLoans: db.loans.filter((l) => l.statut !== 'retourne').length,
   }

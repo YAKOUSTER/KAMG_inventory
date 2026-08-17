@@ -13,6 +13,7 @@ export const AUDIT_ACTIONS = [
   { id: 'user.delete', label: 'Compte supprimé', entityType: 'user' },
   { id: 'db.import', label: 'Import JSON', entityType: 'db' },
   { id: 'referentiels.update', label: 'Listes de paramétrage', entityType: 'settings' },
+  { id: 'stock.adjust', label: 'Mouvement de stock', entityType: 'item' },
 ]
 
 export function auditActionLabel(action) {
