@@ -91,6 +91,22 @@ Le certificat actuel ne couvre que `sterennfonseca.fr` et `www` : Certbot en cr�
 
 Mises à jour suivantes : `git pull && npm ci && npm run build && sudo systemctl restart kamg`. Le fichier `data/db.json` et `data/uploads/` restent sur le serveur (ils ne sont pas dans git).
 
+### Déploiement automatique (Cloud Agent)
+
+La clé SSH **privée** ne doit jamais être versionnée. Elle vit dans un **secret Cursor** :
+
+1. Ouvrir [Cursor → Cloud Agents → Secrets](https://cursor.com/dashboard?tab=cloud-agents).
+2. Ajouter un secret nommé **`KAMG_SSH_PRIVATE_KEY`** avec le contenu complet de la clé privée (celle qui correspond à `deploy/cursor-agent.pub` sur le serveur).
+3. Enregistrer l’environnement du dépôt (fichier `.cursor/environment.json`).
+
+À chaque démarrage d’agent, `deploy/setup-ssh.sh` installe la clé dans `~/.ssh/id_ed25519_kamg`. Pour publier :
+
+```bash
+bash deploy/deploy-production.sh
+```
+
+Branche déployée par défaut : `cursor/patrimoine-textile-json-5db7` (variable `KAMG_DEPLOY_BRANCH` pour changer).
+
 **À éviter :** copier le `dist/` dans le dossier web d’AppMEUR, ou pointer nginx de `sterennfonseca.fr` vers le port 4173. Un chemin du type `sterennfonseca.fr/kamg` est possible mais plus fragile (conflit `/api`) : le sous-domaine est le plus sûr.
 
 ## Tests
