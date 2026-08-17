@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { isOverdue, loanPiecesLabel, loanStatusLabel, openLoanLines } from './loans.js'
+import { isOverdue, itemsInPossession, loanPiecesLabel, loanStatusLabel, openLoanLines } from './loans.js'
 
 describe('isOverdue', () => {
   it('signale un emprunt encore ouvert dont la date prévue est passée', () => {
@@ -24,5 +24,35 @@ describe('loan helpers', () => {
     assert.equal(loanStatusLabel(loan.statut), 'Retour partiel')
     assert.equal(loanPiecesLabel(loan), 'JUP-01, TAB-01')
     assert.equal(openLoanLines(loan).length, 1)
+  })
+
+  it('liste les pièces encore chez une personne', () => {
+    const held = itemsInPossession([
+      {
+        id: 'l1',
+        statut: 'en_cours',
+        titre: 'Spectacle',
+        dateEmprunt: '2026-08-01',
+        items: [{ itemId: 'i1', code: 'JUP-01', nom: 'Jupe', returnedAt: null }],
+      },
+      {
+        id: 'l2',
+        statut: 'retourne',
+        items: [{ itemId: 'i2', code: 'GIL-01', returnedAt: null }],
+      },
+      {
+        id: 'l3',
+        statut: 'retour_partiel',
+        titre: 'Répétition',
+        dateEmprunt: '2026-07-15',
+        items: [
+          { itemId: 'i3', code: 'TAB-01', returnedAt: '2026-07-20' },
+          { itemId: 'i4', code: 'ROC-01', nom: 'Chemise', returnedAt: null },
+        ],
+      },
+    ])
+    assert.equal(held.length, 2)
+    assert.equal(held[0].code, 'JUP-01')
+    assert.equal(held[1].code, 'ROC-01')
   })
 })

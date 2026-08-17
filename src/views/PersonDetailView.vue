@@ -57,6 +57,27 @@
     </section>
 
     <section class="page-block">
+      <h2 class="section-label">Actuellement en sa possession</h2>
+      <v-row v-if="heldEntries.length">
+        <v-col v-for="entry in heldEntries" :key="`${entry.loanId}-${entry.itemId}`" cols="12" sm="6" md="4">
+          <ItemCard v-if="entry.item" :item="entry.item" />
+          <v-card v-else variant="flat" class="pa-4">
+            <div class="text-subtitle-1 font-weight-bold">{{ entry.code || '—' }}</div>
+            <div class="text-body-2">{{ entry.nom || 'Pièce introuvable' }}</div>
+          </v-card>
+          <div class="text-caption text-medium-emphasis mt-2 px-1">
+            <router-link :to="{ name: 'loan-detail', params: { id: entry.loanId } }">
+              {{ entry.loanTitre }}
+            </router-link>
+            · emprunté le {{ displayDate(entry.dateEmprunt) }}
+            <span v-if="entry.comment"> · {{ entry.comment }}</span>
+          </div>
+        </v-col>
+      </v-row>
+      <p v-else class="text-medium-emphasis">Aucune pièce en sa possession pour le moment.</p>
+    </section>
+
+    <section class="page-block">
       <h2 class="section-label">Historique des emprunts</h2>
       <p v-if="!person.loansByYear?.length" class="text-medium-emphasis">Aucun emprunt enregistré.</p>
       <div v-for="group in person.loansByYear" :key="group.year" class="mb-4">
@@ -84,9 +105,11 @@ import { api } from '@/services/api'
 import { useAuthStore } from '@/stores/auth'
 import { useInventoryStore } from '@/stores/inventory'
 import { PERSON_MEASUREMENTS, displayDate, personDisplayName, personRoleLabels } from '@/domain/person'
+import { itemsInPossession } from '@/domain/loans'
 import { useUiStore } from '@/stores/ui'
 import ImageGallery from '@/components/ImageGallery.vue'
 import DetailRow from '@/components/DetailRow.vue'
+import ItemCard from '@/components/ItemCard.vue'
 
 const props = defineProps({ id: { type: String, required: true } })
 const router = useRouter()
@@ -105,6 +128,13 @@ const filledMeasures = computed(() =>
 )
 
 const roleChips = computed(() => personRoleLabels(person.value))
+
+const heldEntries = computed(() =>
+  itemsInPossession(person.value?.loans || []).map((entry) => ({
+    ...entry,
+    item: inventory.itemById(entry.itemId),
+  })),
+)
 
 function statusLabel(status) {
   return { en_cours: 'En cours', retour_partiel: 'Retour partiel', retourne: 'Retourné' }[status] || status
