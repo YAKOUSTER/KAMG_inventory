@@ -24,7 +24,7 @@
             :key="item.id"
             :to="{ name: 'item-detail', params: { id: item.id } }"
             :title="item.nom"
-            :subtitle="`${item.code} · ${categoryLabel(item.categorie)}`"
+            :subtitle="`${item.code} · ${categoryLabel(item.categorie, referentiels)}`"
           >
             <template #append>
               <StatusChip :status="item.disponibilite" />
@@ -58,13 +58,16 @@
 import { computed, onMounted } from 'vue'
 import { useInventoryStore } from '@/stores/inventory'
 import { useAuthStore } from '@/stores/auth'
-import { CATEGORIES, categoryLabel } from '@/domain/taxonomy'
+import { categoryLabel } from '@/domain/taxonomy'
+import { categoriesWithMeta } from '@/domain/referentiels'
 import { displayDate } from '@/domain/dates'
 import { isOverdue } from '@/domain/loans'
 import StatusChip from '@/components/StatusChip.vue'
 
 const inventory = useInventoryStore()
 const auth = useAuthStore()
+const referentiels = computed(() => inventory.resolvedReferentiels)
+const categories = computed(() => categoriesWithMeta(referentiels.value))
 
 onMounted(() => inventory.refresh().catch(() => {}))
 
@@ -72,7 +75,7 @@ const cards = computed(() => {
   const stats = inventory.stats || { byCategory: {}, totalItems: 0, activeLoans: 0 }
   return [
     { label: 'Fiches', value: stats.totalItems, to: '/inventaire' },
-    ...CATEGORIES.map((cat) => {
+    ...categories.value.map((cat) => {
       const value = stats.byCategory?.[cat.id] || 0
       return {
         label: value === 1 ? cat.label : cat.plural,

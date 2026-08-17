@@ -20,13 +20,13 @@
           <v-select v-model="filters.categorie" :items="categoryItems" label="Catégorie" hide-details />
         </v-col>
         <v-col cols="12" md="2">
-          <v-select v-model="filters.disponibilite" :items="withAll(DEFAULT_REFERENTIELS.disponibilites)" label="Disponibilité" hide-details />
+          <v-select v-model="filters.disponibilite" :items="withAll(referentiels.disponibilites)" label="Disponibilité" hide-details />
         </v-col>
         <v-col cols="12" md="2">
-          <v-select v-model="filters.epoque" :items="withAll(DEFAULT_REFERENTIELS.epoques)" label="Époque" hide-details />
+          <v-select v-model="filters.epoque" :items="withAll(referentiels.epoques)" label="Époque" hide-details />
         </v-col>
         <v-col cols="12" md="2">
-          <v-select v-model="filters.etat" :items="withAll(DEFAULT_REFERENTIELS.etats)" label="État" hide-details />
+          <v-select v-model="filters.etat" :items="withAll(referentiels.etats)" label="État" hide-details />
         </v-col>
       </v-row>
       <v-expand-transition>
@@ -71,7 +71,7 @@
         </v-avatar>
         <v-icon v-else size="20" color="primary">mdi-image-off-outline</v-icon>
       </template>
-      <template #item.categorie="{ item }">{{ categoryLabel(item.categorie) }}</template>
+      <template #item.categorie="{ item }">{{ categoryLabel(item.categorie, referentiels) }}</template>
       <template #item.disponibilite="{ item }">
         <StatusChip :status="item.disponibilite" />
       </template>
@@ -96,7 +96,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { useDisplay } from 'vuetify'
 import { useInventoryStore } from '@/stores/inventory'
 import { useAuthStore } from '@/stores/auth'
-import { CATEGORIES, DEFAULT_REFERENTIELS, MEASUREMENT_FIELDS, categoryLabel } from '@/domain/taxonomy'
+import { MEASUREMENT_FIELDS, categoryLabel } from '@/domain/taxonomy'
+import { categoriesWithMeta } from '@/domain/referentiels'
 import { coverSrc } from '@/domain/images'
 import { filterItems } from '@/domain/filters'
 import ItemCard from '@/components/ItemCard.vue'
@@ -104,6 +105,7 @@ import StatusChip from '@/components/StatusChip.vue'
 
 const inventory = useInventoryStore()
 const auth = useAuthStore()
+const referentiels = computed(() => inventory.resolvedReferentiels)
 const route = useRoute()
 const router = useRouter()
 const display = useDisplay()
@@ -141,7 +143,10 @@ watch(
   },
 )
 
-const categoryItems = [{ title: 'Tout', value: 'Tout' }, ...CATEGORIES.map((c) => ({ title: c.label, value: c.id }))]
+const categoryItems = computed(() => [
+  { title: 'Tout', value: 'Tout' },
+  ...categoriesWithMeta(referentiels.value).map((cat) => ({ title: cat.label, value: cat.id })),
+])
 const withAll = (list) => ['Tout', ...list]
 const filtered = computed(() => filterItems(inventory.items, filters))
 

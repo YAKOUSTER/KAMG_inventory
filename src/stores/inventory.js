@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { api } from '@/services/api'
 import { countByCategory, filterItems } from '@/domain/filters'
+import { normalizeReferentiels } from '@/domain/referentiels'
 
 function isDenied(error) {
   return /Accès refusé/.test(error?.message || '')
@@ -14,6 +15,7 @@ export const useInventoryStore = defineStore('inventory', {
     people: [],
     loans: [],
     stats: null,
+    referentiels: null,
     loading: false,
     loaded: false,
     error: '',
@@ -23,6 +25,7 @@ export const useInventoryStore = defineStore('inventory', {
     personById: (state) => (id) => state.people.find((person) => person.id === id),
     loanById: (state) => (id) => state.loans.find((loan) => loan.id === id),
     filtered: (state) => (filters) => filterItems(state.items, filters),
+    resolvedReferentiels: (state) => normalizeReferentiels(state.referentiels || {}),
   },
   actions: {
     hydrate(payload) {
@@ -31,6 +34,7 @@ export const useInventoryStore = defineStore('inventory', {
       this.people = payload.people || []
       this.loans = payload.loans || []
       this.stats = payload.stats || null
+      this.referentiels = payload.referentiels || null
       this.loaded = true
       this.error = ''
     },
@@ -39,6 +43,7 @@ export const useInventoryStore = defineStore('inventory', {
       this.people = []
       this.loans = []
       this.stats = null
+      this.referentiels = null
       this.loaded = false
       this.error = ''
     },
@@ -85,6 +90,9 @@ export const useInventoryStore = defineStore('inventory', {
         item.disponibilite = line.returnedAt ? 'Disponible' : 'Emprunté'
       }
       this.recomputeStats()
+    },
+    setReferentiels(referentiels) {
+      this.referentiels = referentiels
     },
     async refresh({ force = false } = {}) {
       if (this.loaded && !force) return

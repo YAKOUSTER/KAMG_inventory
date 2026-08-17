@@ -60,6 +60,8 @@ export const api = {
     request(`/api/loans/${id}/return`, { method: 'PUT', body: { itemIds, dateRetour } }),
   exportDb: () => request('/api/db'),
   importDb: (body) => request('/api/db', { method: 'PUT', body }),
+  referentiels: () => request('/api/referentiels'),
+  updateReferentiels: (body) => request('/api/referentiels', { method: 'PUT', body }),
   upload: (filename, dataUrl, prefix) =>
     request('/api/uploads', { method: 'POST', body: { filename, dataUrl, prefix } }),
   users: () => request('/api/users'),

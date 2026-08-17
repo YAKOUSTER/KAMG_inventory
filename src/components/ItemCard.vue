@@ -2,10 +2,10 @@
   <v-card class="h-100 hover-card" variant="flat">
     <router-link class="card-link" :to="{ name: 'item-detail', params: { id: item.id } }">
       <div class="thumb" :style="{ backgroundImage: cover ? `url(${cover})` : 'none' }">
-        <v-icon v-if="!cover" size="40" color="primary">{{ categoryIcon(item.categorie) }}</v-icon>
+        <v-icon v-if="!cover" size="40" color="primary">{{ catIcon }}</v-icon>
       </div>
       <v-card-text>
-        <div class="text-caption text-medium-emphasis">{{ item.code }} · {{ categoryLabel(item.categorie) }}</div>
+        <div class="text-caption text-medium-emphasis">{{ item.code }} · {{ catLabel }}</div>
         <div class="text-subtitle-1 font-weight-bold">{{ item.nom }}</div>
         <div class="text-body-2 mt-1">{{ item.type }}</div>
         <StatusChip class="mt-2" :status="item.disponibilite" />
@@ -33,6 +33,7 @@ import { coverSrc } from '@/domain/images'
 import { isLoanable } from '@/domain/item'
 import { useCartStore } from '@/stores/cart'
 import { useAuthStore } from '@/stores/auth'
+import { useInventoryStore } from '@/stores/inventory'
 import { useUiStore } from '@/stores/ui'
 import StatusChip from './StatusChip.vue'
 
@@ -42,7 +43,11 @@ const props = defineProps({
 
 const cart = useCartStore()
 const auth = useAuthStore()
+const inventory = useInventoryStore()
 const ui = useUiStore()
+const referentiels = computed(() => inventory.resolvedReferentiels)
+const catLabel = computed(() => categoryLabel(props.item.categorie, referentiels.value))
+const catIcon = computed(() => categoryIcon(props.item.categorie, referentiels.value))
 const cover = computed(() => coverSrc(props.item))
 const loanable = computed(() => isLoanable(props.item))
 const inCart = computed(() => cart.isInCart(props.item.id))

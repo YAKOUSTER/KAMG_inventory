@@ -20,6 +20,8 @@ import {
   login,
   createUser,
   getBootstrap,
+  getReferentiels,
+  updateReferentiels,
   getLoan,
   listAudit,
 } from './store.js'
@@ -312,6 +314,24 @@ describe('json store', () => {
     const after = await exportDb(options)
     assert.equal(after.users.length, beforeUsers)
     assert.deepEqual(after.sessions, [])
+  })
+
+  it('expose et met à jour les listes de paramétrage', async () => {
+    const session = await login('admin', 'admin', options)
+    const boot = await getBootstrap(session.user, options)
+    assert.ok(Array.isArray(boot.referentiels.categories))
+    assert.ok(boot.referentiels.epoques.includes('1900'))
+
+    const refs = await getReferentiels(options)
+    const next = {
+      ...refs,
+      epoques: [...refs.epoques, '2000'],
+    }
+    const saved = await updateReferentiels(next, {
+      ...options,
+      actor: session.user,
+    })
+    assert.ok(saved.epoques.includes('2000'))
   })
 
   it('enregistre créations, modifications et retours dans le journal d’audit', async () => {

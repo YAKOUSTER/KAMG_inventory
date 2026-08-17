@@ -6,6 +6,8 @@
       Pas de base payante : un export régulier suffit comme sauvegarde.
     </p>
 
+    <ReferentielsEditor />
+
     <section class="page-block">
       <h2 class="section-label">Exporter</h2>
       <p class="text-body-2 text-medium-emphasis mb-4">
@@ -32,6 +34,7 @@
 import { ref } from 'vue'
 import { api } from '@/services/api'
 import { useInventoryStore } from '@/stores/inventory'
+import ReferentielsEditor from '@/components/ReferentielsEditor.vue'
 
 const inventory = useInventoryStore()
 const file = ref(null)

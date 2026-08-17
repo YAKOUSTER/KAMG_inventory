@@ -24,10 +24,10 @@
 
     <v-row>
       <v-col cols="12" md="5">
-        <ImageGallery :item="item" :placeholder-icon="categoryIcon(item.categorie)" />
+        <ImageGallery :item="item" :placeholder-icon="categoryIcon(item.categorie, referentiels)" />
       </v-col>
       <v-col cols="12" md="7">
-        <div class="text-overline">{{ item.code }} · {{ categoryLabel(item.categorie) }}</div>
+        <div class="text-overline">{{ item.code }} · {{ categoryLabel(item.categorie, referentiels) }}</div>
         <h1 class="text-h4 page-title mb-2">{{ item.nom }}</h1>
         <div class="text-subtitle-1 mb-3">{{ item.type }}</div>
         <StatusChip :status="item.disponibilite" />
@@ -140,6 +140,7 @@ const item = ref(null)
 const error = ref('')
 const loading = ref(false)
 const ui = useUiStore()
+const referentiels = computed(() => inventory.resolvedReferentiels)
 
 const canLoan = computed(() => auth.can('loans.write') && isLoanable(item.value))
 

@@ -4,6 +4,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { randomUUID } from 'node:crypto'
 import { DEFAULT_REFERENTIELS } from '../src/domain/taxonomy.js'
+import { normalizeReferentiels, validateReferentiels, categoryIds } from '../src/domain/referentiels.js'
 import { isLoanable, normalizeItem } from '../src/domain/item.js'
 import { ROLE_PRESETS, can, publicUser } from '../src/domain/auth.js'
 import { groupLoansByYear, normalizePerson, personDisplayName } from '../src/domain/person.js'
@@ -41,7 +42,7 @@ function ensureShape(raw) {
   const db = emptyDb()
   if (!raw || typeof raw !== 'object') return db
   db.meta = { ...db.meta, ...(raw.meta || {}) }
-  db.referentiels = { ...db.referentiels, ...(raw.referentiels || {}) }
+  db.referentiels = normalizeReferentiels({ ...DEFAULT_REFERENTIELS, ...(raw.referentiels || {}) })
   db.items = Array.isArray(raw.items) ? raw.items : []
   db.people = Array.isArray(raw.people) ? raw.people : []
   db.loans = Array.isArray(raw.loans) ? raw.loans : []
@@ -220,9 +221,13 @@ export async function getItem(id, options = {}) {
   return { ...item, linkedItems: linked.filter((i) => i.id !== id), loanHistory: history }
 }
 
+function referentielCategoryIds(db) {
+  return categoryIds(db.referentiels)
+}
+
 export async function createItem(payload, options = {}) {
   return withDb((db) => {
-    const item = normalizeItem(payload, { id: randomUUID() })
+    const item = normalizeItem(payload, { id: randomUUID(), categoryIds: referentielCategoryIds(db) })
     if (db.items.some((i) => i.code.toLowerCase() === item.code.toLowerCase())) {
       throw Object.assign(new Error(`Le code ${item.code} existe déjà`), { status: 409 })
     }
@@ -242,7 +247,10 @@ export async function updateItem(id, payload, options = {}) {
   return withDb((db) => {
     const index = db.items.findIndex((i) => i.id === id)
     if (index === -1) throw Object.assign(new Error('Pièce introuvable'), { status: 404 })
-    const item = normalizeItem({ ...db.items[index], ...payload, id }, { id })
+    const item = normalizeItem({ ...db.items[index], ...payload, id }, {
+      id,
+      categoryIds: referentielCategoryIds(db),
+    })
     const clash = db.items.find((i) => i.id !== id && i.code.toLowerCase() === item.code.toLowerCase())
     if (clash) throw Object.assign(new Error(`Le code ${item.code} existe déjà`), { status: 409 })
     db.items[index] = item
@@ -513,7 +521,28 @@ export function publicSnapshot(db, user) {
     people: can(user, 'people.read') ? db.people : [],
     loans,
     stats: can(user, 'items.read') ? statsFrom(db) : null,
+    referentiels: normalizeReferentiels(db.referentiels),
   }
+}
+
+export async function getReferentiels(options = {}) {
+  const db = await readDb(options)
+  return normalizeReferentiels(db.referentiels)
+}
+
+export async function updateReferentiels(payload, options = {}) {
+  return withDb((db) => {
+    const next = validateReferentiels(payload, { items: db.items })
+    db.referentiels = next
+    appendAudit(db, options.actor, {
+      action: 'referentiels.update',
+      entityType: 'settings',
+      entityId: 'referentiels',
+      entityLabel: 'Listes de paramétrage',
+      summary: 'Mise à jour des listes (catégories, époques, états…)',
+    })
+    return next
+  }, options)
 }
 
 export async function getBootstrap(user, options = {}) {

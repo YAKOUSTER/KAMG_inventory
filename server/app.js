@@ -28,6 +28,8 @@ import {
   updateUser,
   deleteUser,
   getBootstrap,
+  getReferentiels,
+  updateReferentiels,
   listAudit,
   UPLOADS_DIR,
 } from './store.js'
@@ -116,7 +118,12 @@ export function createApiApp() {
   app.get(
     '/api/referentiels',
     auth('items.read'),
-    handle(async () => (await readDb()).referentiels),
+    handle(() => getReferentiels()),
+  )
+  app.put(
+    '/api/referentiels',
+    auth('settings.manage'),
+    handle((req) => updateReferentiels(req.body, { actor: req.user })),
   )
 
   app.get('/api/items', auth('items.read'), handle(() => listItems()))

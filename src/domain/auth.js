@@ -8,7 +8,7 @@ export const PERMISSIONS = [
   { id: 'people.read', label: 'Consulter les personnes' },
   { id: 'people.write', label: 'Modifier les personnes' },
   { id: 'users.manage', label: 'Gérer les comptes et les accès' },
-  { id: 'settings.manage', label: 'Importer / exporter la base' },
+  { id: 'settings.manage', label: 'Paramètres, import/export et listes' },
   { id: 'audit.read', label: 'Consulter le journal d’activité' },
 ]
 

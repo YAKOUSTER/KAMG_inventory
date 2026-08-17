@@ -19,7 +19,7 @@
           <v-text-field v-model="person.email" hide-details />
         </FieldRow>
         <FieldRow label="Taille générale">
-          <v-select v-model="person.tailleLettre" :items="['', ...DEFAULT_REFERENTIELS.tailles]" hide-details />
+          <v-select v-model="person.tailleLettre" :items="tailleItems" hide-details />
         </FieldRow>
       </div>
       <div class="section-label mt-5 mb-2">Rôles</div>
@@ -62,7 +62,7 @@
 
 <script setup>
 import { computed, reactive, ref, watch } from 'vue'
-import { DEFAULT_REFERENTIELS } from '@/domain/taxonomy'
+import { useInventoryStore } from '@/stores/inventory'
 import {
   PERSON_MEASUREMENTS,
   PERSON_ROLES,
@@ -84,6 +84,8 @@ const props = defineProps({
 const emit = defineEmits(['save'])
 const form = ref(null)
 const person = reactive(emptyPerson())
+const inventory = useInventoryStore()
+const tailleItems = computed(() => ['', ...inventory.resolvedReferentiels.tailles])
 const required = (v) => !!v || 'Champ requis'
 const photoCode = computed(() => personDisplayName(person) || 'personne')
 

@@ -3,7 +3,7 @@
     <section class="form-block">
       <div class="d-flex flex-wrap ga-2">
         <v-btn
-          v-for="cat in CATEGORIES"
+          v-for="cat in categories"
           :key="cat.id"
           type="button"
           size="small"
@@ -221,7 +221,9 @@
 
 <script setup>
 import { computed, reactive, ref, watch } from 'vue'
-import { CATEGORIES, DEFAULT_REFERENTIELS, MEASUREMENT_FIELDS, visibleMeasurements } from '@/domain/taxonomy'
+import { MEASUREMENT_FIELDS, visibleMeasurements } from '@/domain/taxonomy'
+import { categoriesWithMeta } from '@/domain/referentiels'
+import { useInventoryStore } from '@/stores/inventory'
 import { emptyItem } from '@/domain/item'
 import { normalizeImages } from '@/domain/images'
 import { normalizeAttachments } from '@/domain/attachments'
@@ -240,7 +242,9 @@ const props = defineProps({
 const emit = defineEmits(['save'])
 const form = ref(null)
 const item = reactive(emptyItem())
-const referentiels = DEFAULT_REFERENTIELS
+const inventory = useInventoryStore()
+const referentiels = computed(() => inventory.resolvedReferentiels)
+const categories = computed(() => categoriesWithMeta(referentiels.value))
 const required = (v) => !!v || 'Champ requis'
 
 function assign(source) {
@@ -267,7 +271,7 @@ watch(
 )
 
 const typesForCategory = computed(
-  () => referentiels.typesParCategorie[item.categorie] || [],
+  () => referentiels.value.typesParCategorie[item.categorie] || [],
 )
 
 const showCostumeMeasures = computed(() =>

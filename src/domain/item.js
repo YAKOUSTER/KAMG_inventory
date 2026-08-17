@@ -57,14 +57,15 @@ export function emptyItem(categorie = 'piece_costume') {
   }
 }
 
-export function normalizeItem(input = {}, { id, now } = {}) {
+export function normalizeItem(input = {}, { id, now, categoryIds: allowedCategories } = {}) {
   const base = emptyItem(input.categorie)
   const item = { ...base, ...input }
   if (id) item.id = id
   if (!item.id) throw new Error('id requis')
   if (!item.code?.trim()) throw new Error('Le code est requis')
   if (!item.nom?.trim()) throw new Error('Le nom est requis')
-  if (!CATEGORY_IDS.includes(item.categorie)) {
+  const allowed = allowedCategories?.length ? allowedCategories : CATEGORY_IDS
+  if (!allowed.includes(item.categorie)) {
     throw new Error(`Catégorie inconnue : ${item.categorie}`)
   }
   item.code = String(item.code).trim()

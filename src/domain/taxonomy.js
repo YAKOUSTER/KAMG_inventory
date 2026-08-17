@@ -104,11 +104,19 @@ export function visibleMeasurements(type) {
   }
 }
 
-export function categoryLabel(id) {
+export function categoryLabel(id, referentiels) {
+  if (referentiels?.categories) {
+    const found = referentiels.categories.find((cat) => cat.id === id)
+    if (found) return found.label
+  }
   return CATEGORIES.find((c) => c.id === id)?.label || id
 }
 
-export function categoryIcon(id) {
+export function categoryIcon(id, referentiels) {
+  if (referentiels?.categories) {
+    const found = referentiels.categories.find((cat) => cat.id === id)
+    if (found?.icon) return found.icon
+  }
   return CATEGORIES.find((c) => c.id === id)?.icon || 'mdi-tag'
 }
 
