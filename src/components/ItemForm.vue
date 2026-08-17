@@ -41,12 +41,17 @@
         <FieldRow v-if="!isFourniture" label="Disponibilité">
           <v-select v-model="item.disponibilite" :items="referentiels.disponibilites" hide-details />
         </FieldRow>
-        <FieldRow v-if="showReconstitutionField" label="Reconstitution">
+        <FieldRow
+          v-if="showReconstitutionField"
+          label="Reconstitution"
+          hint="Cochez si la pièce a été reconstituée de façon historiquement incorrecte"
+          align-top
+          class="form-fields-grid__span-3"
+        >
           <v-checkbox
             v-model="item.erreurReconstitution"
-            label="Erreur de reconstitution (historiquement incorrecte)"
+            label="Erreur de reconstitution"
             hide-details
-            density="compact"
           />
         </FieldRow>
         <FieldRow v-if="isFourniture" label="Fournisseur">

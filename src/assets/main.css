@@ -282,6 +282,11 @@ a {
   margin-top: 0;
 }
 
+.field-row__control .v-checkbox .v-label {
+  white-space: normal;
+  line-height: 1.45;
+}
+
 .form-fields {
   display: flex;
   flex-direction: column;
@@ -305,6 +310,10 @@ a {
 
   .form-fields-grid__span-2 {
     grid-column: span 2;
+  }
+
+  .form-fields-grid__span-3 {
+    grid-column: span 3;
   }
 }
 
