@@ -56,6 +56,13 @@ async function exportJson() {
 async function importJson() {
   const chosen = Array.isArray(file.value) ? file.value[0] : file.value
   if (!chosen) return
+  if (
+    !confirm(
+      'Remplacer toute la base locale par ce fichier ?\n\nFaites un export avant si vous n’avez pas de sauvegarde récente.',
+    )
+  ) {
+    return
+  }
   loading.value = true
   message.value = ''
   try {

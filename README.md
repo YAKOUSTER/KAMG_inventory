@@ -115,6 +115,40 @@ Branche déployée par défaut : `cursor/patrimoine-textile-json-5db7` (variable
 npm test
 ```
 
+Couverture actuelle (82 tests) :
+
+| Domaine | Fichiers | Contenu |
+| --- | --- | --- |
+| Store JSON | `server/store.test.js` | CRUD, emprunts, uploads, auth, stock, audit |
+| Workflows | `server/workflows.test.js` | Panier → emprunt → retour enrichi, validation |
+| API HTTP | `server/app.test.js` | Health, auth, création pièce, en-têtes sécurité |
+| Mots de passe | `server/password.test.js` | scrypt hash / verify |
+| Domaine | `src/domain/*.test.js` | Filtres, dates, pièces, emprunts, images, etc. |
+
+Non couvert pour l’instant : composants Vue, parcours navigateur E2E.
+
+## Tester en local (checklist)
+
+Après `git pull` sur la branche de travail :
+
+```bash
+npm ci
+npm test          # 82 tests doivent passer
+npm run dev       # http://localhost:5173 — API intégrée
+```
+
+Parcours manuel recommandé :
+
+1. **Connexion** — `admin` / `admin`, puis changer les mots de passe (Comptes et accès).
+2. **Inventaire** — vue cartes et tableau ; bouton **Emprunter** sur une pièce disponible.
+3. **Panier** — cartes avec photo, commentaire, validation emprunt.
+4. **Emprunt** — retour partiel avec formulaire (état, propreté, actions à faire).
+5. **Accueil** — section « À faire » si des actions sont ouvertes.
+6. **Paramètres** — export JSON ; import avec confirmation (tester sur une copie).
+7. **Production locale** — `npm run build && npm start` puis http://localhost:4173
+
+Les données locales vivent dans `data/db.json` et `data/uploads/` (non versionnés).
+
 ## Données
 
 | Fichier | Rôle |

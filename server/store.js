@@ -20,12 +20,32 @@ import {
   personLabel,
   userLabel,
 } from './audit.js'
+import { runDomain } from './errors.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-export const DATA_DIR = path.resolve(__dirname, '../data')
+
+function resolveDataDir() {
+  return process.env.KAMG_DATA_DIR
+    ? path.resolve(process.env.KAMG_DATA_DIR)
+    : path.resolve(__dirname, '../data')
+}
+
+export function dataPaths(options = {}) {
+  const base = options.dataDir || resolveDataDir()
+  return {
+    dataDir: base,
+    seedPath: options.seedPath || path.join(base, 'seed.json'),
+    dbPath: options.dbPath || path.join(base, 'db.json'),
+    uploadsDir: options.uploadsDir || path.join(base, 'uploads'),
+  }
+}
+
+export const DATA_DIR = resolveDataDir()
 export const SEED_PATH = path.join(DATA_DIR, 'seed.json')
 export const DB_PATH = path.join(DATA_DIR, 'db.json')
 export const UPLOADS_DIR = path.join(DATA_DIR, 'uploads')
+
+export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 
 function emptyDb() {
   return {
@@ -66,7 +86,9 @@ async function exists(file) {
 const cacheByPath = new Map()
 const ensureByPath = new Map()
 
-export async function ensureDb({ seedPath = SEED_PATH, dbPath = DB_PATH } = {}) {
+export async function ensureDb(options = {}) {
+  const paths = dataPaths(options)
+  const { seedPath, dbPath, uploadsDir } = paths
   if (cacheByPath.has(dbPath)) return
   if (ensureByPath.has(dbPath)) {
     await ensureByPath.get(dbPath)
@@ -74,7 +96,7 @@ export async function ensureDb({ seedPath = SEED_PATH, dbPath = DB_PATH } = {}) 
   }
   const job = (async () => {
     await mkdir(path.dirname(dbPath), { recursive: true })
-    await mkdir(UPLOADS_DIR, { recursive: true })
+    await mkdir(uploadsDir, { recursive: true })
     if (!(await exists(dbPath))) {
       if (await exists(seedPath)) {
         await copyFile(seedPath, dbPath)
@@ -121,6 +143,12 @@ async function writeJson(file, data) {
 
 let queue = Promise.resolve()
 
+export function resetStoreCache() {
+  cacheByPath.clear()
+  ensureByPath.clear()
+  queue = Promise.resolve()
+}
+
 function enqueue(task) {
   const run = queue.then(task, task)
   queue = run.then(
@@ -131,13 +159,13 @@ function enqueue(task) {
 }
 
 export async function readDb(options = {}) {
-  const dbPath = options.dbPath || DB_PATH
+  const dbPath = options.dbPath || dataPaths(options).dbPath
   if (!cacheByPath.has(dbPath)) await ensureDb(options)
   return cacheByPath.get(dbPath)
 }
 
 export async function writeDb(db, options = {}) {
-  const dbPath = options.dbPath || DB_PATH
+  const dbPath = options.dbPath || dataPaths(options).dbPath
   db.meta = { ...(db.meta || {}), version: 1, updatedAt: new Date().toISOString() }
   await writeJson(dbPath, db)
   cacheByPath.set(dbPath, db)
@@ -237,7 +265,10 @@ function referentielCategoryIds(db) {
 
 export async function createItem(payload, options = {}) {
   return withDb((db) => {
-    const item = normalizeItem(payload, { id: randomUUID(), categoryIds: referentielCategoryIds(db) })
+    const item = runDomain(normalizeItem, payload, {
+      id: randomUUID(),
+      categoryIds: referentielCategoryIds(db),
+    })
     if (db.items.some((i) => i.code.toLowerCase() === item.code.toLowerCase())) {
       throw Object.assign(new Error(`Le code ${item.code} existe déjà`), { status: 409 })
     }
@@ -257,7 +288,7 @@ export async function updateItem(id, payload, options = {}) {
   return withDb((db) => {
     const index = db.items.findIndex((i) => i.id === id)
     if (index === -1) throw Object.assign(new Error('Pièce introuvable'), { status: 404 })
-    const item = normalizeItem({ ...db.items[index], ...payload, id }, {
+    const item = runDomain(normalizeItem, { ...db.items[index], ...payload, id }, {
       id,
       categoryIds: referentielCategoryIds(db),
     })
@@ -289,7 +320,7 @@ export async function adjustStock(id, payload, options = {}) {
       delta = Number(payload.quantite) - (Number(current.stockQuantite) || 0)
     }
     if (!delta) throw Object.assign(new Error('Indiquez une quantité à ajouter ou retirer'), { status: 400 })
-    const item = normalizeItem({ ...current }, { id, categoryIds: referentielCategoryIds(db) })
+    const item = runDomain(normalizeItem, { ...current }, { id, categoryIds: referentielCategoryIds(db) })
     appendStockMovement(item, {
       delta,
       motif,
@@ -369,7 +400,7 @@ export async function getPerson(id, options = {}) {
 
 export async function createPerson(payload, options = {}) {
   return withDb((db) => {
-    const person = normalizePerson(payload, { id: randomUUID() })
+    const person = runDomain(normalizePerson, payload, { id: randomUUID() })
     db.people.push(person)
     appendAudit(db, options.actor, {
       action: 'person.create',
@@ -386,7 +417,7 @@ export async function updatePerson(id, payload, options = {}) {
   return withDb((db) => {
     const index = db.people.findIndex((p) => p.id === id)
     if (index === -1) throw Object.assign(new Error('Personne introuvable'), { status: 404 })
-    const person = normalizePerson({ ...db.people[index], ...payload, id }, { id })
+    const person = runDomain(normalizePerson, { ...db.people[index], ...payload, id }, { id })
     db.people[index] = person
     appendAudit(db, options.actor, {
       action: 'person.update',
@@ -632,28 +663,28 @@ const UPLOAD_MIME_EXT = {
   'application/pdf': 'pdf',
 }
 
-function uploadExtension(mimeType, filename) {
+function uploadExtension(mimeType) {
   const mime = String(mimeType || '').toLowerCase().split(';')[0].trim()
-  if (UPLOAD_MIME_EXT[mime]) return UPLOAD_MIME_EXT[mime]
-  const ext = (filename || '').split('.').pop()?.toLowerCase()
-  if (ext === 'pdf') return 'pdf'
-  if (['png', 'jpg', 'jpeg', 'webp', 'gif'].includes(ext)) return ext.replace('jpeg', 'jpg')
-  return null
+  return UPLOAD_MIME_EXT[mime] || null
 }
 
 export async function saveUpload({ filename, dataUrl, prefix }, options = {}) {
-  await mkdir(options.uploadsDir || UPLOADS_DIR, { recursive: true })
+  await mkdir(options.uploadsDir || dataPaths(options).uploadsDir, { recursive: true })
   const match = /^data:([^;]+);base64,(.+)$/.exec(dataUrl || '')
   if (!match) throw Object.assign(new Error('Fichier invalide'), { status: 400 })
-  const safeExt = uploadExtension(match[1], filename)
+  const safeExt = uploadExtension(match[1])
   if (!safeExt) {
     throw Object.assign(new Error('Type de fichier non pris en charge (JPG, PNG, WEBP, GIF, PDF)'), {
       status: 400,
     })
   }
+  const buffer = Buffer.from(match[2], 'base64')
+  if (buffer.length > MAX_UPLOAD_BYTES) {
+    throw Object.assign(new Error('Fichier trop volumineux (10 Mo max)'), { status: 413 })
+  }
   const id = `${slug(prefix || filename)}-${Date.now()}-${randomUUID().slice(0, 6)}.${safeExt}`
-  const dest = path.join(options.uploadsDir || UPLOADS_DIR, id)
-  await writeFile(dest, Buffer.from(match[2], 'base64'))
+  const dest = path.join(options.uploadsDir || dataPaths(options).uploadsDir, id)
+  await writeFile(dest, buffer)
   const mimeType = match[1].toLowerCase()
   return { src: `/uploads/${id}`, filename: id, mimeType }
 }

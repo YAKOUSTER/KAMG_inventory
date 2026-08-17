@@ -21,7 +21,7 @@
       <v-icon size="36" color="primary">mdi-camera-plus-outline</v-icon>
       <div class="text-subtitle-1 mt-2">Déposer des photos ici</div>
       <div class="text-body-2 text-medium-emphasis">
-        ou cliquer pour parcourir — plusieurs vues : face, dos, détail, étiquette…
+        ou cliquer pour parcourir — JPG, PNG, WEBP (10 Mo max)
       </div>
       <div v-if="uploading" class="text-caption mt-2">Envoi en cours…</div>
     </div>
@@ -163,6 +163,8 @@ function onDrop(event) {
   addFiles(event.dataTransfer?.files)
 }
 
+const MAX_PHOTO_BYTES = 10 * 1024 * 1024
+
 async function addFiles(fileList) {
   const files = [...(fileList || [])].filter((file) => file.type.startsWith('image/'))
   if (!files.length) return
@@ -171,6 +173,9 @@ async function addFiles(fileList) {
   const added = []
   try {
     for (const file of files) {
+      if (file.size > MAX_PHOTO_BYTES) {
+        throw new Error(`${file.name} dépasse 10 Mo`)
+      }
       const compressed = await compressImageFile(file)
       const uploaded = await api.upload(compressed.filename, compressed.dataUrl, props.code)
       added.push(

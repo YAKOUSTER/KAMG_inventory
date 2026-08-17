@@ -32,9 +32,13 @@ import {
   getReferentiels,
   updateReferentiels,
   listAudit,
-  UPLOADS_DIR,
+  dataPaths,
 } from './store.js'
 import { can } from '../src/domain/auth.js'
+import { securityHeaders } from './security.js'
+import { createRateLimiter, loginRateLimitKey, resetRateLimits } from './rateLimit.js'
+
+export { resetRateLimits }
 
 function handle(fn) {
   return async (req, res) => {
@@ -86,12 +90,17 @@ function authUpload(req, res, next) {
 
 export function createApiApp() {
   const app = express()
+  app.disable('x-powered-by')
+  app.use(securityHeaders)
   app.use(express.json({ limit: '15mb' }))
-  app.use('/uploads', express.static(UPLOADS_DIR))
+  app.use('/uploads', (req, res, next) => {
+    express.static(dataPaths().uploadsDir)(req, res, next)
+  })
 
   app.get('/api/health', (_req, res) => res.json({ ok: true, storage: 'json' }))
   app.post(
     '/api/auth/login',
+    createRateLimiter({ windowMs: 15 * 60 * 1000, max: 20, keyFn: loginRateLimitKey }),
     handle((req) => login(req.body?.login, req.body?.password)),
   )
   app.post(
@@ -242,6 +251,11 @@ export function createApiApp() {
     auth('users.manage'),
     handle((req) => deleteUser(req.params.id, { actor: req.user })),
   )
+
+  app.use((error, _req, res, _next) => {
+    const status = error.status || 500
+    res.status(status).json({ error: error.message || 'Erreur interne' })
+  })
 
   return app
 }
