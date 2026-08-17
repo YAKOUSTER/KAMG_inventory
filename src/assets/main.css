@@ -46,6 +46,13 @@ body {
   background: transparent !important;
 }
 
+/* Bottom sheet filtres inventaire (mobile) */
+.inventory-filter-sheet .v-overlay__content {
+  background: var(--kamg-overlay) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
 a {
   color: inherit;
 }

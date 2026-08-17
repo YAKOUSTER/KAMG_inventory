@@ -1,65 +1,129 @@
 <template>
-  <div>
+  <div class="inventory-page">
     <div class="d-flex flex-wrap align-center ga-3 page-header">
-      <h1 class="text-h4 page-title">Inventaire</h1>
+      <h1 class="text-h5 text-md-h4 page-title">Inventaire</h1>
       <v-spacer />
-      <v-btn variant="tonal" @click="tableView = !tableView">
+      <v-btn v-if="mdAndUp" variant="tonal" @click="tableView = !tableView">
         {{ tableView ? 'Cartes' : 'Tableau' }}
       </v-btn>
-      <v-btn v-if="auth.can('items.create')" color="primary" to="/pieces/nouvelle" prepend-icon="mdi-plus">
-        Nouvelle fiche
+      <v-btn
+        v-if="auth.can('items.create')"
+        color="primary"
+        to="/pieces/nouvelle"
+        :prepend-icon="mdAndUp ? 'mdi-plus' : undefined"
+        :icon="!mdAndUp"
+        aria-label="Nouvelle fiche"
+      >
+        <v-icon v-if="!mdAndUp">mdi-plus</v-icon>
+        <span v-if="mdAndUp">Nouvelle fiche</span>
       </v-btn>
     </div>
 
-    <div class="mb-6">
-      <v-row>
-        <v-col cols="12" md="4">
-          <v-text-field v-model="filters.search" prepend-inner-icon="mdi-magnify" label="Recherche (code, nom, matière, tags…)" hide-details clearable />
-        </v-col>
-        <v-col cols="12" md="2">
-          <v-select v-model="filters.categorie" :items="categoryItems" label="Catégorie" hide-details />
-        </v-col>
-        <v-col cols="12" md="2">
-          <v-select v-model="filters.disponibilite" :items="withAll(referentiels.disponibilites)" label="Disponibilité" hide-details />
-        </v-col>
-        <v-col cols="12" md="2">
-          <v-select v-model="filters.epoque" :items="withAll(referentiels.epoques)" label="Époque" hide-details />
-        </v-col>
-        <v-col cols="12" md="2">
-          <v-select v-model="filters.etat" :items="withAll(referentiels.etats)" label="État" hide-details />
-        </v-col>
-        <v-col cols="12" md="2">
-          <v-checkbox v-model="filters.stockBas" label="Stock bas / rupture" hide-details density="compact" />
-        </v-col>
-      </v-row>
-      <v-expand-transition>
-        <div v-if="showMeasures" class="mt-4">
-          <v-row>
-            <v-col v-for="field in MEASUREMENT_FIELDS" :key="field.key" cols="12" md="6" lg="4">
-              <v-range-slider
-                v-model="filters[field.key]"
-                :min="0"
-                :max="field.max"
-                :label="field.label"
-                step="1"
-                thumb-label
-              />
-            </v-col>
-          </v-row>
-        </div>
-      </v-expand-transition>
-      <div class="d-flex ga-2 mt-3">
-        <v-btn variant="text" size="small" @click="showMeasures = !showMeasures">
-          {{ showMeasures ? 'Masquer les mesures' : 'Filtres mesures' }}
-        </v-btn>
-        <v-btn variant="text" size="small" color="error" @click="resetFilters">Réinitialiser</v-btn>
-        <v-spacer />
-        <span class="text-body-2 text-medium-emphasis">{{ filtered.length }} fiche(s)</span>
-      </div>
+    <!-- Mobile : recherche + chips (style Vinted) -->
+    <div v-if="!mdAndUp" class="inventory-mobile-toolbar">
+      <v-text-field
+        v-model="filters.search"
+        prepend-inner-icon="mdi-magnify"
+        placeholder="Rechercher…"
+        hide-details
+        clearable
+        density="compact"
+        variant="solo-filled"
+        flat
+        class="inventory-mobile-search"
+        bg-color="surface"
+      />
+
+      <div class="filter-chips-scroll">
+        <v-chip
+          class="filter-chip filter-chip--action"
+          :color="filterSheetOpen || activeFilterCount ? 'primary' : undefined"
+          :variant="filterSheetOpen || activeFilterCount ? 'flat' : 'outlined'"
+          @click="filterSheetOpen = true"
+        >
+          <v-icon start size="18">mdi-tune-variant</v-icon>
+          Filtres
+          <v-badge
+            v-if="activeFilterCount"
+            :content="String(activeFilterCount)"
+            color="warning"
+            inline
+            class="ml-1"
+          />
+        </v-chip>
+
+        <v-chip
+          class="filter-chip"
+          :color="filters.categorie === 'Tout' ? 'primary' : undefined"
+          :variant="filters.categorie === 'Tout' ? 'flat' : 'outlined'"
+          @click="filters.categorie = 'Tout'"
+        >
+          Tout
+        </v-chip>
+
+        <v-chip
+          v-for="cat in categoryChips"
+          :key="cat.value"
+          class="filter-chip"
+          :color="filters.categorie === cat.value ? 'primary' : undefined"
+          :variant="filters.categorie === cat.value ? 'flat' : 'outlined'"
+          @click="filters.categorie = cat.value"
+        >
+          {{ cat.title }}
+        </v-chip>
+
+        <v-chip
+          class="filter-chip"
+          :color="filters.stockBas ? 'warning' : undefined"
+          :variant="filters.stockBas ? 'flat' : 'outlined'"
+          @click="filters.stockBas = !filters.stockBas"
+        >
+          Stock bas
+        </v-chip>
       </div>
 
+      <div class="inventory-mobile-count">{{ filtered.length }} fiche(s)</div>
+    </div>
+
+    <!-- Desktop : filtres classiques -->
+    <div v-else class="mb-6">
+      <InventoryFilterPanel
+        v-model:show-measures="showMeasures"
+        :filters="filters"
+        :category-items="categoryItems"
+        :referentiels="referentiels"
+        :result-count="filtered.length"
+        @reset="resetFilters"
+      />
+    </div>
+
+    <v-bottom-sheet v-if="!mdAndUp" v-model="filterSheetOpen" scrollable class="inventory-filter-sheet">
+      <v-sheet class="inventory-filter-sheet__panel">
+        <div class="inventory-filter-sheet__header">
+          <span class="text-h6">Filtres</span>
+          <v-btn icon variant="text" aria-label="Fermer" @click="filterSheetOpen = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </div>
+
+        <InventoryFilterPanel
+          v-model:show-measures="showMeasures"
+          :filters="filters"
+          :category-items="categoryItems"
+          :referentiels="referentiels"
+          :result-count="filtered.length"
+          :show-search="false"
+          @reset="resetFilters"
+        />
+
+        <v-btn block color="primary" size="large" class="mt-4" @click="filterSheetOpen = false">
+          Voir {{ filtered.length }} fiche(s)
+        </v-btn>
+      </v-sheet>
+    </v-bottom-sheet>
+
     <v-data-table
-      v-if="tableView"
+      v-if="tableView && mdAndUp"
       :headers="headers"
       :items="filtered"
       item-value="id"
@@ -95,9 +159,9 @@
       </template>
     </v-data-table>
 
-    <v-row v-else>
-      <v-col v-for="item in filtered" :key="item.id" cols="12" sm="6" md="4" lg="3">
-        <ItemCard :item="item" />
+    <v-row v-else class="inventory-grid" :class="{ 'inventory-grid--mobile': !mdAndUp }">
+      <v-col v-for="item in filtered" :key="item.id" cols="6" sm="6" md="4" lg="3">
+        <ItemCard :item="item" :compact="!mdAndUp" />
       </v-col>
       <v-col v-if="!filtered.length" cols="12">
         <v-alert type="info" variant="tonal">
@@ -123,6 +187,7 @@ import { formatStock, hasStock } from '@/domain/stock'
 import { filterItems } from '@/domain/filters'
 import { isLoanable } from '@/domain/item'
 import ItemCard from '@/components/ItemCard.vue'
+import InventoryFilterPanel from '@/components/InventoryFilterPanel.vue'
 import StatusChip from '@/components/StatusChip.vue'
 
 const inventory = useInventoryStore()
@@ -133,8 +198,14 @@ const referentiels = computed(() => inventory.resolvedReferentiels)
 const route = useRoute()
 const router = useRouter()
 const display = useDisplay()
+const mdAndUp = computed(() => display.mdAndUp.value)
 const tableView = ref(display.mdAndUp.value)
 const showMeasures = ref(false)
+const filterSheetOpen = ref(false)
+
+const defaultMeasureRanges = Object.fromEntries(
+  MEASUREMENT_FIELDS.map((field) => [field.key, [0, field.max]]),
+)
 
 function defaultFilters() {
   return {
@@ -147,15 +218,7 @@ function defaultFilters() {
     taille: 'Tout',
     type: 'Tout',
     stockBas: false,
-    longueur: [0, 180],
-    tourTailleMin: [0, 150],
-    tourTailleMax: [0, 150],
-    longueurDos: [0, 100],
-    longueurAvant: [0, 100],
-    tourJupe: [0, 400],
-    longueurEpauleEpaule: [0, 80],
-    longueurManche: [0, 80],
-    tourTete: [0, 80],
+    ...defaultMeasureRanges,
   }
 }
 
@@ -176,13 +239,37 @@ watch(
   { immediate: true },
 )
 
+watch(mdAndUp, (wide) => {
+  if (!wide) {
+    tableView.value = false
+    filterSheetOpen.value = false
+  }
+})
+
 const categoryItems = computed(() => [
   { title: 'Tout', value: 'Tout' },
   ...categoriesWithMeta(referentiels.value).map((cat) => ({ title: cat.label, value: cat.id })),
 ])
+
+const categoryChips = computed(() => categoryItems.value.filter((item) => item.value !== 'Tout'))
+
 const itemById = (id) => inventory.itemById(id)
-const withAll = (list) => ['Tout', ...list]
 const filtered = computed(() => filterItems(inventory.items, filters))
+
+const activeFilterCount = computed(() => {
+  let count = 0
+  if (filters.disponibilite !== 'Tout') count++
+  if (filters.epoque !== 'Tout') count++
+  if (filters.etat !== 'Tout') count++
+  if (filters.stockBas) count++
+  if (filters.categorie !== 'Tout') count++
+  for (const field of MEASUREMENT_FIELDS) {
+    const range = filters[field.key]
+    const max = field.max
+    if (range[0] > 0 || range[1] < max) count++
+  }
+  return count
+})
 
 const headers = computed(() => {
   const base = [
@@ -219,3 +306,69 @@ function resetFilters() {
 
 onMounted(() => inventory.refresh().catch(() => {}))
 </script>
+
+<style scoped>
+.inventory-mobile-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  margin: 0 -0.35rem 1rem;
+  padding: 0 0.35rem 0.65rem;
+  background: linear-gradient(180deg, var(--kamg-mist) 78%, rgba(244, 246, 244, 0));
+}
+
+.inventory-mobile-search :deep(.v-field) {
+  border-radius: 14px;
+  box-shadow: 0 1px 4px rgba(44, 51, 44, 0.08);
+}
+
+.filter-chips-scroll {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding: 0.65rem 0 0.15rem;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.filter-chips-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.filter-chip {
+  flex: 0 0 auto;
+}
+
+.filter-chip--action {
+  font-weight: 600;
+}
+
+.inventory-mobile-count {
+  font-size: 0.82rem;
+  color: rgba(44, 51, 44, 0.62);
+  padding-top: 0.35rem;
+}
+
+.inventory-filter-sheet__panel {
+  padding: 1rem 1.15rem 1.5rem;
+  border-radius: 20px 20px 0 0;
+  max-height: 88vh;
+  overflow-y: auto;
+}
+
+.inventory-filter-sheet__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.inventory-grid--mobile {
+  margin-inline: -0.35rem;
+}
+
+.inventory-grid--mobile :deep(.v-col) {
+  padding: 6px;
+}
+</style>
