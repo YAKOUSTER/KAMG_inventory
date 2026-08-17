@@ -1,37 +1,52 @@
-// plugins/vuetify.js
-import 'vuetify/styles';
 import '@mdi/font/css/materialdesignicons.css'
-import { createVuetify } from 'vuetify';
-import * as components from 'vuetify/components';
-import * as directives from 'vuetify/directives';
-import { VListItem, VListItemContent, VListItemTitle, VListItemSubtitle, VListItemAction } from 'vuetify/components';
+import 'vuetify/styles'
+import { createVuetify } from 'vuetify'
+import { fr } from 'vuetify/locale'
 
-
-const vuetify = createVuetify({
-  components,
-  directives,
-
+export default createVuetify({
+  locale: {
+    locale: 'fr',
+    fallback: 'fr',
+    messages: { fr },
+  },
   theme: {
-    defaultTheme: 'myCustomTheme',
+    defaultTheme: 'kamg',
     themes: {
-      myCustomTheme: {
-        dark: false, // ou true pour un thème sombre
+      kamg: {
+        dark: false,
         colors: {
-          primary: '#6A8C69', // Couleur primaire
-          secondary: '#53736A', // Couleur secondaire
-          kamg: '#edede5',
-          accent: '#82B1FF', // Couleur d'accentuation
-          error: '#A8B545', // Couleur d'erreur
-          info: '#C2C0A6', // Couleur d'information
-          success: '#4CAF50', // Couleur de succès
-          warning: '#A8B545', // Couleur d'avertissement
+          primary: '#6A8C69',
+          secondary: '#53736A',
+          surface: '#F4F6F4',
+          'surface-bright': '#F4F6F4',
+          'surface-light': '#FAFBFA',
+          'surface-variant': '#E8EBE8',
+          background: '#F4F6F4',
+          kamg: '#EDEDE5',
+          error: '#B85C38',
+          info: '#C2C0A6',
+          success: '#4CAF50',
+          warning: '#A8B545',
         },
       },
     },
   },
-  icons: {
-    defaultSet: 'mdi', // Pour définir un set d'icônes par défaut
+  defaults: {
+    VBtn: { rounded: 'xl' },
+    VCard: { rounded: 'xl', elevation: 0, variant: 'flat' },
+    VTextField: { variant: 'underlined', density: 'comfortable' },
+    VSelect: { variant: 'underlined', density: 'comfortable' },
+    VAutocomplete: { variant: 'underlined', density: 'comfortable' },
+    VTextarea: { variant: 'underlined', density: 'comfortable' },
+    VCombobox: { variant: 'underlined', density: 'comfortable' },
+    VFileInput: { variant: 'underlined', density: 'comfortable' },
+    VAlert: { rounded: 'xl', variant: 'tonal' },
+    VChip: { rounded: 'lg' },
+    VDataTable: {
+      noDataText: 'Aucune donnée',
+      itemsPerPageText: 'Lignes par page',
+      hover: false,
+    },
+    VList: { bgColor: 'transparent' },
   },
-});
-
-export default vuetify;
+})
