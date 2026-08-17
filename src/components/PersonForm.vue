@@ -9,7 +9,7 @@
         <FieldRow label="Nom">
           <v-text-field v-model="person.nom" hide-details="auto" :rules="[required]" />
         </FieldRow>
-        <FieldRow v-if="person.roles.includes('membre')" label="Année">
+        <FieldRow v-if="showAnnee" label="Année de promotion">
           <v-select v-model="person.anneeMembre" :items="membershipYears()" hide-details clearable />
         </FieldRow>
         <FieldRow label="Téléphone">
@@ -66,6 +66,7 @@ import { useInventoryStore } from '@/stores/inventory'
 import {
   PERSON_MEASUREMENTS,
   PERSON_ROLES,
+  COHORT_ROLES,
   emptyPerson,
   membershipYears,
   normalizeRoles,
@@ -86,6 +87,7 @@ const form = ref(null)
 const person = reactive(emptyPerson())
 const inventory = useInventoryStore()
 const tailleItems = computed(() => ['', ...inventory.resolvedReferentiels.tailles])
+const showAnnee = computed(() => person.roles.some((role) => COHORT_ROLES.includes(role)))
 const required = (v) => !!v || 'Champ requis'
 const photoCode = computed(() => personDisplayName(person) || 'personne')
 
