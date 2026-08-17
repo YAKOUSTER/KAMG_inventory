@@ -15,12 +15,19 @@ if [[ -z "${KAMG_SSH_PRIVATE_KEY:-}" ]]; then
 fi
 
 umask 077
-# Cursor Secrets accepte parfois la clé sur une seule ligne avec des \n littéraux.
-if [[ "$KAMG_SSH_PRIVATE_KEY" != *$'\n'* ]]; then
-  printf '%b' "$KAMG_SSH_PRIVATE_KEY" > "$KEY_PATH"
-else
-  printf '%s' "$KAMG_SSH_PRIVATE_KEY" > "$KEY_PATH"
-fi
+write_ssh_key() {
+  local raw="$1"
+  if [[ "$raw" == *$'\n'* ]]; then
+    printf '%s' "$raw"
+  elif [[ "$raw" == *'-----BEGIN OPENSSH PRIVATE KEY-----'* ]]; then
+    # Secret collé sur une ligne (espaces entre les blocs base64)
+    raw="${raw// /$'\n'}"
+    printf '%s' "$raw"
+  else
+    printf '%b' "$raw"
+  fi
+}
+write_ssh_key "$KAMG_SSH_PRIVATE_KEY" > "$KEY_PATH"
 chmod 600 "$KEY_PATH"
 
 if ! ssh-keygen -y -f "$KEY_PATH" >/dev/null 2>&1; then
