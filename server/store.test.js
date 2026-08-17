@@ -139,6 +139,23 @@ describe('json store', () => {
     const saved = await saveUpload({ filename: 'face.png', dataUrl: pixel, prefix: 'JUP-014' }, options)
     assert.match(saved.src, /^\/uploads\/jup-014-/)
     assert.match(saved.src, /\.png$/)
+    assert.equal(saved.mimeType, 'image/png')
+  })
+
+  it('enregistre un PDF dans le dossier uploads', async () => {
+    const pdf = 'data:application/pdf;base64,JVBERi0xLjQK'
+    const saved = await saveUpload({ filename: 'patron.pdf', dataUrl: pdf, prefix: 'ROB-001' }, options)
+    assert.match(saved.src, /^\/uploads\/rob-001-/)
+    assert.match(saved.src, /\.pdf$/)
+    assert.equal(saved.mimeType, 'application/pdf')
+  })
+
+  it('refuse un type de fichier non pris en charge', async () => {
+    const bad = 'data:text/plain;base64,dGVzdA=='
+    await assert.rejects(
+      () => saveUpload({ filename: 'notes.txt', dataUrl: bad, prefix: 'X' }, options),
+      /non pris en charge/,
+    )
   })
 
   it('connecte les comptes par défaut et refuse un mauvais mot de passe', async () => {

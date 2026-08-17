@@ -530,16 +530,39 @@ function slug(value) {
     .toLowerCase() || 'photo'
 }
 
+const UPLOAD_MIME_EXT = {
+  'image/png': 'png',
+  'image/jpeg': 'jpg',
+  'image/jpg': 'jpg',
+  'image/webp': 'webp',
+  'image/gif': 'gif',
+  'application/pdf': 'pdf',
+}
+
+function uploadExtension(mimeType, filename) {
+  const mime = String(mimeType || '').toLowerCase().split(';')[0].trim()
+  if (UPLOAD_MIME_EXT[mime]) return UPLOAD_MIME_EXT[mime]
+  const ext = (filename || '').split('.').pop()?.toLowerCase()
+  if (ext === 'pdf') return 'pdf'
+  if (['png', 'jpg', 'jpeg', 'webp', 'gif'].includes(ext)) return ext.replace('jpeg', 'jpg')
+  return null
+}
+
 export async function saveUpload({ filename, dataUrl, prefix }, options = {}) {
   await mkdir(options.uploadsDir || UPLOADS_DIR, { recursive: true })
-  const match = /^data:(.+);base64,(.+)$/.exec(dataUrl || '')
-  if (!match) throw Object.assign(new Error('Image invalide'), { status: 400 })
-  const ext = (filename || 'image.jpg').split('.').pop()?.toLowerCase() || 'jpg'
-  const safeExt = ['png', 'jpg', 'jpeg', 'webp', 'gif'].includes(ext) ? ext.replace('jpeg', 'jpg') : 'jpg'
+  const match = /^data:([^;]+);base64,(.+)$/.exec(dataUrl || '')
+  if (!match) throw Object.assign(new Error('Fichier invalide'), { status: 400 })
+  const safeExt = uploadExtension(match[1], filename)
+  if (!safeExt) {
+    throw Object.assign(new Error('Type de fichier non pris en charge (JPG, PNG, WEBP, GIF, PDF)'), {
+      status: 400,
+    })
+  }
   const id = `${slug(prefix || filename)}-${Date.now()}-${randomUUID().slice(0, 6)}.${safeExt}`
   const dest = path.join(options.uploadsDir || UPLOADS_DIR, id)
   await writeFile(dest, Buffer.from(match[2], 'base64'))
-  return { src: `/uploads/${id}`, filename: id }
+  const mimeType = match[1].toLowerCase()
+  return { src: `/uploads/${id}`, filename: id, mimeType }
 }
 
 export { emptyDb, ensureShape }

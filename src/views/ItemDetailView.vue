@@ -67,6 +67,35 @@
       </v-row>
     </section>
 
+    <section v-if="item.attachments?.length" class="page-block">
+      <h2 class="section-label">Pièces jointes</h2>
+      <v-list lines="two" class="attachment-list">
+        <v-list-item v-for="att in item.attachments" :key="att.id">
+          <template #prepend>
+            <a :href="att.src" target="_blank" rel="noopener" class="attachment-thumb">
+              <v-img
+                v-if="isImageAttachment(att)"
+                :src="att.src"
+                width="56"
+                height="56"
+                cover
+                class="rounded"
+              />
+              <v-icon v-else size="40" color="error">mdi-file-pdf-box</v-icon>
+            </a>
+          </template>
+          <v-list-item-title>
+            <a :href="att.src" target="_blank" rel="noopener">
+              {{ att.label || att.filename || 'Document' }}
+            </a>
+          </v-list-item-title>
+          <v-list-item-subtitle v-if="att.label && att.filename">
+            {{ att.filename }}
+          </v-list-item-subtitle>
+        </v-list-item>
+      </v-list>
+    </section>
+
     <section class="page-block">
       <h2 class="section-label">Historique des emprunts</h2>
       <v-list v-if="item.loanHistory?.length">
@@ -94,6 +123,7 @@ import { useInventoryStore } from '@/stores/inventory'
 import { useAuthStore } from '@/stores/auth'
 import { MEASUREMENT_FIELDS, categoryIcon, categoryLabel, visibleMeasurements } from '@/domain/taxonomy'
 import { isLoanable } from '@/domain/item'
+import { isImageAttachment } from '@/domain/attachments'
 import { useUiStore } from '@/stores/ui'
 import { displayDate } from '@/domain/dates'
 import ItemCard from '@/components/ItemCard.vue'
@@ -192,3 +222,18 @@ async function remove() {
 
 watch(() => props.id, load, { immediate: true })
 </script>
+
+<style scoped>
+.attachment-list {
+  border: 1px solid rgba(44, 51, 74, 0.12);
+  border-radius: 12px;
+}
+.attachment-thumb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  margin-right: 8px;
+}
+</style>

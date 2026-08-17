@@ -9,7 +9,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "start": "NODE_ENV=production node server/index.js",
-    "test": "node --test server/store.test.js src/domain/filters.test.js src/domain/images.test.js src/domain/auth.test.js src/domain/person.test.js src/domain/dates.test.js src/domain/loans.test.js src/domain/item.test.js src/domain/brand.test.js"
+    "test": "node --test server/store.test.js src/domain/filters.test.js src/domain/images.test.js src/domain/attachments.test.js src/domain/auth.test.js src/domain/person.test.js src/domain/dates.test.js src/domain/loans.test.js src/domain/item.test.js src/domain/brand.test.js"
   },
   "dependencies": {
     "@mdi/font": "^7.4.47",

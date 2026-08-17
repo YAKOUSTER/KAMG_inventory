@@ -183,6 +183,15 @@
     </section>
 
     <section class="form-block">
+      <h2 class="section-label">Pièces jointes</h2>
+      <p class="text-body-2 text-medium-emphasis mb-4">
+        Documents complémentaires : croquis, dessins, patrons, scans PDF…
+        Les fichiers sont stockés dans <code>data/uploads</code>, comme les photos.
+      </p>
+      <ItemAttachments v-model="item.attachments" :code="item.code" />
+    </section>
+
+    <section class="form-block">
       <h2 class="section-label">Liens et notes</h2>
       <div class="form-fields">
         <FieldRow label="Pièces liées">
@@ -215,8 +224,10 @@ import { computed, reactive, ref, watch } from 'vue'
 import { CATEGORIES, DEFAULT_REFERENTIELS, MEASUREMENT_FIELDS, visibleMeasurements } from '@/domain/taxonomy'
 import { emptyItem } from '@/domain/item'
 import { normalizeImages } from '@/domain/images'
+import { normalizeAttachments } from '@/domain/attachments'
 import FieldRow from './FieldRow.vue'
 import ItemPhotos from './ItemPhotos.vue'
+import ItemAttachments from './ItemAttachments.vue'
 
 const props = defineProps({
   initial: { type: Object, default: null },
@@ -236,6 +247,7 @@ function assign(source) {
   Object.assign(item, emptyItem(source?.categorie), source || {})
   if (!Array.isArray(item.tags)) item.tags = []
   item.images = normalizeImages(item.images)
+  item.attachments = normalizeAttachments(item.attachments)
   if (!Array.isArray(item.linkedItemIds)) item.linkedItemIds = []
 }
 
