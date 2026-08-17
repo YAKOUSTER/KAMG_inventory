@@ -8,12 +8,20 @@
 
     <template v-else>
       <v-app-bar color="primary" elevation="0" height="72" class="app-bar">
-        <router-link to="/" class="brand mr-4" :title="GROUP_NAME">
+        <v-app-bar-nav-icon
+          class="d-md-none nav-menu-btn"
+          aria-label="Ouvrir le menu"
+          @click="drawerOpen = true"
+        />
+
+        <router-link to="/" class="brand" :class="{ 'brand--mobile': !mdAndUp }" :title="GROUP_NAME">
           <img :src="LOGO_SRC" :alt="GROUP_NAME" class="brand-logo" />
-          <span class="brand-name">{{ APP_TITLE }}</span>
+          <span class="brand-name d-none d-sm-inline">{{ APP_TITLE }}</span>
         </router-link>
 
-        <div class="nav-scroll">
+        <v-spacer class="d-md-none" />
+
+        <div class="nav-scroll d-none d-md-flex">
           <v-btn
             v-for="link in visibleLinks"
             :key="link.to"
@@ -23,18 +31,26 @@
             size="default"
             class="nav-link"
           >
-            <span class="d-none d-md-inline">{{ link.title }}</span>
-            <span class="d-md-none">{{ link.short }}</span>
+            {{ link.title }}
           </v-btn>
         </div>
 
-        <v-btn v-if="auth.can('loans.write')" variant="text" size="default" class="nav-icon-btn" to="/panier" aria-label="Panier">
+        <v-spacer class="d-none d-md-flex" />
+
+        <v-btn
+          v-if="auth.can('loans.write')"
+          variant="text"
+          size="default"
+          class="nav-icon-btn"
+          to="/panier"
+          aria-label="Panier"
+        >
           <v-badge :content="String(cart.count || 0)" color="warning" :model-value="cart.count > 0">
             <v-icon size="24">mdi-cart-outline</v-icon>
           </v-badge>
         </v-btn>
 
-        <v-menu>
+        <v-menu location="bottom end">
           <template #activator="{ props }">
             <v-btn v-bind="props" variant="text" size="default" class="nav-account ml-1" aria-label="Compte">
               <v-icon start size="24" class="d-none d-sm-inline">mdi-account-circle-outline</v-icon>
@@ -68,6 +84,72 @@
         </v-menu>
       </v-app-bar>
 
+      <v-navigation-drawer
+        v-model="drawerOpen"
+        temporary
+        location="start"
+        class="mobile-drawer d-md-none"
+        width="280"
+      >
+        <div class="mobile-drawer__header">
+          <img :src="LOGO_SRC" :alt="GROUP_NAME" class="mobile-drawer__logo" />
+          <div class="mobile-drawer__title">{{ APP_TITLE }}</div>
+          <div class="text-caption text-medium-emphasis">{{ auth.user?.nom }}</div>
+        </div>
+
+        <v-list nav density="comfortable" class="mobile-drawer__nav">
+          <v-list-item
+            v-for="link in visibleLinks"
+            :key="link.to"
+            :to="link.to"
+            :exact="link.exact"
+            :title="link.title"
+            :prepend-icon="link.icon"
+            rounded="lg"
+            @click="drawerOpen = false"
+          />
+          <v-list-item
+            v-if="auth.can('loans.write')"
+            to="/panier"
+            title="Panier"
+            prepend-icon="mdi-cart-outline"
+            rounded="lg"
+            @click="drawerOpen = false"
+          >
+            <template v-if="cart.count" #append>
+              <v-chip size="x-small" color="warning" variant="flat">{{ cart.count }}</v-chip>
+            </template>
+          </v-list-item>
+        </v-list>
+
+        <template #append>
+          <v-list density="compact" class="mobile-drawer__footer">
+            <v-list-item
+              v-if="auth.can('users.manage')"
+              title="Comptes et accès"
+              prepend-icon="mdi-account-key-outline"
+              to="/utilisateurs"
+              @click="drawerOpen = false"
+            />
+            <v-list-item
+              v-if="auth.can('audit.read')"
+              title="Journal d’activité"
+              prepend-icon="mdi-history"
+              to="/journal"
+              @click="drawerOpen = false"
+            />
+            <v-list-item
+              v-if="auth.can('settings.manage')"
+              title="Paramètres"
+              prepend-icon="mdi-cog-outline"
+              to="/parametres"
+              @click="drawerOpen = false"
+            />
+            <v-list-item title="Déconnexion" prepend-icon="mdi-logout" @click="onDrawerLogout" />
+          </v-list>
+        </template>
+      </v-navigation-drawer>
+
       <v-progress-linear
         v-if="inventory.loading && !inventory.loaded"
         color="warning"
@@ -98,6 +180,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useDisplay } from 'vuetify'
 import { useInventoryStore } from '@/stores/inventory'
 import { useCartStore } from '@/stores/cart'
 import { useAuthStore } from '@/stores/auth'
@@ -107,19 +190,22 @@ import { APP_TITLE, GROUP_NAME, LOGO_SRC } from '@/domain/brand'
 
 const route = useRoute()
 const router = useRouter()
+const display = useDisplay()
 const inventory = useInventoryStore()
 const cart = useCartStore()
 const auth = useAuthStore()
 const ui = useUiStore()
 const snackOpen = ref(false)
+const drawerOpen = ref(false)
 
+const mdAndUp = computed(() => display.mdAndUp.value)
 const isLogin = computed(() => route.name === 'login')
 
 const links = [
-  { to: '/', title: 'Accueil', short: 'Accueil', permission: 'items.read', exact: true },
-  { to: '/inventaire', title: 'Inventaire', short: 'Pièces', permission: 'items.read' },
-  { to: '/emprunts', title: 'Emprunts', short: 'Emprunts', permission: 'loans.read' },
-  { to: '/personnes', title: 'Personnes', short: 'Personnes', permission: 'people.read' },
+  { to: '/', title: 'Accueil', icon: 'mdi-home-outline', permission: 'items.read', exact: true },
+  { to: '/inventaire', title: 'Inventaire', icon: 'mdi-hanger', permission: 'items.read' },
+  { to: '/emprunts', title: 'Emprunts', icon: 'mdi-swap-horizontal', permission: 'loans.read' },
+  { to: '/personnes', title: 'Personnes', icon: 'mdi-account-group-outline', permission: 'people.read' },
 ]
 
 const visibleLinks = computed(() => links.filter((link) => auth.can(link.permission)))
@@ -136,9 +222,25 @@ watch(snackOpen, (open) => {
   if (!open) ui.clear()
 })
 
+watch(
+  () => route.fullPath,
+  () => {
+    drawerOpen.value = false
+  },
+)
+
+watch(mdAndUp, (wide) => {
+  if (wide) drawerOpen.value = false
+})
+
 async function logout() {
   await auth.logout()
   router.push({ name: 'login' })
+}
+
+async function onDrawerLogout() {
+  drawerOpen.value = false
+  await logout()
 }
 
 onMounted(() => {
@@ -158,6 +260,10 @@ onMounted(() => {
   flex: 0 1 auto;
   text-decoration: none;
   color: inherit;
+  margin-right: 1rem;
+}
+.brand--mobile {
+  margin-right: 0;
 }
 .brand-logo {
   height: 56px;
@@ -176,16 +282,7 @@ onMounted(() => {
 .nav-scroll {
   display: flex;
   align-items: center;
-  flex: 1 1 auto;
-  min-width: 0;
-  overflow-x: auto;
   gap: 0.35rem;
-  padding-inline: 0.25rem;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-}
-.nav-scroll::-webkit-scrollbar {
-  display: none;
 }
 .nav-link {
   flex: 0 0 auto;
@@ -197,12 +294,35 @@ onMounted(() => {
   padding-inline: 0.85rem !important;
 }
 .nav-icon-btn,
-.nav-account {
+.nav-account,
+.nav-menu-btn {
   min-height: 44px;
   min-width: 44px;
 }
 .app-bar :deep(.v-toolbar__content) {
-  padding-inline: clamp(0.75rem, 2vw, 1.5rem);
-  gap: 0.35rem;
+  padding-inline: clamp(0.5rem, 2vw, 1.5rem);
+  gap: 0.25rem;
+}
+.mobile-drawer__header {
+  padding: 1.25rem 1.25rem 0.75rem;
+  border-bottom: 1px solid rgba(83, 115, 106, 0.12);
+}
+.mobile-drawer__logo {
+  height: 72px;
+  width: auto;
+  display: block;
+  margin-bottom: 0.75rem;
+}
+.mobile-drawer__title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.mobile-drawer__nav {
+  padding-top: 0.5rem;
+}
+.mobile-drawer__footer {
+  border-top: 1px solid rgba(83, 115, 106, 0.12);
+  padding-bottom: 0.5rem;
 }
 </style>
