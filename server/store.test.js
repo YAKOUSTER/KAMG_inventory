@@ -21,6 +21,7 @@ import {
   createUser,
   getBootstrap,
   getLoan,
+  listAudit,
 } from './store.js'
 
 async function tmpOptions() {
@@ -294,5 +295,31 @@ describe('json store', () => {
     const after = await exportDb(options)
     assert.equal(after.users.length, beforeUsers)
     assert.deepEqual(after.sessions, [])
+  })
+
+  it('enregistre créations, modifications et retours dans le journal d’audit', async () => {
+    const session = await login('admin', 'admin', options)
+    const actor = session.user
+    const item = await createItem(
+      { code: 'AUD-01', nom: 'Robe', categorie: 'piece_costume', type: 'Robe', disponibilite: 'Disponible' },
+      { ...options, actor },
+    )
+    const person = await createPerson({ nom: 'Audit', prenom: 'Test' }, { ...options, actor })
+    const loan = await createLoan(
+      { personId: person.id, titre: 'Spectacle test', items: [{ itemId: item.id }] },
+      { ...options, actor },
+    )
+    await updateItem(item.id, { nom: 'Robe bleue' }, { ...options, actor })
+    await returnLoanItems(loan.id, [], { ...options, actor, dateRetour: '2026-08-17' })
+
+    const audit = await listAudit({}, options)
+    assert.ok(audit.total >= 5)
+    const actions = audit.entries.map((entry) => entry.action)
+    assert.ok(actions.includes('item.create'))
+    assert.ok(actions.includes('item.update'))
+    assert.ok(actions.includes('person.create'))
+    assert.ok(actions.includes('loan.create'))
+    assert.ok(actions.includes('loan.return_all'))
+    assert.equal(audit.entries.find((entry) => entry.action === 'loan.create')?.actor.login, 'admin')
   })
 })

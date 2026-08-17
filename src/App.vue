@@ -52,6 +52,12 @@
               to="/utilisateurs"
             />
             <v-list-item
+              v-if="auth.can('audit.read')"
+              title="Journal d’activité"
+              prepend-icon="mdi-history"
+              to="/journal"
+            />
+            <v-list-item
               v-if="auth.can('settings.manage')"
               title="Paramètres"
               prepend-icon="mdi-cog-outline"

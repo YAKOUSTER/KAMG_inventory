@@ -9,6 +9,7 @@ export const PERMISSIONS = [
   { id: 'people.write', label: 'Modifier les personnes' },
   { id: 'users.manage', label: 'Gérer les comptes et les accès' },
   { id: 'settings.manage', label: 'Importer / exporter la base' },
+  { id: 'audit.read', label: 'Consulter le journal d’activité' },
 ]
 
 export const ROLES = [

@@ -9,6 +9,14 @@ import { ROLE_PRESETS, can, publicUser } from '../src/domain/auth.js'
 import { groupLoansByYear, normalizePerson, personDisplayName } from '../src/domain/person.js'
 import { todayLocal, formatDate } from '../src/domain/dates.js'
 import { hashPassword, randomToken, verifyPassword } from './password.js'
+import {
+  appendAudit,
+  codesForItems,
+  itemLabel,
+  loanLabel,
+  personLabel,
+  userLabel,
+} from './audit.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 export const DATA_DIR = path.resolve(__dirname, '../data')
@@ -25,6 +33,7 @@ function emptyDb() {
     loans: [],
     users: [],
     sessions: [],
+    auditLog: [],
   }
 }
 
@@ -38,6 +47,7 @@ function ensureShape(raw) {
   db.loans = Array.isArray(raw.loans) ? raw.loans : []
   db.users = Array.isArray(raw.users) ? raw.users : []
   db.sessions = Array.isArray(raw.sessions) ? raw.sessions : []
+  db.auditLog = Array.isArray(raw.auditLog) ? raw.auditLog : []
   return db
 }
 
@@ -77,6 +87,10 @@ export async function ensureDb({ seedPath = SEED_PATH, dbPath = DB_PATH } = {}) 
     }
     if (!Array.isArray(db.sessions)) {
       db.sessions = []
+      dirty = true
+    }
+    if (!Array.isArray(db.auditLog)) {
+      db.auditLog = []
       dirty = true
     }
     if (dirty) await writeJson(dbPath, db)
@@ -148,8 +162,34 @@ export async function importDb(payload, options = {}) {
     db.users = current.users
   }
   db.sessions = current.sessions || []
+  db.auditLog = Array.isArray(current.auditLog) ? current.auditLog : []
+  appendAudit(db, options.actor, {
+    action: 'db.import',
+    entityType: 'db',
+    entityId: 'db',
+    entityLabel: 'Base JSON',
+    summary: `Import de la base (${db.items.length} pièce(s), ${db.people.length} personne(s), ${db.loans.length} emprunt(s))`,
+    meta: {
+      counts: { items: db.items.length, people: db.people.length, loans: db.loans.length },
+    },
+  })
   await writeDb(db, options)
   return db
+}
+
+export async function listAudit(query = {}, options = {}) {
+  const db = await readDb(options)
+  const limit = Math.min(Math.max(Number(query.limit) || 100, 1), 500)
+  const offset = Math.max(Number(query.offset) || 0, 0)
+  const entries = (db.auditLog || []).filter((entry) => {
+    if (query.action && entry.action !== query.action) return false
+    if (query.entityType && entry.entityType !== query.entityType) return false
+    return true
+  })
+  return {
+    total: entries.length,
+    entries: entries.slice(offset, offset + limit),
+  }
 }
 
 export async function listItems(options = {}) {
@@ -187,6 +227,13 @@ export async function createItem(payload, options = {}) {
       throw Object.assign(new Error(`Le code ${item.code} existe déjà`), { status: 409 })
     }
     db.items.push(item)
+    appendAudit(db, options.actor, {
+      action: 'item.create',
+      entityType: 'item',
+      entityId: item.id,
+      entityLabel: itemLabel(item),
+      summary: `Création de la pièce ${itemLabel(item)}`,
+    })
     return item
   }, options)
 }
@@ -199,6 +246,13 @@ export async function updateItem(id, payload, options = {}) {
     const clash = db.items.find((i) => i.id !== id && i.code.toLowerCase() === item.code.toLowerCase())
     if (clash) throw Object.assign(new Error(`Le code ${item.code} existe déjà`), { status: 409 })
     db.items[index] = item
+    appendAudit(db, options.actor, {
+      action: 'item.update',
+      entityType: 'item',
+      entityId: item.id,
+      entityLabel: itemLabel(item),
+      summary: `Modification de la pièce ${itemLabel(item)}`,
+    })
     return item
   }, options)
 }
@@ -216,6 +270,13 @@ export async function deleteItem(id, options = {}) {
     const [removed] = db.items.splice(index, 1)
     db.items.forEach((item) => {
       item.linkedItemIds = (item.linkedItemIds || []).filter((x) => x !== id)
+    })
+    appendAudit(db, options.actor, {
+      action: 'item.delete',
+      entityType: 'item',
+      entityId: removed.id,
+      entityLabel: itemLabel(removed),
+      summary: `Suppression de la pièce ${itemLabel(removed)}`,
     })
     return removed
   }, options)
@@ -245,6 +306,13 @@ export async function createPerson(payload, options = {}) {
   return withDb((db) => {
     const person = normalizePerson(payload, { id: randomUUID() })
     db.people.push(person)
+    appendAudit(db, options.actor, {
+      action: 'person.create',
+      entityType: 'person',
+      entityId: person.id,
+      entityLabel: personLabel(person),
+      summary: `Création de la personne ${personLabel(person)}`,
+    })
     return person
   }, options)
 }
@@ -255,6 +323,13 @@ export async function updatePerson(id, payload, options = {}) {
     if (index === -1) throw Object.assign(new Error('Personne introuvable'), { status: 404 })
     const person = normalizePerson({ ...db.people[index], ...payload, id }, { id })
     db.people[index] = person
+    appendAudit(db, options.actor, {
+      action: 'person.update',
+      entityType: 'person',
+      entityId: person.id,
+      entityLabel: personLabel(person),
+      summary: `Modification de la personne ${personLabel(person)}`,
+    })
     return person
   }, options)
 }
@@ -266,6 +341,13 @@ export async function deletePerson(id, options = {}) {
     const used = db.loans.some((loan) => loan.personId === id)
     if (used) throw Object.assign(new Error('Cette personne a des emprunts enregistrés'), { status: 409 })
     const [removed] = db.people.splice(index, 1)
+    appendAudit(db, options.actor, {
+      action: 'person.delete',
+      entityType: 'person',
+      entityId: removed.id,
+      entityLabel: personLabel(removed),
+      summary: `Suppression de la personne ${personLabel(removed)}`,
+    })
     return removed
   }, options)
 }
@@ -336,6 +418,19 @@ export async function createLoan(payload, options = {}) {
       createdAt: new Date().toISOString(),
     }
     db.loans.push(loan)
+    appendAudit(db, options.actor, {
+      action: 'loan.create',
+      entityType: 'loan',
+      entityId: loan.id,
+      entityLabel: loanLabel(loan, person),
+      summary: `Emprunt créé pour ${personLabel(person)} (${lines.length} pièce(s))`,
+      meta: {
+        personId: person.id,
+        personName: personLabel(person),
+        itemIds: lines.map((line) => line.itemId),
+        itemCodes: codesForItems(db, lines.map((line) => line.itemId)),
+      },
+    })
     return decorateLoan(loan, db)
   }, options)
 }
@@ -366,6 +461,24 @@ export async function returnLoanItems(loanId, itemIds, options = {}) {
     const remaining = loan.items.some((i) => !i.returnedAt)
     loan.statut = remaining ? 'retour_partiel' : 'retourne'
     loan.dateRetour = remaining ? null : dateRetour
+    const person = db.people.find((p) => p.id === loan.personId)
+    const returnedCodes = codesForItems(db, targets)
+    appendAudit(db, options.actor, {
+      action: remaining ? 'loan.return' : 'loan.return_all',
+      entityType: 'loan',
+      entityId: loan.id,
+      entityLabel: loanLabel(loan, person),
+      summary: remaining
+        ? `Retour partiel sur ${loanLabel(loan, person)} (${returnedCodes.join(', ')})`
+        : `Emprunt clôturé — ${loanLabel(loan, person)}`,
+      meta: {
+        itemIds: targets,
+        itemCodes: returnedCodes,
+        dateRetour,
+        personId: loan.personId,
+        personName: personLabel(person),
+      },
+    })
     return decorateLoan(loan, db)
   }, options)
 }
@@ -520,6 +633,13 @@ export async function createUser(payload, options = {}) {
       createdAt: new Date().toISOString(),
     }
     db.users.push(user)
+    appendAudit(db, options.actor, {
+      action: 'user.create',
+      entityType: 'user',
+      entityId: user.id,
+      entityLabel: userLabel(user),
+      summary: `Compte créé : ${userLabel(user)} (${user.login})`,
+    })
     return publicUser(user)
   }, options)
 }
@@ -540,6 +660,13 @@ export async function updateUser(id, payload, options = {}) {
     if (Array.isArray(payload.permissions)) user.permissions = payload.permissions
     if (!user.custom) user.permissions = [...ROLE_PRESETS[user.role]]
     if (payload.password) user.passwordHash = await hashPassword(payload.password)
+    appendAudit(db, options.actor, {
+      action: 'user.update',
+      entityType: 'user',
+      entityId: user.id,
+      entityLabel: userLabel(user),
+      summary: `Compte modifié : ${userLabel(user)}${payload.password ? ' (mot de passe)' : ''}`,
+    })
     return publicUser(user)
   }, options)
 }
@@ -555,6 +682,13 @@ export async function deleteUser(id, options = {}) {
     }
     db.users.splice(index, 1)
     db.sessions = (db.sessions || []).filter((session) => session.userId !== id)
+    appendAudit(db, options.actor, {
+      action: 'user.delete',
+      entityType: 'user',
+      entityId: target.id,
+      entityLabel: userLabel(target),
+      summary: `Compte supprimé : ${userLabel(target)} (${target.login})`,
+    })
     return { ok: true }
   }, options)
 }

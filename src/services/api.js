@@ -66,4 +66,13 @@ export const api = {
   createUser: (body) => request('/api/users', { method: 'POST', body }),
   updateUser: (id, body) => request(`/api/users/${id}`, { method: 'PUT', body }),
   deleteUser: (id) => request(`/api/users/${id}`, { method: 'DELETE' }),
+  audit: (query = {}) => {
+    const params = new URLSearchParams()
+    if (query.limit) params.set('limit', String(query.limit))
+    if (query.offset) params.set('offset', String(query.offset))
+    if (query.action) params.set('action', query.action)
+    if (query.entityType) params.set('entityType', query.entityType)
+    const qs = params.toString()
+    return request(`/api/audit${qs ? `?${qs}` : ''}`)
+  },
 }

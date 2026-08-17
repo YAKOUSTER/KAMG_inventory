@@ -24,6 +24,7 @@ const routes = [
   { path: '/personnes/:id/modifier', name: 'person-edit', component: () => import('@/views/PersonEditView.vue'), props: true, meta: { permission: 'people.write' } },
   { path: '/utilisateurs', name: 'users', component: () => import('@/views/UsersView.vue'), meta: { permission: 'users.manage' } },
   { path: '/parametres', name: 'settings', component: () => import('@/views/SettingsView.vue'), meta: { permission: 'settings.manage' } },
+  { path: '/journal', name: 'audit', component: () => import('@/views/AuditView.vue'), meta: { permission: 'audit.read' } },
 ]
 
 const router = createRouter({

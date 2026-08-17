@@ -28,6 +28,7 @@ import {
   updateUser,
   deleteUser,
   getBootstrap,
+  listAudit,
   UPLOADS_DIR,
 } from './store.js'
 import { can } from '../src/domain/auth.js'
@@ -110,7 +111,7 @@ export function createApiApp() {
   app.put(
     '/api/db',
     auth('settings.manage'),
-    handle((req) => importDb(req.body)),
+    handle((req) => importDb(req.body, { actor: req.user })),
   )
   app.get(
     '/api/referentiels',
@@ -131,17 +132,17 @@ export function createApiApp() {
   app.post(
     '/api/items',
     auth('items.create'),
-    handle((req) => createItem(req.body)),
+    handle((req) => createItem(req.body, { actor: req.user })),
   )
   app.put(
     '/api/items/:id',
     auth('items.update'),
-    handle((req) => updateItem(req.params.id, req.body)),
+    handle((req) => updateItem(req.params.id, req.body, { actor: req.user })),
   )
   app.delete(
     '/api/items/:id',
     auth('items.delete'),
-    handle((req) => deleteItem(req.params.id)),
+    handle((req) => deleteItem(req.params.id, { actor: req.user })),
   )
 
   app.get('/api/people', auth('people.read'), handle(() => listPeople()))
@@ -157,17 +158,17 @@ export function createApiApp() {
   app.post(
     '/api/people',
     auth('people.write'),
-    handle((req) => createPerson(req.body)),
+    handle((req) => createPerson(req.body, { actor: req.user })),
   )
   app.put(
     '/api/people/:id',
     auth('people.write'),
-    handle((req) => updatePerson(req.params.id, req.body)),
+    handle((req) => updatePerson(req.params.id, req.body, { actor: req.user })),
   )
   app.delete(
     '/api/people/:id',
     auth('people.write'),
-    handle((req) => deletePerson(req.params.id)),
+    handle((req) => deletePerson(req.params.id, { actor: req.user })),
   )
 
   app.get('/api/loans', auth('loans.read'), handle(() => listLoans()))
@@ -183,13 +184,29 @@ export function createApiApp() {
   app.post(
     '/api/loans',
     auth('loans.write'),
-    handle((req) => createLoan(req.body)),
+    handle((req) => createLoan(req.body, { actor: req.user })),
   )
   app.put(
     '/api/loans/:id/return',
     auth('loans.write'),
     handle((req) =>
-      returnLoanItems(req.params.id, req.body?.itemIds, { dateRetour: req.body?.dateRetour }),
+      returnLoanItems(req.params.id, req.body?.itemIds, {
+        dateRetour: req.body?.dateRetour,
+        actor: req.user,
+      }),
+    ),
+  )
+
+  app.get(
+    '/api/audit',
+    auth('audit.read'),
+    handle((req) =>
+      listAudit({
+        limit: req.query.limit,
+        offset: req.query.offset,
+        action: req.query.action,
+        entityType: req.query.entityType,
+      }),
     ),
   )
 
@@ -199,17 +216,17 @@ export function createApiApp() {
   app.post(
     '/api/users',
     auth('users.manage'),
-    handle((req) => createUser(req.body)),
+    handle((req) => createUser(req.body, { actor: req.user })),
   )
   app.put(
     '/api/users/:id',
     auth('users.manage'),
-    handle((req) => updateUser(req.params.id, req.body)),
+    handle((req) => updateUser(req.params.id, req.body, { actor: req.user })),
   )
   app.delete(
     '/api/users/:id',
     auth('users.manage'),
-    handle((req) => deleteUser(req.params.id)),
+    handle((req) => deleteUser(req.params.id, { actor: req.user })),
   )
 
   return app
