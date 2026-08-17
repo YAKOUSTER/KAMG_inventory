@@ -1,6 +1,6 @@
 <template>
   <div v-if="person">
-    <div class="d-flex flex-wrap align-center ga-3 mb-4">
+    <div class="d-flex flex-wrap align-center ga-3 page-header">
       <v-btn variant="text" to="/personnes" prepend-icon="mdi-arrow-left">Personnes</v-btn>
       <v-spacer />
       <v-btn
@@ -30,18 +30,22 @@
         <div v-if="roleChips.length" class="d-flex flex-wrap ga-2 mb-4">
           <v-chip v-for="label in roleChips" :key="label" size="small" variant="tonal">{{ label }}</v-chip>
         </div>
-        <v-list density="compact">
+        <v-list class="detail-facts" density="comfortable">
           <v-list-item v-if="person.telephone" :title="person.telephone" subtitle="Téléphone" />
           <v-list-item v-if="person.email" :title="person.email" subtitle="Courriel" />
           <v-list-item v-if="person.tailleLettre" :title="person.tailleLettre" subtitle="Taille générale" />
         </v-list>
-        <p v-if="person.notes" class="mt-2">{{ person.notes }}</p>
       </v-col>
     </v-row>
 
-    <section class="page-block mt-6">
+    <section v-if="person.notes" class="page-block">
+      <h2 class="section-label">Notes</h2>
+      <p class="text-multiline text-body-1">{{ person.notes }}</p>
+    </section>
+
+    <section class="page-block">
       <h2 class="section-label">Mensurations</h2>
-      <v-table v-if="filledMeasures.length">
+      <v-table v-if="filledMeasures.length" class="measure-table" density="compact">
         <tbody>
           <tr v-for="field in filledMeasures" :key="field.key">
             <td>{{ field.label }}</td>

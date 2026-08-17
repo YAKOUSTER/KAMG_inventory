@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="d-flex flex-wrap align-center ga-3 mb-8">
+    <div class="d-flex flex-wrap align-center ga-3 page-header">
       <h1 class="text-h4 page-title">Accueil</h1>
       <v-spacer />
       <v-btn v-if="auth.can('items.create')" color="primary" to="/pieces/nouvelle" prepend-icon="mdi-plus">
@@ -95,7 +95,7 @@ const activeLoans = computed(() => inventory.loans.filter((loan) => loan.statut 
   display: flex;
   flex-wrap: wrap;
   gap: 1.5rem 2.5rem;
-  margin-bottom: 2.5rem;
+  margin-bottom: 3rem;
 }
 .stat {
   text-decoration: none;

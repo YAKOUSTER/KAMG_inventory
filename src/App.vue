@@ -7,8 +7,8 @@
     </template>
 
     <template v-else>
-      <v-app-bar color="primary" elevation="0" density="comfortable">
-        <router-link to="/" class="brand mr-3" :title="GROUP_NAME">
+      <v-app-bar color="primary" elevation="0" height="72" class="app-bar">
+        <router-link to="/" class="brand mr-4" :title="GROUP_NAME">
           <img :src="LOGO_SRC" :alt="GROUP_NAME" class="brand-logo" />
           <span class="brand-name">{{ APP_TITLE }}</span>
         </router-link>
@@ -20,7 +20,7 @@
             :to="link.to"
             :exact="link.exact"
             variant="text"
-            size="small"
+            size="default"
             class="nav-link"
           >
             <span class="d-none d-md-inline">{{ link.title }}</span>
@@ -28,18 +28,18 @@
           </v-btn>
         </div>
 
-        <v-btn v-if="auth.can('loans.write')" variant="text" to="/panier" aria-label="Panier">
+        <v-btn v-if="auth.can('loans.write')" variant="text" size="default" class="nav-icon-btn" to="/panier" aria-label="Panier">
           <v-badge :content="String(cart.count || 0)" color="warning" :model-value="cart.count > 0">
-            <v-icon>mdi-cart-outline</v-icon>
+            <v-icon size="24">mdi-cart-outline</v-icon>
           </v-badge>
         </v-btn>
 
         <v-menu>
           <template #activator="{ props }">
-            <v-btn v-bind="props" variant="text" class="ml-1" aria-label="Compte">
-              <v-icon start class="d-none d-sm-inline">mdi-account-circle-outline</v-icon>
+            <v-btn v-bind="props" variant="text" size="default" class="nav-account ml-1" aria-label="Compte">
+              <v-icon start size="24" class="d-none d-sm-inline">mdi-account-circle-outline</v-icon>
               <span class="d-none d-sm-inline text-none">{{ auth.user?.nom }}</span>
-              <v-icon class="d-sm-none">mdi-account-circle-outline</v-icon>
+              <v-icon size="24" class="d-sm-none">mdi-account-circle-outline</v-icon>
             </v-btn>
           </template>
           <v-list density="compact" min-width="220">
@@ -70,7 +70,7 @@
       />
 
       <v-main>
-        <v-container class="py-4 py-md-6" fluid>
+        <v-container class="page-container" fluid>
           <v-alert v-if="inventory.error" type="error" class="mb-4" closable @click:close="inventory.error = ''">
             {{ inventory.error }}
           </v-alert>
@@ -154,17 +154,18 @@ onMounted(() => {
   color: inherit;
 }
 .brand-logo {
-  height: 48px;
+  height: 52px;
   width: auto;
-  max-width: 52px;
+  max-width: 56px;
   flex-shrink: 0;
   object-fit: contain;
   display: block;
 }
 .brand-name {
-  font-size: 0.95rem;
+  font-size: 1.12rem;
   font-weight: 700;
   white-space: nowrap;
+  letter-spacing: 0.01em;
 }
 .nav-scroll {
   display: flex;
@@ -172,7 +173,8 @@ onMounted(() => {
   flex: 1 1 auto;
   min-width: 0;
   overflow-x: auto;
-  gap: 2px;
+  gap: 0.35rem;
+  padding-inline: 0.25rem;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
 }
@@ -182,6 +184,19 @@ onMounted(() => {
 .nav-link {
   flex: 0 0 auto;
   text-transform: none;
-  letter-spacing: 0;
+  letter-spacing: 0.01em;
+  font-size: 1rem;
+  font-weight: 600;
+  min-height: 44px;
+  padding-inline: 0.85rem !important;
+}
+.nav-icon-btn,
+.nav-account {
+  min-height: 44px;
+  min-width: 44px;
+}
+.app-bar :deep(.v-toolbar__content) {
+  padding-inline: clamp(0.75rem, 2vw, 1.5rem);
+  gap: 0.35rem;
 }
 </style>

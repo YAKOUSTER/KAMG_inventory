@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="d-flex flex-wrap align-center ga-3 mb-4">
+    <div class="d-flex flex-wrap align-center ga-3 page-header">
       <h1 class="text-h4 page-title">Inventaire</h1>
       <v-spacer />
       <v-btn variant="tonal" @click="tableView = !tableView">

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="d-flex flex-wrap align-center ga-3 mb-4">
+    <div class="d-flex flex-wrap align-center ga-3 page-header">
       <h1 class="text-h5 text-md-h4 page-title">Personnes</h1>
       <v-spacer />
       <v-btn v-if="auth.can('people.write')" color="primary" to="/personnes/nouvelle" prepend-icon="mdi-plus">

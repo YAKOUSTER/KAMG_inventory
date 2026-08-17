@@ -1,6 +1,6 @@
 <template>
   <div v-if="item">
-    <div class="d-flex flex-wrap align-center ga-3 mb-4">
+    <div class="d-flex flex-wrap align-center ga-3 page-header">
       <v-btn variant="text" to="/inventaire" prepend-icon="mdi-arrow-left">Inventaire</v-btn>
       <v-spacer />
       <v-btn
@@ -31,26 +31,28 @@
         <h1 class="text-h4 page-title mb-2">{{ item.nom }}</h1>
         <div class="text-subtitle-1 mb-3">{{ item.type }}</div>
         <StatusChip :status="item.disponibilite" />
-        <v-list class="mt-4" density="compact">
+        <v-list class="mt-5 detail-facts" density="comfortable">
           <v-list-item v-for="row in facts" :key="row.label" :title="row.value || '—'" :subtitle="row.label" />
         </v-list>
       </v-col>
     </v-row>
 
-    <section class="page-block mt-6">
+    <section class="page-block">
       <h2 class="section-label">Description</h2>
-      <p>{{ item.description || 'Pas de description.' }}</p>
-      <p v-if="item.motif"><strong>Motif :</strong> {{ item.motif }}</p>
-      <p v-if="item.notesConservation"><strong>Conservation :</strong> {{ item.notesConservation }}</p>
+      <p class="text-multiline text-body-1">{{ item.description || 'Pas de description.' }}</p>
+      <p v-if="item.motif" class="text-multiline"><strong>Motif :</strong> {{ item.motif }}</p>
+      <p v-if="item.notesConservation" class="text-multiline"><strong>Conservation :</strong> {{ item.notesConservation }}</p>
     </section>
 
     <section v-if="measureRows.length" class="page-block">
       <h2 class="section-label">Mesures</h2>
-      <v-table>
+      <v-table class="measure-table" density="compact">
         <tbody>
           <tr v-for="row in measureRows" :key="row.label">
             <td>{{ row.label }}</td>
-            <td>{{ row.value ?? 'À compléter' }}</td>
+            <td :class="{ 'measure-table--empty': row.value == null || row.value === '' }">
+              {{ row.value ?? 'À compléter' }}
+            </td>
           </tr>
         </tbody>
       </v-table>

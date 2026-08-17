@@ -1,6 +1,6 @@
 <template>
   <div v-if="loan">
-    <div class="d-flex flex-wrap align-center ga-3 mb-4">
+    <div class="d-flex flex-wrap align-center ga-3 page-header">
       <v-btn variant="text" to="/emprunts" prepend-icon="mdi-arrow-left">Emprunts</v-btn>
     </div>
 
@@ -39,10 +39,8 @@
           <router-link :to="{ name: 'item-detail', params: { id: line.itemId } }" class="text-subtitle-2" @click.stop>
             {{ line.code }} — {{ line.nom }}
           </router-link>
-          <div class="text-body-2 text-medium-emphasis">
-            {{ line.type }}
-            <span v-if="line.comment"> · {{ line.comment }}</span>
-          </div>
+          <div class="text-body-2 text-medium-emphasis">{{ line.type }}</div>
+          <p v-if="line.comment" class="text-multiline text-body-2 text-medium-emphasis mb-0 mt-1">{{ line.comment }}</p>
           <div class="text-caption">
             <span v-if="line.returnedAt">Retournée le {{ displayDate(line.returnedAt) }}</span>
             <span v-else>En cours</span>
