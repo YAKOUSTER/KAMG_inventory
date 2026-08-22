@@ -46,6 +46,9 @@ import {
   createContentPage,
   updateContentPage,
   deleteContentPage,
+  getAgendaSettings,
+  updateAgendaSettings,
+  syncGoogleCalendar,
   dataPaths,
 } from './store.js'
 import { can } from '../src/domain/auth.js'
@@ -304,6 +307,14 @@ export function createApiApp() {
     auth('content.write'),
     handle((req) => deleteContentPage(req.params.id, { actor: req.user })),
   )
+
+  app.get('/api/settings/agenda', auth('settings.manage'), handle(() => getAgendaSettings()))
+  app.put(
+    '/api/settings/agenda',
+    auth('settings.manage'),
+    handle((req) => updateAgendaSettings(req.body, { actor: req.user })),
+  )
+  app.post('/api/agenda/sync', auth('agenda.write'), handle(() => syncGoogleCalendar()))
 
   app.get(
     '/api/audit',

@@ -46,6 +46,8 @@ export function normalizeEvent(input = {}, { id } = {}) {
 
   return {
     id: nextId,
+    source: trim(input.source) || 'local',
+    googleUid: trim(input.googleUid),
     type,
     titre,
     debut,
@@ -54,6 +56,9 @@ export function normalizeEvent(input = {}, { id } = {}) {
     description: trim(input.description),
     publie: input.publie !== false,
     cible,
+    groupes: Array.isArray(input.groupes)
+      ? [...new Set(input.groupes.map((value) => trim(value)).filter(Boolean))]
+      : [],
     createdAt: normalizeIsoDate(input.createdAt) || new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   }

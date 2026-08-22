@@ -111,6 +111,7 @@ describe('API HTTP', () => {
     assert.equal(res.status, 200)
     assert.ok(Array.isArray(res.body.loans))
     assert.ok(res.body.events)
+    assert.ok(res.body.agenda?.googleCalendarId)
     assert.ok(Array.isArray(res.body.pages))
   })
 

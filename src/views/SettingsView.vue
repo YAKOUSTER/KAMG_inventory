@@ -6,6 +6,10 @@
       Pas de base payante : un export régulier suffit comme sauvegarde.
     </p>
 
+    <section class="page-block">
+      <AgendaSettingsEditor />
+    </section>
+
     <ReferentielsEditor />
 
     <section class="page-block">
@@ -35,6 +39,7 @@ import { ref } from 'vue'
 import { api } from '@/services/api'
 import { useInventoryStore } from '@/stores/inventory'
 import ReferentielsEditor from '@/components/ReferentielsEditor.vue'
+import AgendaSettingsEditor from '@/components/AgendaSettingsEditor.vue'
 
 const inventory = useInventoryStore()
 const file = ref(null)

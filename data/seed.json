@@ -577,40 +577,60 @@
       "createdAt": "2024-12-14T18:00:00.000Z"
     }
   ],
-  "events": [
+  "settings": {
+    "agenda": {
+      "googleCalendarId": "korriganedarmeilhouglas.site@gmail.com",
+      "googleCalendarCid": "a29ycmlnYW5lZGFybWVpbGhvdWdsYXMuc2l0ZUBnbWFpbC5jb20",
+      "googleCalendarName": "Sorties — Korriganed Ar Meilhoù Glas"
+    }
+  },
+  "events": [],
+  "pages": [
     {
-      "id": "evt-rep-sept",
-      "type": "repetition",
-      "titre": "Répétition générale",
-      "debut": "2026-09-10T19:30:00.000Z",
-      "fin": "2026-09-10T21:30:00.000Z",
-      "lieu": "Salle polyvalente",
-      "description": "Préparation du défilé d’automne.",
+      "id": "page-bienvenue",
+      "categorie": "presentation",
+      "titre": "Bienvenue au cercle",
+      "corps": "Bienvenue dans le cercle celtique Korriganed Ar Meilhoù Glas (Quartier du Moulin Vert, Quimper).\n\nUn cercle celtique promeut la culture bretonne à travers la danse, les costumes traditionnels et la musique. Le nôtre est adhérent à Kenlieur (2e catégorie) et participe aux concours, sorties et animations tout au long de l'année.",
+      "ordre": 1,
       "publie": true,
-      "cible": [],
       "createdAt": "2026-08-01T10:00:00.000Z",
       "updatedAt": "2026-08-01T10:00:00.000Z"
     },
     {
-      "id": "evt-sortie-oct",
-      "type": "sortie",
-      "titre": "Défilé de rue — Ploudalmézeau",
-      "debut": "2026-10-12T14:00:00.000Z",
-      "fin": "2026-10-12T18:00:00.000Z",
-      "lieu": "Centre-bourg",
-      "description": "Costumes complets, coiffes et chaussures.",
+      "id": "page-groupes",
+      "categorie": "presentation",
+      "titre": "Les groupes du cercle",
+      "corps": "• Groupe Loisir — apprendre la danse bretonne sans concours ni sorties costumées\n• Groupe Enfant — progression et saison estivale en costume (9-12 ans)\n• Groupe Tremplin — montée en niveau des jeunes danseurs\n• Groupe Concours — préparation compétition et représentation officielle du cercle\n• Atelier Costume — confection et entretien des tenues",
+      "ordre": 2,
       "publie": true,
-      "cible": [],
       "createdAt": "2026-08-01T10:00:00.000Z",
       "updatedAt": "2026-08-01T10:00:00.000Z"
-    }
-  ],
-  "pages": [
+    },
     {
-      "id": "page-presentation",
-      "categorie": "presentation",
-      "titre": "Korriganed Ar Meilhoù Glas",
-      "corps": "Le cercle KAMG perpétue les danses et costumes du Pays Glazig.\n\nLes répétitions accueillent danseurs et danseuses de tous niveaux.",
+      "id": "page-ca",
+      "categorie": "newsletter",
+      "titre": "Conseil d'administration",
+      "corps": "Le CA se réunit environ toutes les 3 semaines. L'Assemblée Générale a lieu fin septembre / début octobre.\n\nCA 2023-2024 :\n• Président : Pascal NICOL\n• Vice-présidente : Loïquenn TOPIN\n• Secrétaire : Soizig GOURLET\n• Trésorière : Gaëlle LOUBOUTIN\n• Membres : Marine NÉDELEC, Sterenn FONSECA, Malo GUIARD, Typhaine SOYER, Christiane LE TREUT, Gaëlle ROBIN",
+      "ordre": 1,
+      "publie": true,
+      "createdAt": "2026-08-01T10:00:00.000Z",
+      "updatedAt": "2026-08-01T10:00:00.000Z"
+    },
+    {
+      "id": "page-inscription",
+      "categorie": "newsletter",
+      "titre": "Comment s'inscrire ?",
+      "corps": "Les documents d'inscription sont remis aux nouveaux danseurs lors des premières répétitions.\n\nÀ retourner dans les semaines suivantes :\n• Coordonnées, autorisations, droit à l'image\n• Fiche sanitaire\n\nLire le règlement intérieur du cercle avant signature.",
+      "ordre": 2,
+      "publie": true,
+      "createdAt": "2026-08-01T10:00:00.000Z",
+      "updatedAt": "2026-08-01T10:00:00.000Z"
+    },
+    {
+      "id": "page-costume-glazig",
+      "categorie": "tuto_habillage",
+      "titre": "Le Pays Glazig — costumes",
+      "corps": "Costumes de référence pour le cercle :\n• Le costume de « Petit dimanche »\n• Le costume velours 1935-1938\n\nSe renseigner auprès de l'atelier costume pour la mise en tenue complète (chemise, gilet, jupe/bragoù, coiffe, chaussures…).",
       "ordre": 1,
       "publie": true,
       "createdAt": "2026-08-01T10:00:00.000Z",
@@ -619,19 +639,29 @@
     {
       "id": "page-coiffe",
       "categorie": "tuto_coiffure",
-      "titre": "Poser une coiffe bigoudène",
-      "corps": "1. Dégager les cheveux et humidifier légèrement.\n2. Placer la coiffe en vérifiant le centrage.\n3. Fixer avec des épingles en croisillons.",
+      "titre": "Coiffe bigoudène — bases",
+      "corps": "1. Dégager et lisser les cheveux, légère humidité si besoin.\n2. Centrer la coiffe sur la tête.\n3. Fixer avec des épingles en croisillons.\n4. Vérifier la stabilité avant la sortie.\n\nDemander de l'aide à l'atelier ou à une danseuse expérimentée les premières fois.",
       "ordre": 1,
       "publie": true,
       "createdAt": "2026-08-01T10:00:00.000Z",
       "updatedAt": "2026-08-01T10:00:00.000Z"
     },
     {
-      "id": "page-vocab-brago",
+      "id": "page-danses",
       "categorie": "vocabulaire",
-      "titre": "Bragoù bras",
-      "corps": "Pantalon traditionnel porté avec le costume.",
+      "titre": "Répertoire de danses (extraits)",
+      "corps": "Branles : Hanter Dro, En-Dro, Rond de Pagan, Pilé-Menu, Ridée 6 temps…\nSuites : Gavotte des montagnes, Suite Glazig, Suite Bigoudène, Suite du Cap Sizun…\nCortèges : Kas a-barh\nCouples : Scottish, Mazurka, Polka…\n\nLa liste complète est disponible auprès des responsables de groupe.",
       "ordre": 1,
+      "publie": true,
+      "createdAt": "2026-08-01T10:00:00.000Z",
+      "updatedAt": "2026-08-01T10:00:00.000Z"
+    },
+    {
+      "id": "page-vocab-costume",
+      "categorie": "vocabulaire",
+      "titre": "Vocabulaire costume",
+      "corps": "• Bragoù bras — pantalon traditionnel\n• Roched — chemise\n• Jiletenn — gilet\n• Chupenn — veste courte\n• Gouriz — ceinture\n• Coiffe — coiffure bigoudène selon âge et statut",
+      "ordre": 2,
       "publie": true,
       "createdAt": "2026-08-01T10:00:00.000Z",
       "updatedAt": "2026-08-01T10:00:00.000Z"

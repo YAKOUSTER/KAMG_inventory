@@ -13,6 +13,9 @@ import { groupLoansByYear, normalizePerson, personDisplayName } from '../src/dom
 import { todayLocal, formatDate } from '../src/domain/dates.js'
 import { normalizeEvent, filterPublishedEvents, upcomingEvents, pastEvents, sortEvents } from '../src/domain/events.js'
 import { normalizeContentPage, filterPublishedPages, sortContentPages } from '../src/domain/content.js'
+import { normalizeAgendaSettings, DEFAULT_AGENDA_SETTINGS } from '../src/domain/agendaSettings.js'
+import { mergeAgendaEvents } from '../src/domain/ics.js'
+import { fetchGoogleCalendarEvents, resetGoogleCalendarCache } from './googleCalendar.js'
 import { hashPassword, randomToken, verifyPassword } from './password.js'
 import {
   appendAudit,
@@ -58,6 +61,7 @@ function emptyDb() {
     loans: [],
     events: [],
     pages: [],
+    settings: structuredClone({ agenda: DEFAULT_AGENDA_SETTINGS }),
     users: [],
     sessions: [],
     auditLog: [],
@@ -96,6 +100,9 @@ function ensureShape(raw) {
       return page
     }
   })
+  db.settings = {
+    agenda: normalizeAgendaSettings({ ...DEFAULT_AGENDA_SETTINGS, ...(raw.settings?.agenda || {}) }),
+  }
   db.users = Array.isArray(raw.users) ? raw.users : []
   db.sessions = Array.isArray(raw.sessions) ? raw.sessions : []
   db.auditLog = Array.isArray(raw.auditLog) ? raw.auditLog : []
@@ -813,13 +820,15 @@ export async function getBootstrap(user, options = {}) {
 
 export async function getPublicMemberSpace(options = {}) {
   const db = await readDb(options)
-  const publishedEvents = filterPublishedEvents(db.events || [])
+  const merged = await listMergedEvents(db, options)
+  const publishedEvents = filterPublishedEvents(merged)
   const now = new Date()
   const loans = db.loans
     .filter((loan) => loan.statut !== 'retourne')
     .map((loan) => decorateLoan(loan, db))
     .sort((a, b) => (b.dateEmprunt || '').localeCompare(a.dateEmprunt || ''))
   return {
+    agenda: db.settings?.agenda || normalizeAgendaSettings({}),
     events: {
       upcoming: upcomingEvents(publishedEvents, now),
       past: pastEvents(publishedEvents, now).slice(0, 30),
@@ -829,9 +838,47 @@ export async function getPublicMemberSpace(options = {}) {
   }
 }
 
+async function listMergedEvents(db, options = {}) {
+  let googleEvents = []
+  try {
+    googleEvents = await fetchGoogleCalendarEvents(db.settings?.agenda || {}, options)
+  } catch {
+    googleEvents = []
+  }
+  return mergeAgendaEvents(db.events || [], googleEvents)
+}
+
 export async function listEvents(options = {}) {
   const db = await readDb(options)
-  return sortEvents(db.events || [])
+  return sortEvents(await listMergedEvents(db, options))
+}
+
+export async function getAgendaSettings(options = {}) {
+  const db = await readDb(options)
+  return normalizeAgendaSettings(db.settings?.agenda || {})
+}
+
+export async function updateAgendaSettings(payload, options = {}) {
+  return withDb((db) => {
+    db.settings = db.settings || {}
+    db.settings.agenda = normalizeAgendaSettings(payload)
+    resetGoogleCalendarCache()
+    appendAudit(db, options.actor, {
+      action: 'agenda.settings.update',
+      entityType: 'settings',
+      entityId: 'agenda',
+      entityLabel: 'Google Agenda',
+      summary: 'Mise à jour de la synchronisation Google Agenda',
+    })
+    return db.settings.agenda
+  }, options)
+}
+
+export async function syncGoogleCalendar(options = {}) {
+  const db = await readDb(options)
+  resetGoogleCalendarCache()
+  const events = await fetchGoogleCalendarEvents(db.settings?.agenda || {}, options)
+  return { count: events.length, syncedAt: new Date().toISOString() }
 }
 
 export async function getEvent(id, options = {}) {
@@ -861,6 +908,9 @@ export async function updateEvent(id, payload, options = {}) {
     db.events = db.events || []
     const index = db.events.findIndex((entry) => entry.id === id)
     if (index === -1) throw Object.assign(new Error('Événement introuvable'), { status: 404 })
+    if (db.events[index].source === 'google') {
+      throw Object.assign(new Error('Les événements Google Agenda se modifient dans Google'), { status: 400 })
+    }
     const event = runDomain(normalizeEvent, { ...db.events[index], ...payload, id }, { id })
     db.events[index] = event
     appendAudit(db, options.actor, {
@@ -879,6 +929,9 @@ export async function deleteEvent(id, options = {}) {
     db.events = db.events || []
     const index = db.events.findIndex((entry) => entry.id === id)
     if (index === -1) throw Object.assign(new Error('Événement introuvable'), { status: 404 })
+    if (db.events[index].source === 'google') {
+      throw Object.assign(new Error('Les événements Google Agenda se suppriment dans Google'), { status: 400 })
+    }
     const [removed] = db.events.splice(index, 1)
     appendAudit(db, options.actor, {
       action: 'event.delete',

@@ -24,28 +24,83 @@
 
       <v-tabs-window v-model="tab" class="member-space__panels">
         <v-tabs-window-item value="agenda">
+          <section class="member-section member-section--subscribe">
+            <h2 class="member-section__title">Calendrier du cercle</h2>
+            <p class="member-section__intro">
+              Dates synchronisées depuis Google Agenda (répétitions, sorties, stages…).
+            </p>
+            <div class="d-flex flex-wrap ga-2 mb-4">
+              <v-btn
+                color="primary"
+                variant="tonal"
+                size="small"
+                class="text-none"
+                :href="googleSubscribeUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+                prepend-icon="mdi-google"
+              >
+                Ajouter à Google Agenda
+              </v-btn>
+              <v-btn
+                variant="outlined"
+                size="small"
+                class="text-none"
+                :href="icalSubscribeUrl"
+                prepend-icon="mdi-calendar-sync"
+              >
+                S’abonner (Apple / Outlook)
+              </v-btn>
+            </div>
+
+            <div class="member-group-filters d-flex flex-wrap ga-2 mb-4">
+              <v-chip
+                v-for="group in eventGroups"
+                :key="group.id"
+                :color="groupFilter === group.id ? 'primary' : undefined"
+                :variant="groupFilter === group.id ? 'flat' : 'outlined'"
+                size="small"
+                class="text-none"
+                @click="groupFilter = group.id"
+              >
+                {{ group.label }}
+              </v-chip>
+            </div>
+          </section>
+
           <section class="member-section">
             <h2 class="member-section__title">À venir</h2>
-            <div v-if="data.events.upcoming.length" class="member-stack">
-              <article v-for="event in data.events.upcoming" :key="event.id" class="member-card">
+            <div v-if="filteredUpcoming.length" class="member-stack">
+              <article v-for="event in filteredUpcoming" :key="event.id" class="member-card">
                 <div class="member-card__head">
-                  <v-chip size="small" :color="eventTypeMeta(event.type).color" variant="tonal">
-                    {{ eventTypeLabel(event.type) }}
-                  </v-chip>
+                  <div class="d-flex flex-wrap ga-1 align-center">
+                    <v-chip size="small" :color="eventTypeMeta(event.type).color" variant="tonal">
+                      {{ eventTypeLabel(event.type) }}
+                    </v-chip>
+                    <v-chip
+                      v-for="group in event.groupes || []"
+                      :key="`${event.id}-${group}`"
+                      size="x-small"
+                      variant="outlined"
+                    >
+                      {{ eventGroupLabel(group) }}
+                    </v-chip>
+                  </div>
                   <time class="member-card__date">{{ displayDateTime(event.debut) }}</time>
                 </div>
                 <h3 class="member-card__title">{{ event.titre }}</h3>
                 <p v-if="event.lieu" class="member-card__meta">{{ event.lieu }}</p>
                 <p v-if="event.description" class="member-card__body">{{ event.description }}</p>
+                <AddToCalendarButton :event="event" />
               </article>
             </div>
-            <v-alert v-else type="info" variant="tonal">Aucun événement à venir pour le moment.</v-alert>
+            <v-alert v-else type="info" variant="tonal">Aucun événement à venir pour ce filtre.</v-alert>
           </section>
 
-          <section v-if="data.events.past.length" class="member-section">
+          <section v-if="filteredPast.length" class="member-section">
             <h2 class="member-section__title">Récemment passés</h2>
             <div class="member-stack">
-              <article v-for="event in data.events.past" :key="event.id" class="member-card member-card--muted">
+              <article v-for="event in filteredPast" :key="event.id" class="member-card member-card--muted">
                 <div class="member-card__head">
                   <v-chip size="small" variant="tonal">{{ eventTypeLabel(event.type) }}</v-chip>
                   <time class="member-card__date">{{ displayDateTime(event.debut) }}</time>
@@ -117,6 +172,9 @@ import { displayDate, displayDateTime } from '@/domain/dates'
 import { eventTypeLabel, eventTypeMeta } from '@/domain/events'
 import { groupPagesByCategory } from '@/domain/content'
 import { loanStatusColor, loanStatusLabel, openLoanLines } from '@/domain/loans'
+import { EVENT_GROUPS, eventGroupLabel, filterEventsByGroup } from '@/domain/eventGroups'
+import { googleCalendarSubscribeUrl, googleCalendarIcalSubscribeUrl } from '@/domain/agendaSettings'
+import AddToCalendarButton from '@/components/AddToCalendarButton.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -124,8 +182,16 @@ const loading = ref(true)
 const error = ref('')
 const data = ref(null)
 const tab = ref(route.query.onglet || 'agenda')
+const groupFilter = ref('tous')
 
+const eventGroups = EVENT_GROUPS
 const pageGroups = computed(() => (data.value ? groupPagesByCategory(data.value.pages) : []))
+const googleSubscribeUrl = computed(() => googleCalendarSubscribeUrl(data.value?.agenda || {}))
+const icalSubscribeUrl = computed(() => googleCalendarIcalSubscribeUrl(data.value?.agenda || {}))
+const filteredUpcoming = computed(() =>
+  filterEventsByGroup(data.value?.events?.upcoming || [], groupFilter.value),
+)
+const filteredPast = computed(() => filterEventsByGroup(data.value?.events?.past || [], groupFilter.value))
 
 watch(tab, (value) => {
   router.replace({ query: { ...route.query, onglet: value } }).catch(() => {})
@@ -262,5 +328,10 @@ onMounted(async () => {
 
 .member-panels :deep(.v-expansion-panel-title) {
   font-weight: 600;
+}
+
+.member-group-filters {
+  overflow-x: auto;
+  padding-bottom: 2px;
 }
 </style>

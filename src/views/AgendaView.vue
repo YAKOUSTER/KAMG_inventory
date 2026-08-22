@@ -1,5 +1,11 @@
 <template>
   <div>
+    <v-alert type="info" variant="tonal" class="mb-4">
+      Les répétitions et sorties proviennent du
+      <strong>Google Agenda</strong> du cercle (synchro automatique).
+      Vous pouvez ajouter ici des événements complémentaires locaux uniquement.
+    </v-alert>
+
     <div class="d-flex flex-wrap align-center ga-3 page-header">
       <h1 class="text-h5 text-md-h4 page-title">Agenda</h1>
       <v-spacer />
@@ -30,6 +36,11 @@
       <template #item.type="{ item }">
         <v-chip size="small" :color="eventTypeMeta(item.type).color" variant="tonal">
           {{ eventTypeLabel(item.type) }}
+        </v-chip>
+      </template>
+      <template #item.source="{ item }">
+        <v-chip size="small" :color="item.source === 'google' ? 'info' : 'secondary'" variant="tonal">
+          {{ item.source === 'google' ? 'Google' : 'Local' }}
         </v-chip>
       </template>
       <template #item.publie="{ item }">
@@ -90,6 +101,7 @@ const periodItems = [
 const headers = [
   { title: 'Date', key: 'debut' },
   { title: 'Type', key: 'type' },
+  { title: 'Source', key: 'source' },
   { title: 'Titre', key: 'titre' },
   { title: 'Lieu', key: 'lieu' },
   { title: 'Statut', key: 'publie' },
@@ -112,6 +124,7 @@ onMounted(async () => {
 })
 
 function openEvent(event) {
+  if (event.source === 'google') return
   if (auth.can('agenda.write')) {
     router.push({ name: 'event-edit', params: { id: event.id } })
   }
