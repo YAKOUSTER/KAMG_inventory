@@ -105,6 +105,15 @@ describe('API HTTP', () => {
     assert.equal(invalid.status, 400)
   })
 
+  it('expose l’espace membre sans connexion', async () => {
+    const app = createApiApp()
+    const res = await request(app, 'GET', '/api/public/espace-membre')
+    assert.equal(res.status, 200)
+    assert.ok(Array.isArray(res.body.loans))
+    assert.ok(res.body.events)
+    assert.ok(Array.isArray(res.body.pages))
+  })
+
   it('applique les en-têtes de sécurité', async () => {
     const app = createApiApp()
     const res = await request(app, 'GET', '/api/health')

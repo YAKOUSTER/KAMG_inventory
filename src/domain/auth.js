@@ -8,6 +8,10 @@ export const PERMISSIONS = [
   { id: 'loans.manage', label: 'Modifier ou annuler un emprunt' },
   { id: 'people.read', label: 'Consulter les personnes' },
   { id: 'people.write', label: 'Modifier les personnes' },
+  { id: 'agenda.read', label: 'Consulter l’agenda' },
+  { id: 'agenda.write', label: 'Gérer l’agenda (répétitions, sorties…)' },
+  { id: 'content.read', label: 'Consulter les contenus membres' },
+  { id: 'content.write', label: 'Gérer les contenus membres' },
   { id: 'users.manage', label: 'Gérer les comptes et les accès' },
   { id: 'settings.manage', label: 'Paramètres, import/export et listes' },
   { id: 'audit.read', label: 'Consulter le journal d’activité' },
@@ -22,8 +26,19 @@ export const ROLES = [
 
 export const ROLE_PRESETS = {
   admin: PERMISSIONS.map((p) => p.id),
-  gestion: ['items.read', 'items.update', 'loans.read', 'loans.write', 'people.read', 'people.write'],
-  lecteur: ['items.read', 'loans.read', 'people.read'],
+  gestion: [
+    'items.read',
+    'items.update',
+    'loans.read',
+    'loans.write',
+    'people.read',
+    'people.write',
+    'agenda.read',
+    'agenda.write',
+    'content.read',
+    'content.write',
+  ],
+  lecteur: ['items.read', 'loans.read', 'people.read', 'agenda.read', 'content.read'],
 }
 
 export function effectivePermissions(user) {

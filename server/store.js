@@ -11,6 +11,8 @@ import { applyReturnUpdate, countOpenTasks } from '../src/domain/itemTasks.js'
 import { ROLE_PRESETS, can, publicUser } from '../src/domain/auth.js'
 import { groupLoansByYear, normalizePerson, personDisplayName } from '../src/domain/person.js'
 import { todayLocal, formatDate } from '../src/domain/dates.js'
+import { normalizeEvent, filterPublishedEvents, upcomingEvents, pastEvents, sortEvents } from '../src/domain/events.js'
+import { normalizeContentPage, filterPublishedPages, sortContentPages } from '../src/domain/content.js'
 import { hashPassword, randomToken, verifyPassword } from './password.js'
 import {
   appendAudit,
@@ -54,6 +56,8 @@ function emptyDb() {
     items: [],
     people: [],
     loans: [],
+    events: [],
+    pages: [],
     users: [],
     sessions: [],
     auditLog: [],
@@ -76,6 +80,22 @@ function ensureShape(raw) {
   })
   db.people = Array.isArray(raw.people) ? raw.people : []
   db.loans = Array.isArray(raw.loans) ? raw.loans : []
+  db.events = (Array.isArray(raw.events) ? raw.events : []).map((event) => {
+    if (!event?.id) return event
+    try {
+      return normalizeEvent(event, { id: event.id })
+    } catch {
+      return event
+    }
+  })
+  db.pages = (Array.isArray(raw.pages) ? raw.pages : []).map((page) => {
+    if (!page?.id) return page
+    try {
+      return normalizeContentPage(page, { id: page.id })
+    } catch {
+      return page
+    }
+  })
   db.users = Array.isArray(raw.users) ? raw.users : []
   db.sessions = Array.isArray(raw.sessions) ? raw.sessions : []
   db.auditLog = Array.isArray(raw.auditLog) ? raw.auditLog : []
@@ -789,6 +809,148 @@ export async function updateReferentiels(payload, options = {}) {
 
 export async function getBootstrap(user, options = {}) {
   return publicSnapshot(await readDb(options), user)
+}
+
+export async function getPublicMemberSpace(options = {}) {
+  const db = await readDb(options)
+  const publishedEvents = filterPublishedEvents(db.events || [])
+  const now = new Date()
+  const loans = db.loans
+    .filter((loan) => loan.statut !== 'retourne')
+    .map((loan) => decorateLoan(loan, db))
+    .sort((a, b) => (b.dateEmprunt || '').localeCompare(a.dateEmprunt || ''))
+  return {
+    events: {
+      upcoming: upcomingEvents(publishedEvents, now),
+      past: pastEvents(publishedEvents, now).slice(0, 30),
+    },
+    pages: filterPublishedPages(db.pages || []),
+    loans,
+  }
+}
+
+export async function listEvents(options = {}) {
+  const db = await readDb(options)
+  return sortEvents(db.events || [])
+}
+
+export async function getEvent(id, options = {}) {
+  const db = await readDb(options)
+  const event = (db.events || []).find((entry) => entry.id === id)
+  return event || null
+}
+
+export async function createEvent(payload, options = {}) {
+  return withDb((db) => {
+    const event = runDomain(normalizeEvent, payload, { id: randomUUID() })
+    db.events = db.events || []
+    db.events.push(event)
+    appendAudit(db, options.actor, {
+      action: 'event.create',
+      entityType: 'event',
+      entityId: event.id,
+      entityLabel: event.titre,
+      summary: `Création de l’événement « ${event.titre} »`,
+    })
+    return event
+  }, options)
+}
+
+export async function updateEvent(id, payload, options = {}) {
+  return withDb((db) => {
+    db.events = db.events || []
+    const index = db.events.findIndex((entry) => entry.id === id)
+    if (index === -1) throw Object.assign(new Error('Événement introuvable'), { status: 404 })
+    const event = runDomain(normalizeEvent, { ...db.events[index], ...payload, id }, { id })
+    db.events[index] = event
+    appendAudit(db, options.actor, {
+      action: 'event.update',
+      entityType: 'event',
+      entityId: event.id,
+      entityLabel: event.titre,
+      summary: `Modification de l’événement « ${event.titre} »`,
+    })
+    return event
+  }, options)
+}
+
+export async function deleteEvent(id, options = {}) {
+  return withDb((db) => {
+    db.events = db.events || []
+    const index = db.events.findIndex((entry) => entry.id === id)
+    if (index === -1) throw Object.assign(new Error('Événement introuvable'), { status: 404 })
+    const [removed] = db.events.splice(index, 1)
+    appendAudit(db, options.actor, {
+      action: 'event.delete',
+      entityType: 'event',
+      entityId: removed.id,
+      entityLabel: removed.titre,
+      summary: `Suppression de l’événement « ${removed.titre} »`,
+    })
+    return { id, deleted: true }
+  }, options)
+}
+
+export async function listContentPages(options = {}) {
+  const db = await readDb(options)
+  return sortContentPages(db.pages || [])
+}
+
+export async function getContentPage(id, options = {}) {
+  const db = await readDb(options)
+  const page = (db.pages || []).find((entry) => entry.id === id)
+  return page || null
+}
+
+export async function createContentPage(payload, options = {}) {
+  return withDb((db) => {
+    const page = runDomain(normalizeContentPage, payload, { id: randomUUID() })
+    db.pages = db.pages || []
+    db.pages.push(page)
+    appendAudit(db, options.actor, {
+      action: 'content.create',
+      entityType: 'content',
+      entityId: page.id,
+      entityLabel: page.titre,
+      summary: `Création du contenu « ${page.titre} »`,
+    })
+    return page
+  }, options)
+}
+
+export async function updateContentPage(id, payload, options = {}) {
+  return withDb((db) => {
+    db.pages = db.pages || []
+    const index = db.pages.findIndex((entry) => entry.id === id)
+    if (index === -1) throw Object.assign(new Error('Contenu introuvable'), { status: 404 })
+    const page = runDomain(normalizeContentPage, { ...db.pages[index], ...payload, id }, { id })
+    db.pages[index] = page
+    appendAudit(db, options.actor, {
+      action: 'content.update',
+      entityType: 'content',
+      entityId: page.id,
+      entityLabel: page.titre,
+      summary: `Modification du contenu « ${page.titre} »`,
+    })
+    return page
+  }, options)
+}
+
+export async function deleteContentPage(id, options = {}) {
+  return withDb((db) => {
+    db.pages = db.pages || []
+    const index = db.pages.findIndex((entry) => entry.id === id)
+    if (index === -1) throw Object.assign(new Error('Contenu introuvable'), { status: 404 })
+    const [removed] = db.pages.splice(index, 1)
+    appendAudit(db, options.actor, {
+      action: 'content.delete',
+      entityType: 'content',
+      entityId: removed.id,
+      entityLabel: removed.titre,
+      summary: `Suppression du contenu « ${removed.titre} »`,
+    })
+    return { id, deleted: true }
+  }, options)
 }
 
 function slug(value) {

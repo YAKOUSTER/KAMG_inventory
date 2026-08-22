@@ -576,5 +576,65 @@
       ],
       "createdAt": "2024-12-14T18:00:00.000Z"
     }
+  ],
+  "events": [
+    {
+      "id": "evt-rep-sept",
+      "type": "repetition",
+      "titre": "Répétition générale",
+      "debut": "2026-09-10T19:30:00.000Z",
+      "fin": "2026-09-10T21:30:00.000Z",
+      "lieu": "Salle polyvalente",
+      "description": "Préparation du défilé d’automne.",
+      "publie": true,
+      "cible": [],
+      "createdAt": "2026-08-01T10:00:00.000Z",
+      "updatedAt": "2026-08-01T10:00:00.000Z"
+    },
+    {
+      "id": "evt-sortie-oct",
+      "type": "sortie",
+      "titre": "Défilé de rue — Ploudalmézeau",
+      "debut": "2026-10-12T14:00:00.000Z",
+      "fin": "2026-10-12T18:00:00.000Z",
+      "lieu": "Centre-bourg",
+      "description": "Costumes complets, coiffes et chaussures.",
+      "publie": true,
+      "cible": [],
+      "createdAt": "2026-08-01T10:00:00.000Z",
+      "updatedAt": "2026-08-01T10:00:00.000Z"
+    }
+  ],
+  "pages": [
+    {
+      "id": "page-presentation",
+      "categorie": "presentation",
+      "titre": "Korriganed Ar Meilhoù Glas",
+      "corps": "Le cercle KAMG perpétue les danses et costumes du Pays Glazig.\n\nLes répétitions accueillent danseurs et danseuses de tous niveaux.",
+      "ordre": 1,
+      "publie": true,
+      "createdAt": "2026-08-01T10:00:00.000Z",
+      "updatedAt": "2026-08-01T10:00:00.000Z"
+    },
+    {
+      "id": "page-coiffe",
+      "categorie": "tuto_coiffure",
+      "titre": "Poser une coiffe bigoudène",
+      "corps": "1. Dégager les cheveux et humidifier légèrement.\n2. Placer la coiffe en vérifiant le centrage.\n3. Fixer avec des épingles en croisillons.",
+      "ordre": 1,
+      "publie": true,
+      "createdAt": "2026-08-01T10:00:00.000Z",
+      "updatedAt": "2026-08-01T10:00:00.000Z"
+    },
+    {
+      "id": "page-vocab-brago",
+      "categorie": "vocabulaire",
+      "titre": "Bragoù bras",
+      "corps": "Pantalon traditionnel porté avec le costume.",
+      "ordre": 1,
+      "publie": true,
+      "createdAt": "2026-08-01T10:00:00.000Z",
+      "updatedAt": "2026-08-01T10:00:00.000Z"
+    }
   ]
 }

@@ -35,6 +35,17 @@ import {
   updateReferentiels,
   listAudit,
   clearAudit,
+  getPublicMemberSpace,
+  listEvents,
+  getEvent,
+  createEvent,
+  updateEvent,
+  deleteEvent,
+  listContentPages,
+  getContentPage,
+  createContentPage,
+  updateContentPage,
+  deleteContentPage,
   dataPaths,
 } from './store.js'
 import { can } from '../src/domain/auth.js'
@@ -101,6 +112,15 @@ export function createApiApp() {
   })
 
   app.get('/api/health', (_req, res) => res.json({ ok: true, storage: 'json' }))
+  app.get(
+    '/api/public/espace-membre',
+    createRateLimiter({
+      windowMs: 15 * 60 * 1000,
+      max: 120,
+      keyFn: (req) => req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || 'public-member',
+    }),
+    handle(() => getPublicMemberSpace()),
+  )
   app.post(
     '/api/auth/login',
     createRateLimiter({ windowMs: 15 * 60 * 1000, max: 20, keyFn: loginRateLimitKey }),
@@ -231,6 +251,58 @@ export function createApiApp() {
     '/api/loans/:id',
     auth('loans.manage'),
     handle((req) => cancelLoan(req.params.id, { actor: req.user })),
+  )
+
+  app.get('/api/events', auth('agenda.read'), handle(() => listEvents()))
+  app.get(
+    '/api/events/:id',
+    auth('agenda.read'),
+    handle(async (req) => {
+      const event = await getEvent(req.params.id)
+      if (!event) throw Object.assign(new Error('Événement introuvable'), { status: 404 })
+      return event
+    }),
+  )
+  app.post(
+    '/api/events',
+    auth('agenda.write'),
+    handle((req) => createEvent(req.body, { actor: req.user })),
+  )
+  app.put(
+    '/api/events/:id',
+    auth('agenda.write'),
+    handle((req) => updateEvent(req.params.id, req.body, { actor: req.user })),
+  )
+  app.delete(
+    '/api/events/:id',
+    auth('agenda.write'),
+    handle((req) => deleteEvent(req.params.id, { actor: req.user })),
+  )
+
+  app.get('/api/pages', auth('content.read'), handle(() => listContentPages()))
+  app.get(
+    '/api/pages/:id',
+    auth('content.read'),
+    handle(async (req) => {
+      const page = await getContentPage(req.params.id)
+      if (!page) throw Object.assign(new Error('Contenu introuvable'), { status: 404 })
+      return page
+    }),
+  )
+  app.post(
+    '/api/pages',
+    auth('content.write'),
+    handle((req) => createContentPage(req.body, { actor: req.user })),
+  )
+  app.put(
+    '/api/pages/:id',
+    auth('content.write'),
+    handle((req) => updateContentPage(req.params.id, req.body, { actor: req.user })),
+  )
+  app.delete(
+    '/api/pages/:id',
+    auth('content.write'),
+    handle((req) => deleteContentPage(req.params.id, { actor: req.user })),
   )
 
   app.get(

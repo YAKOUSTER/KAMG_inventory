@@ -52,6 +52,13 @@
           Entrer
         </v-btn>
       </v-form>
+
+      <div class="login-card__member">
+        <span class="login-card__member-label">Membres du cercle</span>
+        <v-btn variant="tonal" block class="text-none mt-2" to="/espace-membre">
+          Consulter l’agenda, les infos et les emprunts
+        </v-btn>
+      </div>
     </div>
   </div>
 </template>
@@ -196,6 +203,18 @@ async function submit() {
   font-weight: 700;
   letter-spacing: 0.02em;
   border-radius: 14px !important;
+}
+
+.login-card__member {
+  margin-top: 1.25rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid rgba(83, 115, 106, 0.14);
+}
+
+.login-card__member-label {
+  display: block;
+  font-size: 0.82rem;
+  color: rgba(44, 51, 44, 0.62);
 }
 
 @media (max-width: 480px) {

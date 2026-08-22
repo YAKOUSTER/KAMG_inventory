@@ -27,10 +27,19 @@ async function request(path, options = {}) {
     body: options.body && typeof options.body !== 'string' ? JSON.stringify(options.body) : options.body,
   })
   const data = await response.json().catch(() => ({}))
-  if (response.status === 401) {
+  if (response.status === 401 && token) {
     onUnauthorized()
     throw new Error(data.error || 'Connexion requise')
   }
+  if (!response.ok) {
+    throw new Error(data.error || `Erreur ${response.status}`)
+  }
+  return data
+}
+
+async function publicRequest(path) {
+  const response = await fetch(path)
+  const data = await response.json().catch(() => ({}))
   if (!response.ok) {
     throw new Error(data.error || `Erreur ${response.status}`)
   }
@@ -80,4 +89,15 @@ export const api = {
     return request(`/api/audit${qs ? `?${qs}` : ''}`)
   },
   clearAudit: () => request('/api/audit', { method: 'DELETE' }),
+  publicMemberSpace: () => publicRequest('/api/public/espace-membre'),
+  events: () => request('/api/events'),
+  event: (id) => request(`/api/events/${id}`),
+  createEvent: (body) => request('/api/events', { method: 'POST', body }),
+  updateEvent: (id, body) => request(`/api/events/${id}`, { method: 'PUT', body }),
+  deleteEvent: (id) => request(`/api/events/${id}`, { method: 'DELETE' }),
+  pages: () => request('/api/pages'),
+  page: (id) => request(`/api/pages/${id}`),
+  createPage: (body) => request('/api/pages', { method: 'POST', body }),
+  updatePage: (id, body) => request(`/api/pages/${id}`, { method: 'PUT', body }),
+  deletePage: (id) => request(`/api/pages/${id}`, { method: 'DELETE' }),
 }

@@ -1,7 +1,7 @@
 <template>
   <v-app>
-    <template v-if="isLogin">
-      <v-main class="login-bg">
+    <template v-if="isStandalonePublic">
+      <v-main :class="isLogin ? 'login-bg' : 'member-bg'">
         <router-view />
       </v-main>
     </template>
@@ -202,12 +202,16 @@ const drawerOpen = ref(false)
 
 const mdAndUp = computed(() => display.mdAndUp.value)
 const isLogin = computed(() => route.name === 'login')
+const isMemberSpace = computed(() => route.meta.publicLayout === 'member')
+const isStandalonePublic = computed(() => isLogin.value || isMemberSpace.value)
 
 const links = [
   { to: '/', title: 'Accueil', icon: 'mdi-home-outline', permission: 'items.read', exact: true },
   { to: '/inventaire', title: 'Inventaire', icon: 'mdi-hanger', permission: 'items.read' },
   { to: '/emprunts', title: 'Emprunts', icon: 'mdi-swap-horizontal', permission: 'loans.read' },
   { to: '/personnes', title: 'Personnes', icon: 'mdi-account-group-outline', permission: 'people.read' },
+  { to: '/agenda', title: 'Agenda', icon: 'mdi-calendar-month-outline', permission: 'agenda.read' },
+  { to: '/contenus', title: 'Contenus', icon: 'mdi-book-open-page-variant-outline', permission: 'content.read' },
 ]
 
 const visibleLinks = computed(() => links.filter((link) => auth.can(link.permission)))
@@ -256,6 +260,14 @@ onMounted(() => {
     radial-gradient(circle at 12% 18%, rgba(106, 140, 105, 0.22), transparent 42%),
     radial-gradient(circle at 88% 82%, rgba(83, 115, 106, 0.18), transparent 40%),
     linear-gradient(155deg, #eef2ee 0%, #f8faf8 38%, #e8ece8 100%);
+}
+
+.member-bg {
+  background:
+    radial-gradient(circle at 10% 12%, rgba(106, 140, 105, 0.16), transparent 40%),
+    radial-gradient(circle at 90% 88%, rgba(83, 115, 106, 0.12), transparent 38%),
+    linear-gradient(160deg, #f3f6f3 0%, #fafcfa 45%, #eef2ee 100%);
+  min-height: 100vh;
 }
 .brand {
   display: flex;
