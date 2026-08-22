@@ -16,6 +16,13 @@ import { normalizeContentPage, filterPublishedPages, sortContentPages } from '..
 import { normalizeAgendaSettings, DEFAULT_AGENDA_SETTINGS } from '../src/domain/agendaSettings.js'
 import { mergeAgendaEvents } from '../src/domain/ics.js'
 import { fetchGoogleCalendarEvents, resetGoogleCalendarCache } from './googleCalendar.js'
+import {
+  isPushEnabled,
+  getVapidConfig,
+  notifyManagers,
+  normalizePushSubscription,
+} from './push.js'
+import { canReceivePushNotifications } from '../src/domain/auth.js'
 import { hashPassword, randomToken, verifyPassword } from './password.js'
 import {
   appendAudit,
@@ -62,6 +69,7 @@ function emptyDb() {
     events: [],
     pages: [],
     settings: structuredClone({ agenda: DEFAULT_AGENDA_SETTINGS }),
+    pushSubscriptions: [],
     users: [],
     sessions: [],
     auditLog: [],
@@ -103,6 +111,7 @@ function ensureShape(raw) {
   db.settings = {
     agenda: normalizeAgendaSettings({ ...DEFAULT_AGENDA_SETTINGS, ...(raw.settings?.agenda || {}) }),
   }
+  db.pushSubscriptions = Array.isArray(raw.pushSubscriptions) ? raw.pushSubscriptions : []
   db.users = Array.isArray(raw.users) ? raw.users : []
   db.sessions = Array.isArray(raw.sessions) ? raw.sessions : []
   db.auditLog = Array.isArray(raw.auditLog) ? raw.auditLog : []
@@ -535,6 +544,72 @@ export async function getLoan(id, options = {}) {
   return decorateLoan(loan, db)
 }
 
+function detectNewGoogleEvents(db, googleEvents = []) {
+  const known = new Set(db.settings?.agenda?.knownGoogleEventUids || [])
+  const today = new Date().toISOString().slice(0, 10)
+  const upcoming = googleEvents.filter((event) => (event.debut || '').slice(0, 10) >= today)
+  const allUids = upcoming.map((event) => event.googleUid).filter(Boolean)
+  if (!known.size) {
+    return { baseline: true, newEvents: [], allUids }
+  }
+  const newEvents = upcoming.filter((event) => event.googleUid && !known.has(event.googleUid))
+  return { baseline: false, newEvents, allUids }
+}
+
+async function deliverManagerNotification(payload, options = {}) {
+  if (!isPushEnabled() || !payload) return { sent: 0 }
+  return withDb(async (db) => notifyManagers(db, payload), options)
+}
+
+export async function getPushConfig(user, options = {}) {
+  if (!canReceivePushNotifications(user)) {
+    throw Object.assign(new Error('Réservé aux gestionnaires'), { status: 403 })
+  }
+  const db = await readDb(options)
+  const subscribed = (db.pushSubscriptions || []).some((entry) => entry.userId === user.id)
+  const vapid = getVapidConfig()
+  return {
+    enabled: isPushEnabled(),
+    publicKey: vapid?.publicKey || '',
+    subscribed,
+  }
+}
+
+export async function subscribePush(user, payload, options = {}) {
+  if (!canReceivePushNotifications(user)) {
+    throw Object.assign(new Error('Réservé aux gestionnaires'), { status: 403 })
+  }
+  if (!isPushEnabled()) {
+    throw Object.assign(new Error('Notifications non configurées sur le serveur'), { status: 503 })
+  }
+  return withDb((db) => {
+    const entry = normalizePushSubscription(
+      { ...payload, userAgent: options.userAgent || payload.userAgent },
+      { id: randomUUID(), userId: user.id },
+    )
+    db.pushSubscriptions = [
+      ...(db.pushSubscriptions || []).filter((item) => item.endpoint !== entry.endpoint),
+      entry,
+    ]
+    return { ok: true, subscribed: true }
+  }, options)
+}
+
+export async function unsubscribePush(user, payload, options = {}) {
+  if (!canReceivePushNotifications(user)) {
+    throw Object.assign(new Error('Réservé aux gestionnaires'), { status: 403 })
+  }
+  const endpoint = String(payload?.endpoint || '').trim()
+  return withDb((db) => {
+    db.pushSubscriptions = (db.pushSubscriptions || []).filter((entry) => {
+      if (entry.userId !== user.id) return true
+      if (endpoint) return entry.endpoint !== endpoint
+      return false
+    })
+    return { ok: true, subscribed: false }
+  }, options)
+}
+
 export async function createLoan(payload, options = {}) {
   return withDb((db) => {
     const person = db.people.find((p) => p.id === payload.personId)
@@ -587,8 +662,20 @@ export async function createLoan(payload, options = {}) {
         itemCodes: codesForItems(db, lines.map((line) => line.itemId)),
       },
     })
-    return decorateLoan(loan, db)
-  }, options)
+    return { loan: decorateLoan(loan, db), isArchive }
+  }, options).then(async (result) => {
+    if (!result.isArchive) {
+      deliverManagerNotification(
+        {
+          title: 'Nouvel emprunt',
+          body: `${result.loan.personName} — ${result.loan.titre}`,
+          url: `/emprunts/${result.loan.id}`,
+        },
+        options,
+      ).catch(() => {})
+    }
+    return result.loan
+  })
 }
 
 export async function returnLoanItems(loanId, itemIds, options = {}) {
@@ -639,7 +726,17 @@ export async function returnLoanItems(loanId, itemIds, options = {}) {
       },
     })
     return decorateLoan(loan, db)
-  }, options)
+  }, options).then(async (loan) => {
+    deliverManagerNotification(
+      {
+        title: loan.statut === 'retourne' ? 'Emprunt clôturé' : 'Retour de pièce(s)',
+        body: `${loan.personName} — ${loan.titre}`,
+        url: `/emprunts/${loan.id}`,
+      },
+      options,
+    ).catch(() => {})
+    return loan
+  })
 }
 
 function syncLoanStatus(loan) {
@@ -875,10 +972,31 @@ export async function updateAgendaSettings(payload, options = {}) {
 }
 
 export async function syncGoogleCalendar(options = {}) {
-  const db = await readDb(options)
   resetGoogleCalendarCache()
-  const events = await fetchGoogleCalendarEvents(db.settings?.agenda || {}, options)
-  return { count: events.length, syncedAt: new Date().toISOString() }
+  const events = await fetchGoogleCalendarEvents(
+    (await readDb(options)).settings?.agenda || {},
+    options,
+  )
+  return withDb(async (db) => {
+    const detection = detectNewGoogleEvents(db, events)
+    db.settings = db.settings || {}
+    db.settings.agenda = db.settings.agenda || normalizeAgendaSettings({})
+    db.settings.agenda.knownGoogleEventUids = detection.allUids
+    if (!detection.baseline) {
+      for (const event of detection.newEvents) {
+        await notifyManagers(db, {
+          title: 'Nouvelle date au calendrier',
+          body: `${event.titre} — ${event.lieu || 'lieu à préciser'}`,
+          url: '/espace-membre?onglet=agenda',
+        })
+      }
+    }
+    return {
+      count: events.length,
+      newCount: detection.newEvents.length,
+      syncedAt: new Date().toISOString(),
+    }
+  }, options)
 }
 
 export async function getEvent(id, options = {}) {
@@ -900,7 +1018,19 @@ export async function createEvent(payload, options = {}) {
       summary: `Création de l’événement « ${event.titre} »`,
     })
     return event
-  }, options)
+  }, options).then(async (event) => {
+    if (event.publie !== false) {
+      deliverManagerNotification(
+        {
+          title: 'Nouvelle date au calendrier',
+          body: `${event.titre}${event.lieu ? ` — ${event.lieu}` : ''}`,
+          url: '/agenda',
+        },
+        options,
+      ).catch(() => {})
+    }
+    return event
+  })
 }
 
 export async function updateEvent(id, payload, options = {}) {

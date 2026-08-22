@@ -52,6 +52,10 @@ export function can(user, permission) {
   return effectivePermissions(user).includes(permission)
 }
 
+export function canReceivePushNotifications(user) {
+  return Boolean(user && (user.role === 'admin' || user.role === 'gestion'))
+}
+
 export function publicUser(user) {
   if (!user) return null
   return {

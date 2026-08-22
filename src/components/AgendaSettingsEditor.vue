@@ -71,7 +71,7 @@ async function syncNow() {
   try {
     const result = await api.syncAgenda()
     ok.value = true
-    message.value = `${result.count} événement(s) récupéré(s) depuis Google Agenda.`
+    message.value = `${result.count} événement(s) synchronisé(s)${result.newCount ? ` — ${result.newCount} nouvelle(s) date(s)` : ''}.`
   } catch (error) {
     ok.value = false
     message.value = error.message || 'Synchronisation impossible.'

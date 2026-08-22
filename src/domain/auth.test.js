@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { ROLE_PRESETS, can, effectivePermissions, publicUser } from './auth.js'
+import { ROLE_PRESETS, can, canReceivePushNotifications, effectivePermissions, publicUser } from './auth.js'
 
 const admin = { role: 'admin' }
 const gestion = { role: 'gestion' }
@@ -31,6 +31,12 @@ describe('permissions', () => {
     assert.equal(can(custom, 'items.create'), true)
     assert.equal(can(custom, 'items.update'), false)
     assert.deepEqual(effectivePermissions(custom), ['items.read', 'items.create', 'loans.read'])
+  })
+
+  it('réserve les notifications push aux gestionnaires', () => {
+    assert.equal(canReceivePushNotifications(publicUser({ role: 'admin' })), true)
+    assert.equal(canReceivePushNotifications(publicUser({ role: 'gestion' })), true)
+    assert.equal(canReceivePushNotifications(publicUser({ role: 'lecteur' })), false)
   })
 
   it('retire le mot de passe du profil public', () => {

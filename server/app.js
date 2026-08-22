@@ -49,9 +49,12 @@ import {
   getAgendaSettings,
   updateAgendaSettings,
   syncGoogleCalendar,
+  getPushConfig,
+  subscribePush,
+  unsubscribePush,
   dataPaths,
 } from './store.js'
-import { can } from '../src/domain/auth.js'
+import { can, canReceivePushNotifications } from '../src/domain/auth.js'
 import { securityHeaders } from './security.js'
 import { createRateLimiter, loginRateLimitKey, resetRateLimits } from './rateLimit.js'
 
@@ -73,6 +76,16 @@ function bearer(req) {
   const header = req.headers.authorization || ''
   const [, token] = header.match(/^Bearer\s+(.+)$/i) || []
   return token || ''
+}
+
+function authManagerPush(req, res, next) {
+  return auth()(req, res, () => {
+    if (!canReceivePushNotifications(req.user)) {
+      res.status(403).json({ error: 'Réservé aux gestionnaires' })
+      return
+    }
+    next()
+  })
 }
 
 function auth(permission) {
@@ -315,6 +328,20 @@ export function createApiApp() {
     handle((req) => updateAgendaSettings(req.body, { actor: req.user })),
   )
   app.post('/api/agenda/sync', auth('agenda.write'), handle(() => syncGoogleCalendar()))
+
+  app.get('/api/push/config', authManagerPush, handle((req) => getPushConfig(req.user)))
+  app.post(
+    '/api/push/subscribe',
+    authManagerPush,
+    handle((req) =>
+      subscribePush(req.user, req.body, { userAgent: req.headers['user-agent'] || '' }),
+    ),
+  )
+  app.delete(
+    '/api/push/subscribe',
+    authManagerPush,
+    handle((req) => unsubscribePush(req.user, req.body)),
+  )
 
   app.get(
     '/api/audit',

@@ -80,6 +80,7 @@
               to="/parametres"
             />
             <v-list-item title="Déconnexion" prepend-icon="mdi-logout" @click="logout" />
+            <PushNotificationsToggle />
           </v-list>
         </v-menu>
       </v-app-bar>
@@ -148,6 +149,7 @@
               @click="drawerOpen = false"
             />
             <v-list-item title="Déconnexion" prepend-icon="mdi-logout" @click="onDrawerLogout" />
+            <PushNotificationsToggle @click="drawerOpen = false" />
           </v-list>
         </template>
       </v-navigation-drawer>
@@ -187,8 +189,10 @@ import { useInventoryStore } from '@/stores/inventory'
 import { useCartStore } from '@/stores/cart'
 import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
-import { ROLES } from '@/domain/auth'
+import { ROLES, canReceivePushNotifications } from '@/domain/auth'
 import { APP_TITLE, GROUP_NAME, LOGO_SRC } from '@/domain/brand'
+import PushNotificationsToggle from '@/components/PushNotificationsToggle.vue'
+import { registerPushServiceWorker } from '@/services/pushNotifications'
 
 const route = useRoute()
 const router = useRouter()
@@ -251,7 +255,19 @@ async function onDrawerLogout() {
 
 onMounted(() => {
   if (auth.user) inventory.refresh().catch(() => {})
+  if (canReceivePushNotifications(auth.user)) {
+    registerPushServiceWorker().catch(() => {})
+  }
 })
+
+watch(
+  () => auth.user,
+  (user) => {
+    if (canReceivePushNotifications(user)) {
+      registerPushServiceWorker().catch(() => {})
+    }
+  },
+)
 </script>
 
 <style scoped>
