@@ -10,12 +10,15 @@ describe('normalizeContentPage', () => {
         titre: 'Bragoù bras',
         corps: 'Pantalon…',
         ordre: 2,
+        medias: [{ type: 'image', url: 'https://example.com/a.jpg', legende: 'Photo' }],
       },
       { id: 'page-1' },
     )
     assert.equal(page.categorie, 'vocabulaire')
     assert.equal(page.publie, true)
     assert.equal(page.ordre, 2)
+    assert.equal(page.medias.length, 1)
+    assert.equal(page.medias[0].url, 'https://example.com/a.jpg')
   })
 })
 

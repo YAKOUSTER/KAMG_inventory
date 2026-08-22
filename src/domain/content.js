@@ -29,6 +29,19 @@ function normalizeIsoDate(value) {
   return date.toISOString()
 }
 
+function normalizeMedia(entry = {}, index = 0) {
+  if (!entry) return null
+  const type = entry.type === 'video' ? 'video' : 'image'
+  const url = trim(entry.url)
+  if (!url) return null
+  return {
+    type,
+    url,
+    legende: trim(entry.legende),
+    ordre: Number.isFinite(Number(entry.ordre)) ? Number(entry.ordre) : index,
+  }
+}
+
 export function normalizeContentPage(input = {}, { id } = {}) {
   const nextId = trim(id || input.id)
   if (!nextId) throw new Error('Identifiant de page requis')
@@ -37,11 +50,17 @@ export function normalizeContentPage(input = {}, { id } = {}) {
   const titre = trim(input.titre)
   if (!titre) throw new Error('Le titre est requis')
 
+  const medias = (Array.isArray(input.medias) ? input.medias : [])
+    .map((entry, index) => normalizeMedia(entry, index))
+    .filter(Boolean)
+    .sort((a, b) => (a.ordre || 0) - (b.ordre || 0))
+
   return {
     id: nextId,
     categorie,
     titre,
     corps: String(input.corps ?? ''),
+    medias,
     ordre: Number.isFinite(Number(input.ordre)) ? Number(input.ordre) : 0,
     publie: input.publie !== false,
     createdAt: normalizeIsoDate(input.createdAt) || new Date().toISOString(),

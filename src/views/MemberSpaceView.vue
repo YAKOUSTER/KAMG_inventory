@@ -122,6 +122,31 @@
               <v-expansion-panel v-for="page in group.pages" :key="page.id" :title="page.titre">
                 <v-expansion-panel-text>
                   <div class="member-content-body">{{ page.corps }}</div>
+                  <div v-if="page.medias?.length" class="member-content-medias">
+                    <figure
+                      v-for="(media, index) in page.medias"
+                      :key="`${page.id}-${index}-${media.url}`"
+                      class="member-content-media"
+                    >
+                      <img
+                        v-if="media.type === 'image'"
+                        :src="media.url"
+                        :alt="media.legende || page.titre"
+                        class="member-content-media__img"
+                        loading="lazy"
+                      />
+                      <video
+                        v-else-if="media.type === 'video'"
+                        :src="media.url"
+                        controls
+                        preload="metadata"
+                        class="member-content-media__video"
+                      />
+                      <figcaption v-if="media.legende" class="member-content-media__caption">
+                        {{ media.legende }}
+                      </figcaption>
+                    </figure>
+                  </div>
                 </v-expansion-panel-text>
               </v-expansion-panel>
             </v-expansion-panels>
@@ -319,6 +344,32 @@ onMounted(async () => {
 .member-content-body {
   white-space: pre-wrap;
   line-height: 1.55;
+}
+
+.member-content-medias {
+  display: grid;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.member-content-media {
+  margin: 0;
+}
+
+.member-content-media__img,
+.member-content-media__video {
+  display: block;
+  width: 100%;
+  max-height: 420px;
+  object-fit: contain;
+  border-radius: 10px;
+  background: rgba(44, 51, 44, 0.04);
+}
+
+.member-content-media__caption {
+  margin-top: 6px;
+  font-size: 0.88rem;
+  color: rgba(44, 51, 44, 0.68);
 }
 
 .member-loan-items {

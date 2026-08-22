@@ -17,6 +17,11 @@ import { normalizeAgendaSettings, DEFAULT_AGENDA_SETTINGS } from '../src/domain/
 import { mergeAgendaEvents } from '../src/domain/ics.js'
 import { fetchGoogleCalendarEvents, resetGoogleCalendarCache } from './googleCalendar.js'
 import {
+  readMemberPagesSeed,
+  shouldImportMemberContent,
+  applyMemberContent,
+} from './memberContent.js'
+import {
   isPushEnabled,
   getVapidConfig,
   notifyManagers,
@@ -161,6 +166,10 @@ export async function ensureDb(options = {}) {
     if (!Array.isArray(db.auditLog)) {
       db.auditLog = []
       dirty = true
+    }
+    if (shouldImportMemberContent(db)) {
+      const seedPages = await readMemberPagesSeed({ dataDir: path.dirname(dbPath), seedPath, memberPagesPath: path.join(path.dirname(dbPath), 'member-pages.json') })
+      if (applyMemberContent(db, seedPages)) dirty = true
     }
     if (dirty) await writeJson(dbPath, db)
     cacheByPath.set(dbPath, db)

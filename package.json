@@ -10,7 +10,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "start": "NODE_ENV=production node server/index.js",
-    "test": "node --test server/store.test.js server/app.test.js server/googleCalendar.test.js server/push.test.js server/workflows.test.js server/password.test.js src/domain/filters.test.js src/domain/images.test.js src/domain/attachments.test.js src/domain/referentiels.test.js src/domain/stock.test.js src/domain/itemTasks.test.js src/domain/auth.test.js src/domain/person.test.js src/domain/dates.test.js src/domain/loans.test.js src/domain/item.test.js src/domain/brand.test.js src/domain/events.test.js src/domain/content.test.js src/domain/ics.test.js",
+    "test": "node --test server/store.test.js server/memberContent.test.js server/app.test.js server/googleCalendar.test.js server/push.test.js server/workflows.test.js server/password.test.js src/domain/filters.test.js src/domain/images.test.js src/domain/attachments.test.js src/domain/referentiels.test.js src/domain/stock.test.js src/domain/itemTasks.test.js src/domain/auth.test.js src/domain/person.test.js src/domain/dates.test.js src/domain/loans.test.js src/domain/item.test.js src/domain/brand.test.js src/domain/events.test.js src/domain/content.test.js src/domain/ics.test.js",
     "logo:build": "node scripts/build-logo.mjs",
     "vapid:generate": "node scripts/generate-vapid.mjs"
   },

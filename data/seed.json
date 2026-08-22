@@ -2,22 +2,90 @@
   "meta": {
     "version": 1,
     "updatedAt": "2026-08-15T00:00:00.000Z",
-    "label": "Jeu d'exemple — patrimoine textile KAMG"
+    "label": "Jeu d'exemple — patrimoine textile KAMG",
+    "memberContentVersion": 3
   },
   "referentiels": {
     "categories": [
-      { "id": "piece_costume", "label": "Pièce de costume" },
-      { "id": "accessoire", "label": "Accessoire" },
-      { "id": "piece_collection", "label": "Pièce de collection" },
-      { "id": "tissu", "label": "Tissu" },
-      { "id": "fourniture", "label": "Fourniture" },
-      { "id": "echantillon", "label": "Échantillon" }
+      {
+        "id": "piece_costume",
+        "label": "Pièce de costume"
+      },
+      {
+        "id": "accessoire",
+        "label": "Accessoire"
+      },
+      {
+        "id": "piece_collection",
+        "label": "Pièce de collection"
+      },
+      {
+        "id": "tissu",
+        "label": "Tissu"
+      },
+      {
+        "id": "fourniture",
+        "label": "Fourniture"
+      },
+      {
+        "id": "echantillon",
+        "label": "Échantillon"
+      }
     ],
-    "epoques": ["1870", "1880", "1890", "1900", "1910", "1920", "1930", "1940", "1950", "Contemporain", "Indéterminée"],
-    "etats": ["Très bon", "Bon", "Moyen", "Usé", "Ancien", "À réparer", "Fragile"],
-    "disponibilites": ["Disponible", "Emprunté", "Réservé", "Au pressing", "En restauration", "Archivé", "Non empruntable"],
-    "couleurs": ["Blanc", "Écru", "Noir", "Rouge", "Bleu", "Vert", "Jaune", "Rose", "Doré", "Argenté", "Multicolore"],
-    "tailles": ["XXS", "XS", "S", "M", "L", "XL", "XXL", "Unique"]
+    "epoques": [
+      "1870",
+      "1880",
+      "1890",
+      "1900",
+      "1910",
+      "1920",
+      "1930",
+      "1940",
+      "1950",
+      "Contemporain",
+      "Indéterminée"
+    ],
+    "etats": [
+      "Très bon",
+      "Bon",
+      "Moyen",
+      "Usé",
+      "Ancien",
+      "À réparer",
+      "Fragile"
+    ],
+    "disponibilites": [
+      "Disponible",
+      "Emprunté",
+      "Réservé",
+      "Au pressing",
+      "En restauration",
+      "Archivé",
+      "Non empruntable"
+    ],
+    "couleurs": [
+      "Blanc",
+      "Écru",
+      "Noir",
+      "Rouge",
+      "Bleu",
+      "Vert",
+      "Jaune",
+      "Rose",
+      "Doré",
+      "Argenté",
+      "Multicolore"
+    ],
+    "tailles": [
+      "XXS",
+      "XS",
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "Unique"
+    ]
   },
   "items": [
     {
@@ -36,12 +104,17 @@
       "disponibilite": "Non empruntable",
       "proprietaire": "KAMG",
       "localisation": "Classeur échantillons / pochette A3",
-      "tags": ["lin", "référence"],
+      "tags": [
+        "lin",
+        "référence"
+      ],
       "perle": false,
       "broderie": false,
       "motif": "",
       "images": [],
-      "linkedItemIds": ["item-tissu-lin"],
+      "linkedItemIds": [
+        "item-tissu-lin"
+      ],
       "tailleLettre": "",
       "longueur": null,
       "longueurDos": null,
@@ -87,12 +160,17 @@
       "disponibilite": "Non empruntable",
       "proprietaire": "KAMG",
       "localisation": "Boîte conservation / tiroir 2",
-      "tags": ["broderie", "perlé"],
+      "tags": [
+        "broderie",
+        "perlé"
+      ],
       "perle": true,
       "broderie": true,
       "motif": "Fleurs stylisées",
       "images": [],
-      "linkedItemIds": ["item-jupe-noire"],
+      "linkedItemIds": [
+        "item-jupe-noire"
+      ],
       "tailleLettre": "",
       "longueur": null,
       "longueurDos": null,
@@ -138,12 +216,17 @@
       "disponibilite": "Disponible",
       "proprietaire": "KAMG",
       "localisation": "Armoire tissus / étagère 1",
-      "tags": ["lin", "stock"],
+      "tags": [
+        "lin",
+        "stock"
+      ],
       "perle": false,
       "broderie": false,
       "motif": "",
       "images": [],
-      "linkedItemIds": ["item-ech-lin"],
+      "linkedItemIds": [
+        "item-ech-lin"
+      ],
       "tailleLettre": "",
       "longueur": null,
       "longueurDos": null,
@@ -189,7 +272,9 @@
       "disponibilite": "Disponible",
       "proprietaire": "KAMG",
       "localisation": "Armoire tissus / étagère 2",
-      "tags": ["velours"],
+      "tags": [
+        "velours"
+      ],
       "perle": false,
       "broderie": false,
       "motif": "",
@@ -240,12 +325,18 @@
       "disponibilite": "Emprunté",
       "proprietaire": "KAMG",
       "localisation": "Vestiaire femmes / tringle B",
-      "tags": ["bigouden", "spectacle"],
+      "tags": [
+        "bigouden",
+        "spectacle"
+      ],
       "perle": true,
       "broderie": true,
       "motif": "Fleurs orange",
       "images": [],
-      "linkedItemIds": ["item-tablier", "item-ech-brode"],
+      "linkedItemIds": [
+        "item-tablier",
+        "item-ech-brode"
+      ],
       "tailleLettre": "M",
       "longueur": 92,
       "longueurDos": null,
@@ -291,12 +382,16 @@
       "disponibilite": "Disponible",
       "proprietaire": "KAMG",
       "localisation": "Vestiaire femmes / tringle B",
-      "tags": ["bigouden"],
+      "tags": [
+        "bigouden"
+      ],
       "perle": false,
       "broderie": true,
       "motif": "Bande brodée",
       "images": [],
-      "linkedItemIds": ["item-jupe-noire"],
+      "linkedItemIds": [
+        "item-jupe-noire"
+      ],
       "tailleLettre": "M",
       "longueur": 88,
       "longueurDos": null,
@@ -342,7 +437,9 @@
       "disponibilite": "Disponible",
       "proprietaire": "KAMG",
       "localisation": "Vestiaire hommes / étagère 3",
-      "tags": ["homme"],
+      "tags": [
+        "homme"
+      ],
       "perle": false,
       "broderie": true,
       "motif": "Plastron",
@@ -393,7 +490,10 @@
       "disponibilite": "Non empruntable",
       "proprietaire": "Dépôt famille H.",
       "localisation": "Vitrine collection / boîte acid-free",
-      "tags": ["collection", "coiffe"],
+      "tags": [
+        "collection",
+        "coiffe"
+      ],
       "perle": false,
       "broderie": true,
       "motif": "Dentelle",
@@ -444,7 +544,9 @@
       "disponibilite": "Emprunté",
       "proprietaire": "KAMG",
       "localisation": "Coffret bijoux / case 4",
-      "tags": ["bijou"],
+      "tags": [
+        "bijou"
+      ],
       "perle": false,
       "broderie": false,
       "motif": "Hermine",
@@ -485,7 +587,10 @@
       "id": "person-anna",
       "nom": "Le Gall",
       "prenom": "Anna",
-      "roles": ["membre", "danseur_loisir"],
+      "roles": [
+        "membre",
+        "danseur_loisir"
+      ],
       "anneeMembre": "2026",
       "telephone": "",
       "email": "",
@@ -512,7 +617,10 @@
       "id": "person-yann",
       "nom": "Prigent",
       "prenom": "Yann",
-      "roles": ["membre", "danseur_concours"],
+      "roles": [
+        "membre",
+        "danseur_concours"
+      ],
       "anneeMembre": "2026",
       "telephone": "",
       "email": "",
@@ -589,10 +697,33 @@
     {
       "id": "page-bienvenue",
       "categorie": "presentation",
-      "titre": "Bienvenue au cercle",
-      "corps": "Bienvenue dans le cercle celtique Korriganed Ar Meilhoù Glas (Quartier du Moulin Vert, Quimper).\n\nUn cercle celtique promeut la culture bretonne à travers la danse, les costumes traditionnels et la musique. Le nôtre est adhérent à Kenlieur (2e catégorie) et participe aux concours, sorties et animations tout au long de l'année.",
+      "titre": "Bienvenue au Moulin Vert",
       "ordre": 1,
       "publie": true,
+      "corps": "Bienvenue dans le cercle celtique Korriganed Ar Meilhoù Glas.\n\nNous représentons le quartier du Moulin Vert à Quimper et promouvons la culture bretonne à travers la danse, les costumes traditionnels et la musique. Au cercle, des crêpières partagent aussi leurs techniques lors des événements.\n\nIl existe plusieurs types de cercles celtiques : non adhérents, non classés adhérents à Kenleur, et classés adhérents à Kenleur. Des cercles bretons existent partout en France et dans le monde ; beaucoup viennent en Bretagne en été pour les concours.",
+      "medias": [],
+      "createdAt": "2026-08-01T10:00:00.000Z",
+      "updatedAt": "2026-08-01T10:00:00.000Z"
+    },
+    {
+      "id": "page-kenlieur",
+      "categorie": "presentation",
+      "titre": "La confédération Kenleur",
+      "ordre": 2,
+      "publie": true,
+      "corps": "Kenleur est la confédération de danse bretonne à laquelle notre cercle est affilié (siège à Auray, 8 salariés).\n\nLa confédération permet aux cercles adhérents de bénéficier de formations et stages (danses, broderies, chants, histoires…), de répartir les cercles sur les événements de la saison, d'organiser l'accueil, de veiller au respect de la tradition et d'encourager la créativité via les concours (danses, costumes, spectacles scéniques).\n\nSite : kenleur.bzh",
+      "medias": [],
+      "createdAt": "2026-08-01T10:00:00.000Z",
+      "updatedAt": "2026-08-01T10:00:00.000Z"
+    },
+    {
+      "id": "page-notre-cercle",
+      "categorie": "presentation",
+      "titre": "Notre cercle en bref",
+      "ordre": 3,
+      "publie": true,
+      "corps": "Adhérent à Kenleur, nous évoluons en seconde catégorie.\n\nEn mai 2024 : 4ème sur 13 au championnat de 2e catégorie, et 3ème du trophée scénique avec le spectacle « DIVUZUL ».\n\nCréé en 2000, nous sommes le plus jeune cercle celtique de Quimper (groupe enfant à l'origine).",
+      "medias": [],
       "createdAt": "2026-08-01T10:00:00.000Z",
       "updatedAt": "2026-08-01T10:00:00.000Z"
     },
@@ -600,9 +731,21 @@
       "id": "page-groupes",
       "categorie": "presentation",
       "titre": "Les groupes du cercle",
-      "corps": "• Groupe Loisir — apprendre la danse bretonne sans concours ni sorties costumées\n• Groupe Enfant — progression et saison estivale en costume (9-12 ans)\n• Groupe Tremplin — montée en niveau des jeunes danseurs\n• Groupe Concours — préparation compétition et représentation officielle du cercle\n• Atelier Costume — confection et entretien des tenues",
-      "ordre": 2,
+      "ordre": 4,
       "publie": true,
+      "corps": "• Groupe Loisir — apprendre la danse bretonne sans concours ni représentations en costume\n• Groupe Enfant — progression et saison estivale en costume (9-12 ans)\n• Groupe Tremplin — montée en niveau des jeunes danseurs (depuis 2022, concours 2023)\n• Groupe Concours — préparation des concours, nombreuses sorties costumées, représentation officielle au championnat\n• Atelier Costume — confection et entretien des tenues",
+      "medias": [],
+      "createdAt": "2026-08-01T10:00:00.000Z",
+      "updatedAt": "2026-08-01T10:00:00.000Z"
+    },
+    {
+      "id": "page-cercles-quimper",
+      "categorie": "presentation",
+      "titre": "Les cercles de Quimper",
+      "ordre": 5,
+      "publie": true,
+      "corps": "À Quimper, cinq cercles celtiques :\n• Eostiged Ar Stangala (Kerfeunteun) — Excellence\n• Danserien Kemper (Ergue-Armel) — 3e catégorie\n• Medarien Kemper (Penhars) — Label ; notre cercle en est issu\n• Keltiad (Centre-Ville), aujourd'hui à Langolen — loisir-théâtre, hors concours\n• Korriganed Ar Meilhoù Glas (Moulin Vert) — 2e catégorie",
+      "medias": [],
       "createdAt": "2026-08-01T10:00:00.000Z",
       "updatedAt": "2026-08-01T10:00:00.000Z"
     },
@@ -610,9 +753,10 @@
       "id": "page-ca",
       "categorie": "newsletter",
       "titre": "Conseil d'administration",
-      "corps": "Le CA se réunit environ toutes les 3 semaines. L'Assemblée Générale a lieu fin septembre / début octobre.\n\nCA 2023-2024 :\n• Président : Pascal NICOL\n• Vice-présidente : Loïquenn TOPIN\n• Secrétaire : Soizig GOURLET\n• Trésorière : Gaëlle LOUBOUTIN\n• Membres : Marine NÉDELEC, Sterenn FONSECA, Malo GUIARD, Typhaine SOYER, Christiane LE TREUT, Gaëlle ROBIN",
       "ordre": 1,
       "publie": true,
+      "corps": "Le Conseil d'administration se réunit environ toutes les trois semaines. Un compte-rendu est envoyé par mail après chaque CA.\n\nL'Assemblée Générale a lieu fin septembre ou début octobre : bilan de l'année, élection du CA (procurations possibles). Pour candidater au CA, adresser une demande par courrier dans les délais de la convocation.\n\nCA 2023-2024 :\n• Président : Pascal NICOL\n• Vice-présidente : Loïquenn TOPIN\n• Secrétaire : Soizig GOURLET\n• Secrétaire adjointe : Audrey ROCUET\n• Trésorière : Gaëlle LOUBOUTIN\n• Trésorière adjointe : Maureen GUIARD\n• Membres : Marine NÉDELEC, Sterenn FONSECA, Malo GUIARD, Typhaine SOYER, Christiane LE TREUT, Gaëlle ROBIN",
+      "medias": [],
       "createdAt": "2026-08-01T10:00:00.000Z",
       "updatedAt": "2026-08-01T10:00:00.000Z"
     },
@@ -620,39 +764,120 @@
       "id": "page-inscription",
       "categorie": "newsletter",
       "titre": "Comment s'inscrire ?",
-      "corps": "Les documents d'inscription sont remis aux nouveaux danseurs lors des premières répétitions.\n\nÀ retourner dans les semaines suivantes :\n• Coordonnées, autorisations, droit à l'image\n• Fiche sanitaire\n\nLire le règlement intérieur du cercle avant signature.",
       "ordre": 2,
       "publie": true,
+      "corps": "Les documents d'inscription sont remis aux nouveaux danseurs lors des premières répétitions, à rendre dans les semaines suivantes. Demandez-les si besoin et lisez le règlement intérieur.\n\nDocuments :\n• Coordonnées, autorisations, droit à l'image, signature du règlement\n• Fiche sanitaire",
+      "medias": [],
       "createdAt": "2026-08-01T10:00:00.000Z",
       "updatedAt": "2026-08-01T10:00:00.000Z"
     },
     {
-      "id": "page-costume-glazig",
+      "id": "page-communication",
+      "categorie": "newsletter",
+      "titre": "Nos outils de communication",
+      "ordre": 3,
+      "publie": true,
+      "corps": "Le cercle communique via :\n• Le groupe WhatsApp / messagerie interne (invitation sur demande)\n• Les comptes-rendus de CA par mail\n• Cet espace membres et le Google Agenda partagé\n• Les répétitions et annonces en fin de séance\n\nPour toute question : contactez un membre du CA ou votre responsable de groupe.",
+      "medias": [],
+      "createdAt": "2026-08-01T10:00:00.000Z",
+      "updatedAt": "2026-08-01T10:00:00.000Z"
+    },
+    {
+      "id": "page-sorties",
+      "categorie": "newsletter",
+      "titre": "S'inscrire aux sorties",
+      "ordre": 4,
+      "publie": true,
+      "corps": "Les sorties de l'année (spectacles, défilés, fest-noz…) sont listées dans l'onglet Agenda, synchronisé avec le Google Agenda du cercle.\n\nInscrivez-vous aux dates concernant votre groupe (Ado, Tremplin, Concours, Loisir, Gwennyn…). En cas de doute, vérifiez avec votre responsable avant de vous engager.",
+      "medias": [],
+      "createdAt": "2026-08-01T10:00:00.000Z",
+      "updatedAt": "2026-08-01T10:00:00.000Z"
+    },
+    {
+      "id": "page-costume-petit-dimanche",
       "categorie": "tuto_habillage",
-      "titre": "Le Pays Glazig — costumes",
-      "corps": "Costumes de référence pour le cercle :\n• Le costume de « Petit dimanche »\n• Le costume velours 1935-1938\n\nSe renseigner auprès de l'atelier costume pour la mise en tenue complète (chemise, gilet, jupe/bragoù, coiffe, chaussures…).",
+      "titre": "Costume « Petit dimanche »",
       "ordre": 1,
       "publie": true,
+      "corps": "Costume du Pays Glazig porté pour les cérémonies du dimanche et certaines sorties.\n\nSe renseigner auprès de l'atelier costume pour la liste complète des pièces, l'ordre d'habillage et les accessoires (chemise, jupe, gilet, coiffe, chaussures…).\n\nAjoutez ici les photos de référence depuis Contenus (médias) lorsque disponibles.",
+      "medias": [],
       "createdAt": "2026-08-01T10:00:00.000Z",
       "updatedAt": "2026-08-01T10:00:00.000Z"
     },
     {
-      "id": "page-coiffe",
+      "id": "page-costume-velour",
+      "categorie": "tuto_habillage",
+      "titre": "Costume velours 1935-1938",
+      "ordre": 2,
+      "publie": true,
+      "corps": "Costume de référence velours de l'entre-deux-guerres, pièce patrimoniale du Pays Glazig.\n\nManipulation avec soin. L'atelier costume indique les règles de port, d'entreposage et de nettoyage.\n\nPhotos et schémas d'habillage : à compléter dans les médias de cette page.",
+      "medias": [],
+      "createdAt": "2026-08-01T10:00:00.000Z",
+      "updatedAt": "2026-08-01T10:00:00.000Z"
+    },
+    {
+      "id": "page-coiffure",
       "categorie": "tuto_coiffure",
-      "titre": "Coiffe bigoudène — bases",
-      "corps": "1. Dégager et lisser les cheveux, légère humidité si besoin.\n2. Centrer la coiffe sur la tête.\n3. Fixer avec des épingles en croisillons.\n4. Vérifier la stabilité avant la sortie.\n\nDemander de l'aide à l'atelier ou à une danseuse expérimentée les premières fois.",
+      "titre": "Coiffes du Pays Glazig",
       "ordre": 1,
       "publie": true,
+      "corps": "Les coiffes bigoudènes demandent de l'entraînement et de l'aide les premières fois.\n\nBases :\n1. Cheveux dégagés, légèrement humidifiés si besoin\n2. Centrage de la coiffe sur la tête\n3. Fixation avec épingles en croisillons\n4. Vérification de la tenue avant la sortie\n\nDemandez l'aide de l'atelier ou d'une danseuse expérimentée. Ajoutez vos tutos photo/vidéo via Contenus.",
+      "medias": [],
       "createdAt": "2026-08-01T10:00:00.000Z",
       "updatedAt": "2026-08-01T10:00:00.000Z"
     },
     {
-      "id": "page-danses",
-      "categorie": "vocabulaire",
-      "titre": "Répertoire de danses (extraits)",
-      "corps": "Branles : Hanter Dro, En-Dro, Rond de Pagan, Pilé-Menu, Ridée 6 temps…\nSuites : Gavotte des montagnes, Suite Glazig, Suite Bigoudène, Suite du Cap Sizun…\nCortèges : Kas a-barh\nCouples : Scottish, Mazurka, Polka…\n\nLa liste complète est disponible auprès des responsables de groupe.",
+      "id": "page-fournitures-danseurs",
+      "categorie": "autre",
+      "titre": "Danseurs : fournitures",
       "ordre": 1,
       "publie": true,
+      "corps": "Liste indicative (à compléter selon les consignes de votre responsable) :\n• Chaussures de danse\n• Chaussettes / guêtres\n• Sous-vêtements adaptés au costume\n• Sac de transport\n• Broches et accessoires personnels autorisés\n\nConsultez l'atelier costume pour la liste à jour.",
+      "medias": [],
+      "createdAt": "2026-08-01T10:00:00.000Z",
+      "updatedAt": "2026-08-01T10:00:00.000Z"
+    },
+    {
+      "id": "page-fournitures-danseuses",
+      "categorie": "autre",
+      "titre": "Danseuses : fournitures",
+      "ordre": 2,
+      "publie": true,
+      "corps": "Liste indicative (à compléter selon les consignes de votre responsable) :\n• Coiffe et épingles de rechange\n• Chaussures\n• Bas / collants si requis\n• Sac de transport\n• Kit de retouches (fil, épingles…)\n\nConsultez l'atelier costume pour la liste à jour.",
+      "medias": [],
+      "createdAt": "2026-08-01T10:00:00.000Z",
+      "updatedAt": "2026-08-01T10:00:00.000Z"
+    },
+    {
+      "id": "page-danses-branles",
+      "categorie": "vocabulaire",
+      "titre": "Branles et rondes",
+      "ordre": 1,
+      "publie": true,
+      "corps": "Famille des branles anciens et rondes :\nHanter Dro, En-Dro, Dans Trikot, Rond de Saint-Vincent-sur-Oust, Rond de Sautron, Rond Paludier, Ridée 6 temps, Ridée de Saint-Gildas, Laridé 8 temps, Ridées de Saint-Gildas-de-Rhuys, Laridé de la côte (mode Carnac), Laridé mode Baud, Rond de Landéda, Rond Pagan, Maraîchine, Pilé-Menu, Passepied, Tour et en-dedans, Poudou-fer.",
+      "medias": [],
+      "createdAt": "2026-08-01T10:00:00.000Z",
+      "updatedAt": "2026-08-01T10:00:00.000Z"
+    },
+    {
+      "id": "page-danses-suites",
+      "categorie": "vocabulaire",
+      "titre": "Suites et gavottes",
+      "ordre": 2,
+      "publie": true,
+      "corps": "Suites :\nGavotte des montagnes, Suite Gavotte mode Spezet, Suite de Loudéac, Suite Plinn, Suite Glazig, Suite Bigoudène, Suite Rouzig, Suite de l'Aven (Clohars-Carnoët), Suite Dardoup, Suite Châteauneuf-du-Faou, Suite Kemenevdez, Suite Trequer, Suite Fisel, Suite du Cap Sizun, Suite du pays Calanhel, Suite de Poher.\n\nGavottes / Dans tro : Gavotte des montagnes, Kost Ar C'hoad, Gavotte de Plougastel, Gavotte Pourlet.\n\nDérobées : Guingamp, Brasparts, Montfarine de Braspart.",
+      "medias": [],
+      "createdAt": "2026-08-01T10:00:00.000Z",
+      "updatedAt": "2026-08-01T10:00:00.000Z"
+    },
+    {
+      "id": "page-danses-corteges",
+      "categorie": "vocabulaire",
+      "titre": "Cortèges, couples, quadrilles",
+      "ordre": 3,
+      "publie": true,
+      "corps": "Cortèges : Kas a-barh mode Carnac-Plouharnel, Kas a-barh mode Langedig.\n\nHaute-Bretagne : Aéroplane.\n\nCouples : Scottish, Valse écossaise, Mazurka, Valse, Polka, Galop nantais.\n\nQuadrilles : Avant-deux de travers, Saint-Martin-sur-Oust, du coglais, Bazouges, Les Touches, Châteaubriant, Jabadao de Locquenolé, Kerouzée.",
+      "medias": [],
       "createdAt": "2026-08-01T10:00:00.000Z",
       "updatedAt": "2026-08-01T10:00:00.000Z"
     },
@@ -660,9 +885,21 @@
       "id": "page-vocab-costume",
       "categorie": "vocabulaire",
       "titre": "Vocabulaire costume",
-      "corps": "• Bragoù bras — pantalon traditionnel\n• Roched — chemise\n• Jiletenn — gilet\n• Chupenn — veste courte\n• Gouriz — ceinture\n• Coiffe — coiffure bigoudène selon âge et statut",
-      "ordre": 2,
+      "ordre": 4,
       "publie": true,
+      "corps": "• Bragoù bras — pantalon\n• Roched — chemise\n• Jiletenn — gilet\n• Chupenn — veste courte\n• Gouriz — ceinture\n• Coiffe — selon âge et statut\n• Guêtres, brodeuses, collerettes…\n\nDemandez l'atelier costume pour les termes spécifiques à votre tenue.",
+      "medias": [],
+      "createdAt": "2026-08-01T10:00:00.000Z",
+      "updatedAt": "2026-08-01T10:00:00.000Z"
+    },
+    {
+      "id": "page-themes-dates",
+      "categorie": "autre",
+      "titre": "Comprendre les dates par groupe",
+      "ordre": 3,
+      "publie": true,
+      "corps": "Dans l'Agenda, les événements Google peuvent concerner :\n• Korrigan (5-8 ans), Enfant (9-12), Ado (13-15)\n• Tremplin, Concours, Loisir (un vendredi sur deux)\n• Gwennyn, Sorties communes, Monitorat, Commissions\n\nFiltrez l'onglet Agenda par puce pour n'afficher que votre groupe.",
+      "medias": [],
       "createdAt": "2026-08-01T10:00:00.000Z",
       "updatedAt": "2026-08-01T10:00:00.000Z"
     }
