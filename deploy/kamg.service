@@ -1,0 +1,21 @@
+[Unit]
+Description=Patrimoine textile KAMG
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/var/www/kamg
+Environment=NODE_ENV=production
+Environment=PORT=4173
+# Notifications push (gestionnaires) : npm run vapid:generate puis ajouter :
+# Environment=KAMG_VAPID_PUBLIC_KEY=...
+# Environment=KAMG_VAPID_PRIVATE_KEY=...
+# Environment=KAMG_VAPID_SUBJECT=mailto:votre-email@example.com
+ExecStart=/usr/bin/node server/index.js
+Restart=on-failure
+RestartSec=5
+User=www-data
+Group=www-data
+
+[Install]
+WantedBy=multi-user.target
