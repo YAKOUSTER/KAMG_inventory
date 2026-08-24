@@ -113,45 +113,8 @@
         </v-tabs-window-item>
 
         <v-tabs-window-item value="infos">
-          <section v-for="group in pageGroups" :key="group.id" class="member-section">
-            <h2 class="member-section__title">
-              <v-icon start>{{ group.icon }}</v-icon>
-              {{ group.label }}
-            </h2>
-            <v-expansion-panels variant="accordion" class="member-panels">
-              <v-expansion-panel v-for="page in group.pages" :key="page.id" :title="page.titre">
-                <v-expansion-panel-text>
-                  <div class="member-content-body">{{ page.corps }}</div>
-                  <div v-if="page.medias?.length" class="member-content-medias">
-                    <figure
-                      v-for="(media, index) in page.medias"
-                      :key="`${page.id}-${index}-${media.url}`"
-                      class="member-content-media"
-                    >
-                      <img
-                        v-if="media.type === 'image'"
-                        :src="media.url"
-                        :alt="media.legende || page.titre"
-                        class="member-content-media__img"
-                        loading="lazy"
-                      />
-                      <video
-                        v-else-if="media.type === 'video'"
-                        :src="media.url"
-                        controls
-                        preload="metadata"
-                        class="member-content-media__video"
-                      />
-                      <figcaption v-if="media.legende" class="member-content-media__caption">
-                        {{ media.legende }}
-                      </figcaption>
-                    </figure>
-                  </div>
-                </v-expansion-panel-text>
-              </v-expansion-panel>
-            </v-expansion-panels>
-          </section>
-          <v-alert v-if="!pageGroups.length" type="info" variant="tonal">Aucun contenu publié pour le moment.</v-alert>
+          <MemberBlogPanel v-if="data.pages?.length" :pages="data.pages" />
+          <v-alert v-else type="info" variant="tonal">Aucun contenu publié pour le moment.</v-alert>
         </v-tabs-window-item>
 
         <v-tabs-window-item value="emprunts">
@@ -195,11 +158,11 @@ import { api } from '@/services/api'
 import { GROUP_NAME, LOGO_SRC } from '@/domain/brand'
 import { displayDate, displayDateTime } from '@/domain/dates'
 import { eventTypeLabel, eventTypeMeta } from '@/domain/events'
-import { groupPagesByCategory } from '@/domain/content'
 import { loanStatusColor, loanStatusLabel, openLoanLines } from '@/domain/loans'
 import { EVENT_GROUPS, eventGroupLabel, filterEventsByGroup } from '@/domain/eventGroups'
 import { googleCalendarSubscribeUrl, googleCalendarIcalSubscribeUrl } from '@/domain/agendaSettings'
 import AddToCalendarButton from '@/components/AddToCalendarButton.vue'
+import MemberBlogPanel from '@/components/MemberBlogPanel.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -210,7 +173,6 @@ const tab = ref(route.query.onglet || 'agenda')
 const groupFilter = ref('tous')
 
 const eventGroups = EVENT_GROUPS
-const pageGroups = computed(() => (data.value ? groupPagesByCategory(data.value.pages) : []))
 const googleSubscribeUrl = computed(() => googleCalendarSubscribeUrl(data.value?.agenda || {}))
 const icalSubscribeUrl = computed(() => googleCalendarIcalSubscribeUrl(data.value?.agenda || {}))
 const filteredUpcoming = computed(() =>
@@ -341,44 +303,9 @@ onMounted(async () => {
   white-space: pre-wrap;
 }
 
-.member-content-body {
-  white-space: pre-wrap;
-  line-height: 1.55;
-}
-
-.member-content-medias {
-  display: grid;
-  gap: 16px;
-  margin-top: 16px;
-}
-
-.member-content-media {
-  margin: 0;
-}
-
-.member-content-media__img,
-.member-content-media__video {
-  display: block;
-  width: 100%;
-  max-height: 420px;
-  object-fit: contain;
-  border-radius: 10px;
-  background: rgba(44, 51, 44, 0.04);
-}
-
-.member-content-media__caption {
-  margin-top: 6px;
-  font-size: 0.88rem;
-  color: rgba(44, 51, 44, 0.68);
-}
-
 .member-loan-items {
   margin: 8px 0;
   padding-left: 1.1rem;
-}
-
-.member-panels :deep(.v-expansion-panel-title) {
-  font-weight: 600;
 }
 
 .member-group-filters {
