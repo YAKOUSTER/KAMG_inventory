@@ -20,6 +20,15 @@
       <v-btn v-if="auth.can('agenda.write')" color="primary" to="/agenda/nouveau" prepend-icon="mdi-plus">
         Ajouter
       </v-btn>
+      <v-btn
+        v-if="gridEvents.length"
+        variant="text"
+        class="text-none"
+        href="#feuille-presences"
+        prepend-icon="mdi-table"
+      >
+        Feuille de présences
+      </v-btn>
     </div>
 
     <v-alert v-if="importMessage" :type="importOk ? 'success' : 'error'" variant="tonal" class="mb-4">

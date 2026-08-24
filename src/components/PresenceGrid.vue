@@ -387,17 +387,19 @@ thead .presence-grid__name-col {
 
 .presence-grid__cell {
   width: 100%;
-  min-height: 42px;
+  min-height: 44px;
   border: 0;
   background: transparent;
-  font-size: 1.05rem;
-  font-weight: 700;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
   cursor: pointer;
+  color: rgba(44, 51, 44, 0.28);
 }
 
 .presence-grid__cell:disabled {
   cursor: default;
-  opacity: 0.85;
+  opacity: 0.9;
 }
 
 .presence-grid__cell:focus-visible {
@@ -406,18 +408,18 @@ thead .presence-grid__name-col {
 }
 
 .presence-grid__cell.is-present {
-  background: rgba(76, 175, 80, 0.18);
-  color: #2e7d32;
+  background: #c8e6c9;
+  color: #1b5e20;
 }
 
 .presence-grid__cell.is-absent {
-  background: rgba(184, 92, 56, 0.16);
-  color: #8d3a22;
+  background: #ffcdd2;
+  color: #b71c1c;
 }
 
 .presence-grid__cell.is-maybe {
-  background: rgba(168, 181, 69, 0.22);
-  color: #5c6418;
+  background: #fff59d;
+  color: #5d4037;
 }
 
 .presence-grid__cell.is-empty {
