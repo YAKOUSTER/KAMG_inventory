@@ -32,6 +32,7 @@ import {
   updateEvent,
   deleteEvent,
   setEventPresence,
+  listPresences,
   listEvents,
   importGoogleCalendarEvents,
   getPublicCalendarIcs,
@@ -541,6 +542,10 @@ describe('json store', () => {
     const person = await createPerson({ nom: 'Le Gall', prenom: 'Anna', roles: ['danseur_concours'] }, options)
     const presence = await setEventPresence(created.id, { personId: person.id, statut: '1' }, options)
     assert.equal(presence.statut, 'present')
+    assert.equal((await listPresences(options)).length, 1)
+    const cleared = await setEventPresence(created.id, { personId: person.id, statut: '' }, options)
+    assert.equal(cleared.deleted, true)
+    assert.equal((await listPresences(options)).length, 0)
   })
 
   it('importe Google une fois puis gère tout le CRUD en local', async () => {

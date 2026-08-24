@@ -1,0 +1,64 @@
+import { describe, it } from 'node:test'
+import assert from 'node:assert/strict'
+import {
+  cellShortLabel,
+  cyclePresenceStatut,
+  indexPresences,
+  inscriptionEventsForGrid,
+  moveGridFocus,
+  presenceCellKey,
+  presenceColumnMeta,
+  statutFromGridKey,
+} from './presenceGrid.js'
+
+describe('cyclePresenceStatut', () => {
+  it('fait le tour 1 → 0 → ? → vide', () => {
+    assert.equal(cyclePresenceStatut(''), 'present')
+    assert.equal(cyclePresenceStatut('present'), 'absent')
+    assert.equal(cyclePresenceStatut('absent'), 'maybe')
+    assert.equal(cyclePresenceStatut('maybe'), '')
+  })
+})
+
+describe('statutFromGridKey', () => {
+  it('mappe le clavier type Excel', () => {
+    assert.equal(statutFromGridKey('1'), 'present')
+    assert.equal(statutFromGridKey('0'), 'absent')
+    assert.equal(statutFromGridKey('?'), 'maybe')
+    assert.equal(statutFromGridKey('Delete'), '')
+    assert.equal(statutFromGridKey('x'), null)
+  })
+})
+
+describe('moveGridFocus', () => {
+  it('reste dans la grille', () => {
+    assert.deepEqual(moveGridFocus(0, 0, 3, 4, -1, -1), { row: 0, col: 0 })
+    assert.deepEqual(moveGridFocus(2, 3, 3, 4, 1, 1), { row: 2, col: 3 })
+    assert.deepEqual(moveGridFocus(1, 1, 3, 4, 0, 1), { row: 1, col: 2 })
+  })
+})
+
+describe('inscriptionEventsForGrid', () => {
+  it('ne garde que les sorties à venir avec inscriptions', () => {
+    const events = [
+      { id: 'past', type: 'sortie', debut: '2026-01-01T18:00:00.000Z', inscriptionsOuvertes: true },
+      { id: 'rep', type: 'repetition', debut: '2026-12-01T18:00:00.000Z', inscriptionsOuvertes: false },
+      { id: 'ok', type: 'sortie', debut: '2026-12-02T18:00:00.000Z', inscriptionsOuvertes: true, titre: 'Fest' },
+    ]
+    const columns = inscriptionEventsForGrid(events, new Date('2026-08-24T12:00:00.000Z'))
+    assert.deepEqual(columns.map((event) => event.id), ['ok'])
+    assert.equal(presenceColumnMeta(columns[0]).dateLabel.length, 5)
+    assert.equal(cellShortLabel('present'), '1')
+  })
+})
+
+describe('indexPresences', () => {
+  it('indexe par événement et personne', () => {
+    const map = indexPresences([
+      { eventId: 'e1', personId: 'p1', statut: 'present' },
+      { eventId: 'e1', personId: 'p2', statut: 'absent' },
+    ])
+    assert.equal(map.get(presenceCellKey('e1', 'p1')).statut, 'present')
+    assert.equal(map.has(presenceCellKey('e2', 'p1')), false)
+  })
+})

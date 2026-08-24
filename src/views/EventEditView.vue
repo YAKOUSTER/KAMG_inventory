@@ -71,15 +71,17 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import FieldRow from '@/components/FieldRow.vue'
 import EventPresencePanel from '@/components/EventPresencePanel.vue'
 import { api } from '@/services/api'
 import { useAuthStore } from '@/stores/auth'
 import { EVENT_TYPES } from '@/domain/events'
+import { applyPresenceUpdate } from '@/domain/presence'
 
 const props = defineProps({ id: { type: String, default: '' } })
 const router = useRouter()
+const route = useRoute()
 const auth = useAuthStore()
 const ready = ref(false)
 const saving = ref(false)
@@ -144,6 +146,11 @@ onMounted(async () => {
       ])
       people.value = peopleList
       presences.value = presenceList
+    } else {
+      const debut = String(route.query.debut || '')
+      if (/^\d{4}-\d{2}-\d{2}$/.test(debut)) {
+        form.debut = `${debut}T18:00`
+      }
     }
     ready.value = true
   } catch (err) {
@@ -175,11 +182,7 @@ async function submit() {
 }
 
 function onPresenceUpdated(record) {
-  const index = presences.value.findIndex(
-    (entry) => entry.eventId === record.eventId && entry.personId === record.personId,
-  )
-  if (index === -1) presences.value = [...presences.value, record]
-  else presences.value.splice(index, 1, record)
+  presences.value = applyPresenceUpdate(presences.value, record)
 }
 
 async function remove() {

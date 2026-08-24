@@ -172,6 +172,28 @@ export function articleLayout(page) {
   }
 }
 
+export function contentExcerpt(corps, max = 180) {
+  const text = String(corps || '')
+    .replace(/^## .+$/gm, '')
+    .replace(/\n+/g, ' ')
+    .trim()
+  if (text.length <= max) return text
+  return `${text.slice(0, max).trim()}…`
+}
+
+export function publicContentSummary(page) {
+  if (!page?.id || page.publie === false) return null
+  return {
+    id: page.id,
+    categorie: page.categorie,
+    titre: page.titre,
+    excerpt: contentExcerpt(page.corps),
+    couverture: page.couverture || null,
+    ordre: page.ordre || 0,
+    publie: true,
+  }
+}
+
 export function groupPagesByCategory(pages = []) {
   const grouped = new Map()
   for (const page of filterPublishedPages(pages)) {

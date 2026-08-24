@@ -42,9 +42,11 @@ import {
   updateEvent,
   deleteEvent,
   listEventPresences,
+  listPresences,
   setEventPresence,
   listContentPages,
   getContentPage,
+  getPublicContentPage,
   createContentPage,
   updateContentPage,
   deleteContentPage,
@@ -140,11 +142,20 @@ export function createApiApp() {
     }),
     handle(() => getPublicMemberSpace()),
   )
+  app.get(
+    '/api/public/pages/:id',
+    createRateLimiter({
+      windowMs: 15 * 60 * 1000,
+      max: 120,
+      keyFn: (req) => req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || 'public-page',
+    }),
+    handle((req) => getPublicContentPage(req.params.id)),
+  )
   app.post(
     '/api/public/events/:id/presence',
     createRateLimiter({
       windowMs: 15 * 60 * 1000,
-      max: 60,
+      max: 240,
       keyFn: (req) => req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || 'public-presence',
     }),
     handle((req) => setEventPresence(req.params.id, req.body || {})),
@@ -331,6 +342,7 @@ export function createApiApp() {
     auth('agenda.read'),
     handle((req) => listEventPresences(req.params.id)),
   )
+  app.get('/api/presences', auth('agenda.read'), handle(() => listPresences()))
   app.put(
     '/api/events/:id/presences',
     auth('agenda.write'),

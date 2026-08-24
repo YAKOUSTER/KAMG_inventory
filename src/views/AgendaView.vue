@@ -30,119 +30,72 @@
       <v-col cols="12" md="4">
         <v-select v-model="typeFilter" :items="typeItems" label="Type" hide-details />
       </v-col>
-      <v-col cols="12" md="4">
-        <v-select v-model="periodFilter" :items="periodItems" label="Période" hide-details />
-      </v-col>
     </v-row>
 
-    <v-data-table
-      v-if="display.mdAndUp"
-      :headers="headers"
-      :items="filtered"
-      item-value="id"
-      :items-per-page="25"
-      no-data-text="Aucun événement"
-      @click:row="(_e, { item }) => openEvent(item)"
-    >
-      <template #item.debut="{ item }">{{ displayDateTime(item.debut) }}</template>
-      <template #item.type="{ item }">
-        <v-chip size="small" :color="eventTypeMeta(item.type).color" variant="tonal">
-          {{ eventTypeLabel(item.type) }}
-        </v-chip>
-      </template>
-      <template #item.publie="{ item }">
-        <v-chip size="small" :color="item.publie ? 'success' : 'warning'" variant="tonal">
-          {{ item.publie ? 'Publié' : 'Brouillon' }}
-        </v-chip>
-      </template>
-      <template #item.inscriptions="{ item }">
-        <v-chip v-if="item.inscriptionsOuvertes" size="small" color="deep-orange" variant="tonal">
-          Inscriptions
-        </v-chip>
-      </template>
-      <template #item.actions="{ item }">
-        <v-btn
-          size="small"
-          variant="text"
-          :to="{ name: 'event-edit', params: { id: item.id } }"
-          @click.stop
-        >
-          Modifier
-        </v-btn>
-      </template>
-    </v-data-table>
+    <AgendaCalendar
+      :events="filtered"
+      :can-write="auth.can('agenda.write')"
+      storage-key="kamg-agenda-gestion"
+      @select="openEvent"
+      @create="createOnDay"
+    />
 
-    <div v-else class="member-stack">
-      <article
-        v-for="event in filtered"
-        :key="event.id"
-        class="stack-item"
-        @click="openEvent(event)"
-      >
-        <div class="d-flex align-center ga-2 mb-1">
-          <v-chip size="small" :color="eventTypeMeta(event.type).color" variant="tonal">
-            {{ eventTypeLabel(event.type) }}
-          </v-chip>
-          <v-spacer />
-          <span class="text-caption">{{ displayDateTime(event.debut) }}</span>
-        </div>
-        <div class="text-subtitle-1 font-weight-bold">{{ event.titre }}</div>
-        <div class="text-body-2 text-medium-emphasis">{{ event.lieu || 'Lieu à préciser' }}</div>
-      </article>
-      <v-alert v-if="!filtered.length" type="info" variant="tonal">Aucun événement.</v-alert>
-    </div>
+    <section v-if="gridEvents.length && people.length" id="feuille-presences" class="presence-sheet">
+      <h2 class="text-subtitle-1 font-weight-bold mb-2">Feuille de présences</h2>
+      <p class="text-body-2 text-medium-emphasis mb-3">
+        Toutes les sorties à venir en colonnes. Cliquez une case ou naviguez au clavier comme dans un tableur.
+      </p>
+      <PresenceGrid
+        :events="gridEvents"
+        :people="people"
+        :presences="presences"
+        :readonly="!auth.can('agenda.write')"
+        @updated="onPresenceUpdated"
+      />
+    </section>
   </div>
 </template>
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useDisplay } from 'vuetify'
 import { useAuthStore } from '@/stores/auth'
 import { api } from '@/services/api'
-import { displayDateTime } from '@/domain/dates'
-import { EVENT_TYPES, eventTypeLabel, eventTypeMeta } from '@/domain/events'
+import { EVENT_TYPES } from '@/domain/events'
+import { applyPresenceUpdate } from '@/domain/presence'
+import { inscriptionEventsForGrid } from '@/domain/presenceGrid'
+import AgendaCalendar from '@/components/AgendaCalendar.vue'
+import PresenceGrid from '@/components/PresenceGrid.vue'
 
 const auth = useAuthStore()
 const router = useRouter()
-const display = useDisplay()
 const events = ref([])
+const people = ref([])
+const presences = ref([])
 const typeFilter = ref('Tout')
-const periodFilter = ref('avenir')
 const importing = ref(false)
 const importMessage = ref('')
 const importOk = ref(false)
 
 const typeItems = [{ title: 'Tout', value: 'Tout' }, ...EVENT_TYPES.map((type) => ({ title: type.label, value: type.id }))]
-const periodItems = [
-  { title: 'À venir', value: 'avenir' },
-  { title: 'Passés', value: 'passes' },
-  { title: 'Tous', value: 'tous' },
-]
-
-const headers = [
-  { title: 'Date', key: 'debut' },
-  { title: 'Type', key: 'type' },
-  { title: 'Titre', key: 'titre' },
-  { title: 'Lieu', key: 'lieu' },
-  { title: 'Statut', key: 'publie' },
-  { title: 'Inscriptions', key: 'inscriptions', sortable: false },
-  { title: '', key: 'actions', sortable: false },
-]
 
 const filtered = computed(() => {
-  const today = new Date().toISOString().slice(0, 10)
-  return events.value.filter((event) => {
-    if (typeFilter.value !== 'Tout' && event.type !== typeFilter.value) return false
-    const day = (event.debut || '').slice(0, 10)
-    if (periodFilter.value === 'avenir') return day >= today
-    if (periodFilter.value === 'passes') return day < today
-    return true
-  })
+  if (typeFilter.value === 'Tout') return events.value
+  return events.value.filter((event) => event.type === typeFilter.value)
 })
+
+const gridEvents = computed(() => inscriptionEventsForGrid(events.value))
 
 onMounted(async () => {
   events.value = await api.events()
+  const extras = []
+  if (auth.can('people.read')) extras.push(api.people().catch(() => []))
+  else extras.push(Promise.resolve([]))
+  if (auth.can('agenda.read')) extras.push(api.presences().catch(() => []))
+  else extras.push(Promise.resolve([]))
+  const [peopleList, presenceList] = await Promise.all(extras)
+  people.value = peopleList
+  presences.value = presenceList
 })
 
 async function importGoogle() {
@@ -166,12 +119,18 @@ function openEvent(event) {
     router.push({ name: 'event-edit', params: { id: event.id } })
   }
 }
+
+function createOnDay(isoDay) {
+  router.push({ name: 'event-create', query: { debut: isoDay } })
+}
+
+function onPresenceUpdated(record) {
+  presences.value = applyPresenceUpdate(presences.value, record)
+}
 </script>
 
 <style scoped>
-.member-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+.presence-sheet {
+  margin-top: 32px;
 }
 </style>

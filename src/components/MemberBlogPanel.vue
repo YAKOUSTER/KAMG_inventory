@@ -6,11 +6,14 @@
         Tous les articles
       </button>
 
-      <article class="member-blog-article">
-          <figure v-if="coverMedia(selectedPage)" class="member-blog-article__hero">
+      <v-progress-linear v-if="articleLoading" indeterminate color="primary" class="mb-4" />
+      <v-alert v-if="articleError" type="error" variant="tonal" class="mb-4">{{ articleError }}</v-alert>
+
+      <article v-if="fullArticle" class="member-blog-article">
+          <figure v-if="coverMedia(fullArticle || selectedPage)" class="member-blog-article__hero">
             <CoverImage
-              :src="coverMedia(selectedPage).url"
-              :alt="coverMedia(selectedPage).legende || selectedPage.titre"
+              :src="coverMedia(fullArticle || selectedPage).url"
+              :alt="coverMedia(fullArticle || selectedPage).legende || selectedPage.titre"
             />
           </figure>
 
@@ -176,7 +179,7 @@
               {{ categoryMeta(page.categorie).label }}
             </v-chip>
             <h3 class="member-blog-card__title">{{ page.titre }}</h3>
-            <p class="member-blog-card__excerpt">{{ excerpt(page.corps) }}</p>
+            <p class="member-blog-card__excerpt">{{ cardExcerpt(page) }}</p>
             <span class="member-blog-card__cta">
               Lire l’article
               <v-icon size="16">mdi-arrow-right</v-icon>
@@ -193,11 +196,13 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { api } from '@/services/api'
 import {
   CONTENT_CATEGORIES,
   articleLayout,
   contentCategoryMeta,
   contentCoverMedia,
+  contentExcerpt,
   filterPublishedPages,
 } from '@/domain/content'
 import CoverImage from '@/components/CoverImage.vue'
@@ -210,6 +215,9 @@ const route = useRoute()
 const router = useRouter()
 const categoryFilter = ref('tous')
 const selectedArticleId = ref(route.query.article || '')
+const fullPages = ref({})
+const articleLoading = ref(false)
+const articleError = ref('')
 
 const publishedPages = computed(() => filterPublishedPages(props.pages))
 
@@ -227,12 +235,14 @@ const selectedPage = computed(() =>
   publishedPages.value.find((page) => page.id === selectedArticleId.value) || null,
 )
 
-const showAgendaCard = computed(
-  () => !selectedPage.value && (categoryFilter.value === 'tous' || categoryFilter.value === 'commencer_danse'),
-)
+const fullArticle = computed(() => fullPages.value[selectedArticleId.value] || null)
 
 const selectedLayout = computed(() =>
-  selectedPage.value ? articleLayout(selectedPage.value) : { sections: [], gallery: [] },
+  fullArticle.value ? articleLayout(fullArticle.value) : { sections: [], gallery: [] },
+)
+
+const showAgendaCard = computed(
+  () => !selectedPage.value && (categoryFilter.value === 'tous' || categoryFilter.value === 'commencer_danse'),
 )
 
 watch(
@@ -253,6 +263,29 @@ watch(selectedArticleId, (value) => {
   router.replace({ query }).catch(() => {})
 })
 
+watch(
+  selectedArticleId,
+  async (id) => {
+    if (!id || fullPages.value[id]) return
+    const existing = publishedPages.value.find((page) => page.id === id)
+    if (existing && existing.corps != null) {
+      fullPages.value = { ...fullPages.value, [id]: existing }
+      return
+    }
+    articleLoading.value = true
+    articleError.value = ''
+    try {
+      const page = await api.publicPage(id)
+      fullPages.value = { ...fullPages.value, [id]: page }
+    } catch (err) {
+      articleError.value = err.message || 'Impossible de charger l’article.'
+    } finally {
+      articleLoading.value = false
+    }
+  },
+  { immediate: true },
+)
+
 function categoryMeta(category) {
   return contentCategoryMeta(category)
 }
@@ -261,13 +294,9 @@ function coverMedia(page) {
   return contentCoverMedia(page)
 }
 
-function excerpt(corps, max = 180) {
-  const text = String(corps || '')
-    .replace(/^## .+$/gm, '')
-    .replace(/\n+/g, ' ')
-    .trim()
-  if (text.length <= max) return text
-  return `${text.slice(0, max).trim()}…`
+function cardExcerpt(page) {
+  if (page?.excerpt) return page.excerpt
+  return contentExcerpt(page?.corps)
 }
 
 function openArticle(id) {

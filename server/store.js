@@ -11,9 +11,9 @@ import { applyReturnUpdate, countOpenTasks } from '../src/domain/itemTasks.js'
 import { ROLE_PRESETS, can, publicUser } from '../src/domain/auth.js'
 import { groupLoansByYear, normalizePerson, personDisplayName } from '../src/domain/person.js'
 import { todayLocal, formatDate } from '../src/domain/dates.js'
-import { normalizeEvent, filterPublishedEvents, upcomingEvents, pastEvents, sortEvents, applyEventOverlay, eventAcceptsInscriptions } from '../src/domain/events.js'
-import { normalizeContentPage, filterPublishedPages, sortContentPages } from '../src/domain/content.js'
-import { normalizePresenceRecord, publicPerson } from '../src/domain/presence.js'
+import { normalizeEvent, filterPublishedEvents, upcomingEvents, pastEvents, sortEvents, applyEventOverlay, eventAcceptsInscriptions, publicEventSummary, eventLocalDay } from '../src/domain/events.js'
+import { normalizeContentPage, filterPublishedPages, sortContentPages, publicContentSummary } from '../src/domain/content.js'
+import { normalizePresenceRecord, publicPerson, isClearedPresenceStatut } from '../src/domain/presence.js'
 import { normalizeAgendaSettings, DEFAULT_AGENDA_SETTINGS, publishedCalendarName } from '../src/domain/agendaSettings.js'
 import { buildCalendarIcs } from '../src/domain/ics.js'
 import { fetchGoogleCalendarEvents, resetGoogleCalendarCache } from './googleCalendar.js'
@@ -563,8 +563,8 @@ export async function getLoan(id, options = {}) {
 
 function detectNewGoogleEvents(db, googleEvents = []) {
   const known = new Set(db.settings?.agenda?.knownGoogleEventUids || [])
-  const today = new Date().toISOString().slice(0, 10)
-  const upcoming = googleEvents.filter((event) => (event.debut || '').slice(0, 10) >= today)
+  const today = todayLocal()
+  const upcoming = googleEvents.filter((event) => eventLocalDay(event) >= today)
   const allUids = upcoming.map((event) => event.googleUid).filter(Boolean)
   if (!known.size) {
     return { baseline: true, newEvents: [], allUids }
@@ -937,6 +937,15 @@ export async function getPublicMemberSpace(options = {}) {
   const merged = listLocalEvents(db)
   const publishedEvents = filterPublishedEvents(merged)
   const now = new Date()
+  const upcoming = upcomingEvents(publishedEvents, now).map((event) =>
+    publicEventSummary(event, { includeDescription: true }),
+  )
+  const past = pastEvents(publishedEvents, now)
+    .slice(0, 12)
+    .map((event) => publicEventSummary(event, { includeDescription: false }))
+  const inscriptionIds = new Set(
+    upcoming.filter((event) => eventAcceptsInscriptions(event)).map((event) => event.id),
+  )
   const loans = db.loans
     .filter((loan) => loan.statut !== 'retourne')
     .map((loan) => decorateLoan(loan, db))
@@ -944,12 +953,14 @@ export async function getPublicMemberSpace(options = {}) {
   return {
     agenda: db.settings?.agenda || normalizeAgendaSettings({}),
     events: {
-      upcoming: upcomingEvents(publishedEvents, now),
-      past: pastEvents(publishedEvents, now).slice(0, 30),
+      upcoming,
+      past,
     },
-    pages: filterPublishedPages(db.pages || []),
+    pages: filterPublishedPages(db.pages || []).map(publicContentSummary).filter(Boolean),
     people: (db.people || []).map(publicPerson).filter(Boolean),
-    presences: Array.isArray(db.presences) ? db.presences : [],
+    presences: (Array.isArray(db.presences) ? db.presences : []).filter((entry) =>
+      inscriptionIds.has(entry.eventId),
+    ),
     loans,
   }
 }
@@ -1168,6 +1179,11 @@ export async function listEventPresences(eventId, options = {}) {
   return (db.presences || []).filter((entry) => entry.eventId === eventId)
 }
 
+export async function listPresences(options = {}) {
+  const db = await readDb(options)
+  return Array.isArray(db.presences) ? db.presences : []
+}
+
 export async function setEventPresence(eventId, payload, options = {}) {
   return withDb(async (db) => {
     const event = listLocalEvents(db).find((entry) => entry.id === eventId)
@@ -1175,17 +1191,37 @@ export async function setEventPresence(eventId, payload, options = {}) {
     if (!eventAcceptsInscriptions(event)) {
       throw Object.assign(new Error('Les inscriptions ne sont pas ouvertes pour cet événement'), { status: 400 })
     }
-    const person = (db.people || []).find((entry) => entry.id === payload.personId)
+    const personId = String(payload?.personId ?? '').trim()
+    if (!personId || personId.length > 80) {
+      throw Object.assign(new Error('Personne introuvable'), { status: 400 })
+    }
+    const person = (db.people || []).find((entry) => entry.id === personId)
     if (!person) throw Object.assign(new Error('Personne introuvable'), { status: 400 })
-    const record = runDomain(normalizePresenceRecord, {
-      eventId,
-      personId: payload.personId,
-      statut: payload.statut,
-    })
+
     db.presences = db.presences || []
     const index = db.presences.findIndex(
-      (entry) => entry.eventId === eventId && entry.personId === record.personId,
+      (entry) => entry.eventId === eventId && entry.personId === personId,
     )
+
+    if (isClearedPresenceStatut(payload?.statut)) {
+      if (index >= 0) db.presences.splice(index, 1)
+      if (options.actor) {
+        appendAudit(db, options.actor, {
+          action: 'event.presence',
+          entityType: 'event',
+          entityId: eventId,
+          entityLabel: event.titre,
+          summary: `Présence effacée pour ${personLabel(person)}`,
+        })
+      }
+      return { eventId, personId, statut: '', deleted: true }
+    }
+
+    const record = runDomain(normalizePresenceRecord, {
+      eventId,
+      personId,
+      statut: payload.statut,
+    })
     if (index === -1) db.presences.push(record)
     else db.presences[index] = record
     if (options.actor) {
@@ -1210,6 +1246,14 @@ export async function getContentPage(id, options = {}) {
   const db = await readDb(options)
   const page = (db.pages || []).find((entry) => entry.id === id)
   return page || null
+}
+
+export async function getPublicContentPage(id, options = {}) {
+  const page = await getContentPage(id, options)
+  if (!page || page.publie === false) {
+    throw Object.assign(new Error('Contenu introuvable'), { status: 404 })
+  }
+  return page
 }
 
 export async function createContentPage(payload, options = {}) {

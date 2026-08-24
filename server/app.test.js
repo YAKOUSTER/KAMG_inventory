@@ -192,5 +192,78 @@ describe('API HTTP', () => {
     const res = await request(app, 'GET', '/api/health')
     assert.equal(res.headers.get('x-content-type-options'), 'nosniff')
     assert.equal(res.headers.get('x-frame-options'), 'SAMEORIGIN')
+    assert.match(res.headers.get('content-security-policy') || '', /script-src 'self'/)
+  })
+
+  it('refuse la feuille de présences sans connexion', async () => {
+    const app = createApiApp()
+    const res = await request(app, 'GET', '/api/presences')
+    assert.equal(res.status, 401)
+  })
+
+  it('valide, liste et efface les présences comme une feuille Excel', async () => {
+    const app = createApiApp()
+    const login = await request(app, 'POST', '/api/auth/login', {
+      body: { login: 'admin', password: 'admin' },
+    })
+    const person = await request(app, 'POST', '/api/people', {
+      token: login.body.token,
+      body: { nom: 'Le Gall', prenom: 'Anna', roles: ['danseur_enfant'] },
+    })
+    const event = await request(app, 'POST', '/api/events', {
+      token: login.body.token,
+      body: {
+        type: 'sortie',
+        titre: 'Sortie grille',
+        debut: '2027-04-12T17:00:00.000Z',
+        inscriptionsOuvertes: true,
+      },
+    })
+    const invalid = await request(app, 'PUT', `/api/events/${event.body.id}/presences`, {
+      token: login.body.token,
+      body: { personId: person.body.id, statut: 'xyz' },
+    })
+    assert.equal(invalid.status, 400)
+
+    const unknownPerson = await request(app, 'POST', `/api/public/events/${event.body.id}/presence`, {
+      body: { personId: 'personne-inconnue', statut: '1' },
+    })
+    assert.equal(unknownPerson.status, 400)
+
+    const saved = await request(app, 'POST', `/api/public/events/${event.body.id}/presence`, {
+      body: { personId: person.body.id, statut: '1' },
+    })
+    assert.equal(saved.status, 200)
+
+    const sheet = await request(app, 'GET', '/api/presences', { token: login.body.token })
+    assert.equal(sheet.status, 200)
+    assert.equal(sheet.body.length, 1)
+
+    const cleared = await request(app, 'POST', `/api/public/events/${event.body.id}/presence`, {
+      body: { personId: person.body.id, statut: '' },
+    })
+    assert.equal(cleared.status, 200)
+    assert.equal(cleared.body.deleted, true)
+
+    const empty = await request(app, 'GET', '/api/presences', { token: login.body.token })
+    assert.equal(empty.body.length, 0)
+
+    const missingPage = await request(app, 'GET', '/api/public/pages/inconnu')
+    assert.equal(missingPage.status, 404)
+
+    const page = await request(app, 'POST', '/api/pages', {
+      token: login.body.token,
+      body: { titre: 'Tuto public', categorie: 'vocabulaire', corps: 'Texte utile', publie: true },
+    })
+    assert.equal(page.status, 200)
+    const publicPage = await request(app, 'GET', `/api/public/pages/${page.body.id}`)
+    assert.equal(publicPage.status, 200)
+    assert.equal(publicPage.body.corps, 'Texte utile')
+
+    const space = await request(app, 'GET', '/api/public/espace-membre')
+    const summary = space.body.pages.find((entry) => entry.id === page.body.id)
+    assert.ok(summary)
+    assert.equal(summary.corps, undefined)
+    assert.match(summary.excerpt || '', /Texte/)
   })
 })

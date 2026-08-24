@@ -67,6 +67,12 @@
                 {{ group.label }}
               </v-chip>
             </div>
+
+            <AgendaCalendar
+              :events="calendarEvents"
+              storage-key="kamg-agenda-member"
+              @select="openMemberEvent"
+            />
           </section>
 
           <section
@@ -76,92 +82,25 @@
           >
             <h2 class="member-section__title">S’inscrire aux sorties</h2>
             <p class="member-section__intro">
-              Indiquez si vous serez présent (1), absent (0) ou peut-être (?) — plus besoin du tableur Excel.
-              Un onglet « Groupe enfant » et « Groupe concours » permet de filtrer comme avant.
+              Indiquez si vous serez présent (1), absent (0) ou peut-être (?) — une colonne par date,
+              comme l’ancien tableur Excel. Choisissez votre nom, puis passez de case en case.
             </p>
-            <div class="member-stack">
-              <article v-for="event in inscriptionEvents" :key="`insc-${event.id}`" class="member-card">
-                <div class="member-card__head">
-                  <div class="d-flex flex-wrap ga-1 align-center">
-                    <v-chip size="small" :color="eventTypeMeta(event.type).color" variant="tonal">
-                      {{ eventTypeLabel(event.type) }}
-                    </v-chip>
-                    <v-chip
-                      v-for="group in event.groupes || []"
-                      :key="`${event.id}-${group}`"
-                      size="x-small"
-                      variant="outlined"
-                    >
-                      {{ eventGroupLabel(group) }}
-                    </v-chip>
-                  </div>
-                  <time class="member-card__date">{{ displayDateTime(event.debut) }}</time>
-                </div>
-                <h3 class="member-card__title">{{ event.titre }}</h3>
-                <p v-if="event.lieu" class="member-card__meta">{{ event.lieu }}</p>
-                <EventPresencePanel
-                  class="mt-3"
-                  :event="event"
-                  :people="data.people || []"
-                  :presences="data.presences || []"
-                  public-mode
-                  @updated="onPresenceUpdated"
-                />
-              </article>
-            </div>
-          </section>
-
-          <section class="member-section">
-            <h2 class="member-section__title">À venir</h2>
-            <div v-if="filteredUpcoming.length" class="member-stack">
-              <article v-for="event in filteredUpcoming" :key="event.id" class="member-card">
-                <div class="member-card__head">
-                  <div class="d-flex flex-wrap ga-1 align-center">
-                    <v-chip size="small" :color="eventTypeMeta(event.type).color" variant="tonal">
-                      {{ eventTypeLabel(event.type) }}
-                    </v-chip>
-                    <v-chip
-                      v-for="group in event.groupes || []"
-                      :key="`${event.id}-${group}`"
-                      size="x-small"
-                      variant="outlined"
-                    >
-                      {{ eventGroupLabel(group) }}
-                    </v-chip>
-                  </div>
-                  <time class="member-card__date">{{ displayDateTime(event.debut) }}</time>
-                </div>
-                <h3 class="member-card__title">{{ event.titre }}</h3>
-                <p v-if="event.lieu" class="member-card__meta">{{ event.lieu }}</p>
-                <p v-if="event.description" class="member-card__body">{{ event.description }}</p>
-                <AddToCalendarButton :event="event" />
-              </article>
-            </div>
-            <v-alert v-else type="info" variant="tonal">Aucun événement à venir pour ce filtre.</v-alert>
-          </section>
-
-          <section v-if="filteredPast.length" class="member-section">
-            <h2 class="member-section__title">Récemment passés</h2>
-            <div class="member-stack">
-              <article v-for="event in filteredPast" :key="event.id" class="member-card member-card--muted">
-                <div class="member-card__head">
-                  <v-chip size="small" variant="tonal">{{ eventTypeLabel(event.type) }}</v-chip>
-                  <time class="member-card__date">{{ displayDateTime(event.debut) }}</time>
-                </div>
-                <h3 class="member-card__title">{{ event.titre }}</h3>
-                <p v-if="event.lieu" class="member-card__meta">{{ event.lieu }}</p>
-              </article>
-            </div>
+            <PresenceGrid
+              :events="inscriptionEvents"
+              :people="data.people || []"
+              :presences="data.presences || []"
+              public-mode
+              @updated="onPresenceUpdated"
+            />
           </section>
         </v-tabs-window-item>
 
         <v-tabs-window-item value="infos">
-          <MemberBlogPanel v-if="data.pages?.length" :pages="data.pages" />
-          <v-alert v-else type="info" variant="tonal">Aucun contenu publié pour le moment.</v-alert>
+          <MemberBlogPanel v-if="infosVisited" :pages="data.pages" />
         </v-tabs-window-item>
 
         <v-tabs-window-item value="emprunts">
-          <section class="member-section">
+          <section v-if="empruntsVisited" class="member-section">
             <h2 class="member-section__title">Emprunts en cours</h2>
             <p class="member-section__intro">
               Pièces actuellement sorties du patrimoine du cercle (spectacles, répétitions, etc.).
@@ -191,6 +130,37 @@
         </v-tabs-window-item>
       </v-tabs-window>
     </template>
+
+    <v-dialog v-model="eventDialog" max-width="520">
+      <v-card v-if="selectedEvent" class="pa-2">
+        <v-card-title class="text-wrap">{{ selectedEvent.titre }}</v-card-title>
+        <v-card-text>
+          <div class="d-flex flex-wrap ga-1 mb-3">
+            <v-chip size="small" :color="eventTypeMeta(selectedEvent.type).color" variant="tonal">
+              {{ eventTypeLabel(selectedEvent.type) }}
+            </v-chip>
+            <v-chip
+              v-for="group in selectedEvent.groupes || []"
+              :key="group"
+              size="x-small"
+              variant="outlined"
+            >
+              {{ eventGroupLabel(group) }}
+            </v-chip>
+          </div>
+          <p class="mb-1"><strong>{{ displayDateTime(selectedEvent.debut) }}</strong></p>
+          <p v-if="selectedEvent.lieu" class="mb-2">{{ selectedEvent.lieu }}</p>
+          <p v-if="selectedEvent.description" class="text-body-2" style="white-space: pre-wrap">
+            {{ selectedEvent.description }}
+          </p>
+          <AddToCalendarButton :event="selectedEvent" />
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" class="text-none" @click="eventDialog = false">Fermer</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -203,6 +173,7 @@ import { displayDate, displayDateTime } from '@/domain/dates'
 import { eventTypeLabel, eventTypeMeta, eventAcceptsInscriptions } from '@/domain/events'
 import { loanStatusColor, loanStatusLabel, openLoanLines } from '@/domain/loans'
 import { EVENT_GROUPS, eventGroupLabel, filterEventsByGroup } from '@/domain/eventGroups'
+import { applyPresenceUpdate } from '@/domain/presence'
 import {
   appCalendarIcsUrl,
   appCalendarWebcalUrl,
@@ -210,7 +181,8 @@ import {
 } from '@/domain/agendaSettings'
 import AddToCalendarButton from '@/components/AddToCalendarButton.vue'
 import MemberBlogPanel from '@/components/MemberBlogPanel.vue'
-import EventPresencePanel from '@/components/EventPresencePanel.vue'
+import AgendaCalendar from '@/components/AgendaCalendar.vue'
+import PresenceGrid from '@/components/PresenceGrid.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -219,20 +191,28 @@ const error = ref('')
 const data = ref(null)
 const tab = ref(route.query.onglet || 'agenda')
 const groupFilter = ref('tous')
+const infosVisited = ref(route.query.onglet === 'infos')
+const empruntsVisited = ref(route.query.onglet === 'emprunts')
+const selectedEvent = ref(null)
+const eventDialog = ref(false)
 
 const eventGroups = EVENT_GROUPS
 const origin = typeof window === 'undefined' ? '' : window.location.origin
 const googleSubscribeUrl = computed(() => googleCalendarSubscribeFromIcsUrl(appCalendarIcsUrl(origin)))
 const icalSubscribeUrl = computed(() => appCalendarWebcalUrl(origin))
-const filteredUpcoming = computed(() =>
-  filterEventsByGroup(data.value?.events?.upcoming || [], groupFilter.value),
-)
-const filteredPast = computed(() => filterEventsByGroup(data.value?.events?.past || [], groupFilter.value))
+
+const allEvents = computed(() => [
+  ...(data.value?.events?.upcoming || []),
+  ...(data.value?.events?.past || []),
+])
+const calendarEvents = computed(() => filterEventsByGroup(allEvents.value, groupFilter.value))
 const inscriptionEvents = computed(() =>
   (data.value?.events?.upcoming || []).filter((event) => eventAcceptsInscriptions(event)),
 )
 
 watch(tab, (value) => {
+  if (value === 'infos') infosVisited.value = true
+  if (value === 'emprunts') empruntsVisited.value = true
   const query = { ...route.query, onglet: value }
   if (value !== 'agenda') delete query.inscriptions
   router.replace({ query }).catch(() => {})
@@ -270,17 +250,18 @@ onMounted(async () => {
 
 function onPresenceUpdated(record) {
   if (!data.value) return
-  const list = Array.isArray(data.value.presences) ? [...data.value.presences] : []
-  const index = list.findIndex((entry) => entry.eventId === record.eventId && entry.personId === record.personId)
-  if (index === -1) list.push(record)
-  else list[index] = record
-  data.value = { ...data.value, presences: list }
+  data.value = { ...data.value, presences: applyPresenceUpdate(data.value.presences, record) }
+}
+
+function openMemberEvent(event) {
+  selectedEvent.value = event
+  eventDialog.value = true
 }
 </script>
 
 <style scoped>
 .member-space {
-  max-width: 920px;
+  max-width: 1280px;
   margin: 0 auto;
   padding: 20px 16px 40px;
 }
@@ -353,10 +334,6 @@ function onPresenceUpdated(record) {
   padding: 14px 16px;
 }
 
-.member-card--muted {
-  opacity: 0.82;
-}
-
 .member-card__head {
   display: flex;
   align-items: center;
@@ -379,11 +356,6 @@ function onPresenceUpdated(record) {
   margin: 0;
   font-size: 0.92rem;
   color: rgba(44, 51, 44, 0.72);
-}
-
-.member-card__body {
-  margin: 8px 0 0;
-  white-space: pre-wrap;
 }
 
 .member-loan-items {

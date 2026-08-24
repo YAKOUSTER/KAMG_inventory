@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { addDays, displayDate, formatDate, todayLocal } from './dates.js'
+import { addDays, displayDate, displayTime, formatDate, todayLocal } from './dates.js'
 
 describe('todayLocal', () => {
   it('utilise le calendrier local, pas UTC', () => {
@@ -22,5 +22,12 @@ describe('displayDate', () => {
   it('affiche jour/mois/année', () => {
     assert.equal(formatDate('2026-08-15T18:00:00.000Z'), '2026-08-15')
     assert.equal(displayDate('2026-08-15T18:00:00.000Z'), '15/08/2026')
+  })
+})
+
+describe('displayTime', () => {
+  it('affiche l’heure locale', () => {
+    const stamp = new Date(2026, 7, 15, 18, 5).toISOString()
+    assert.equal(displayTime(stamp), '18:05')
   })
 })

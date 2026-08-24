@@ -18,13 +18,37 @@ export function presenceStatutMeta(statut) {
   return PRESENCE_STATUTS.find((entry) => entry.id === statut) || null
 }
 
+export function isClearedPresenceStatut(value) {
+  if (value == null) return false
+  const raw = String(value).trim().toLowerCase()
+  return raw === '' || raw === 'clear' || raw === 'none' || raw === '-' || raw === 'empty'
+}
+
 export function normalizePresenceStatut(value) {
+  if (isClearedPresenceStatut(value)) {
+    throw new Error('Statut de présence invalide (1, 0 ou ?)')
+  }
   const raw = String(value ?? '').trim().toLowerCase()
   if (PRESENCE_IDS.has(raw)) return raw
   if (raw === '1' || raw === 'oui' || raw === 'présent' || raw === 'present') return 'present'
   if (raw === '0' || raw === 'non' || raw === 'absent') return 'absent'
   if (raw === '?' || raw === 'peut-etre' || raw === 'peut-être' || raw === 'maybe') return 'maybe'
   throw new Error('Statut de présence invalide (1, 0 ou ?)')
+}
+
+export function applyPresenceUpdate(list = [], record) {
+  const next = Array.isArray(list) ? [...list] : []
+  if (!record?.eventId || !record?.personId) return next
+  const index = next.findIndex(
+    (entry) => entry.eventId === record.eventId && entry.personId === record.personId,
+  )
+  if (record.deleted || isClearedPresenceStatut(record.statut)) {
+    if (index >= 0) next.splice(index, 1)
+    return next
+  }
+  if (index === -1) next.push(record)
+  else next[index] = record
+  return next
 }
 
 export function publicPerson(person) {

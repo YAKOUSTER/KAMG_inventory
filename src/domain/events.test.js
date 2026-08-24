@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { applyEventOverlay, normalizeEvent, upcomingEvents, pastEvents } from './events.js'
+import { applyEventOverlay, normalizeEvent, upcomingEvents, pastEvents, publicEventSummary } from './events.js'
 
 describe('normalizeEvent', () => {
   it('normalise un événement publié', () => {
@@ -71,6 +71,21 @@ describe('event lists', () => {
   it('filtre les événements à venir publiés', () => {
     const list = upcomingEvents(events, new Date('2026-08-22T12:00:00.000Z'))
     assert.deepEqual(list.map((event) => event.id), ['2'])
+  })
+
+  it('produit un résumé public sans description trop longue', () => {
+    const summary = publicEventSummary(
+      {
+        id: '2',
+        type: 'sortie',
+        titre: 'Future',
+        debut: '2026-12-01T10:00:00.000Z',
+        description: 'x'.repeat(500),
+      },
+      { includeDescription: true },
+    )
+    assert.equal(summary.description.length, 400)
+    assert.equal(summary.inscriptionsOuvertes, true)
   })
 
   it('filtre les événements passés publiés', () => {

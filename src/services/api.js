@@ -101,10 +101,12 @@ export const api = {
   updateEvent: (id, body) => request(`/api/events/${encodeURIComponent(id)}`, { method: 'PUT', body }),
   deleteEvent: (id) => request(`/api/events/${encodeURIComponent(id)}`, { method: 'DELETE' }),
   eventPresences: (id) => request(`/api/events/${encodeURIComponent(id)}/presences`),
+  presences: () => request('/api/presences'),
   setEventPresence: (id, body) =>
     request(`/api/events/${encodeURIComponent(id)}/presences`, { method: 'PUT', body }),
   setPublicEventPresence: (id, body) =>
     publicRequest(`/api/public/events/${encodeURIComponent(id)}/presence`, { method: 'POST', body }),
+  publicPage: (id) => publicRequest(`/api/public/pages/${encodeURIComponent(id)}`),
   agendaSettings: () => request('/api/settings/agenda'),
   updateAgendaSettings: (body) => request('/api/settings/agenda', { method: 'PUT', body }),
   syncAgenda: () => request('/api/agenda/sync', { method: 'POST', body: {} }),

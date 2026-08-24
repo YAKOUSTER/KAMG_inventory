@@ -1,7 +1,9 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import {
+  applyPresenceUpdate,
   filterPeopleForPresence,
+  isClearedPresenceStatut,
   normalizePresenceStatut,
   summarizePresences,
 } from './presence.js'
@@ -39,5 +41,17 @@ describe('summarizePresences', () => {
     assert.equal(summary.present, 1)
     assert.equal(summary.absent, 1)
     assert.equal(summary.total, 2)
+  })
+})
+
+describe('applyPresenceUpdate', () => {
+  it('ajoute, remplace et efface une case', () => {
+    let list = applyPresenceUpdate([], { eventId: 'e1', personId: 'a', statut: 'present' })
+    assert.equal(list.length, 1)
+    list = applyPresenceUpdate(list, { eventId: 'e1', personId: 'a', statut: 'absent' })
+    assert.equal(list[0].statut, 'absent')
+    list = applyPresenceUpdate(list, { eventId: 'e1', personId: 'a', deleted: true })
+    assert.equal(list.length, 0)
+    assert.equal(isClearedPresenceStatut(''), true)
   })
 })

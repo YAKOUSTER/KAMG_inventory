@@ -29,7 +29,7 @@
       class="mb-3"
     />
 
-    <div class="d-flex flex-wrap ga-2 mb-3">
+      <div class="d-flex flex-wrap ga-2 mb-3">
       <v-btn
         v-for="statut in PRESENCE_STATUTS"
         :key="statut.id"
@@ -42,6 +42,15 @@
         @click="choose(statut.id)"
       >
         {{ statut.short }} — {{ statut.label }}
+      </v-btn>
+      <v-btn
+        size="small"
+        class="text-none"
+        variant="text"
+        :disabled="!selectedPersonId || !currentStatut || saving"
+        @click="choose('')"
+      >
+        Effacer
       </v-btn>
     </div>
 

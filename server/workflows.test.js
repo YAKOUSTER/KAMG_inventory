@@ -12,8 +12,13 @@ import {
   getStats,
   ensureDb,
   resetStoreCache,
+  createEvent,
+  setEventPresence,
+  listPresences,
+  getPublicMemberSpace,
 } from './store.js'
 import { countOpenTasks } from '../src/domain/itemTasks.js'
+import { inscriptionEventsForGrid } from '../src/domain/presenceGrid.js'
 
 async function tmpOptions() {
   const dir = await mkdtemp(path.join(os.tmpdir(), 'patrimoine-wf-'))
@@ -99,5 +104,50 @@ describe('workflows métier', () => {
         return true
       },
     )
+  })
+
+  it('remplit une feuille de présences puis l’expose à l’espace membres', async () => {
+    const anna = await createPerson(
+      { nom: 'Le Gall', prenom: 'Anna', roles: ['danseur_enfant'] },
+      options,
+    )
+    const zoe = await createPerson(
+      { nom: 'Bihan', prenom: 'Zoé', roles: ['danseur_concours'] },
+      options,
+    )
+    const first = await createEvent(
+      {
+        type: 'sortie',
+        titre: 'Sortie A',
+        debut: '2027-03-10T18:00:00.000Z',
+        inscriptionsOuvertes: true,
+        publie: true,
+      },
+      options,
+    )
+    const second = await createEvent(
+      {
+        type: 'sortie',
+        titre: 'Sortie B',
+        debut: '2027-03-17T18:00:00.000Z',
+        inscriptionsOuvertes: true,
+        publie: true,
+      },
+      options,
+    )
+    await setEventPresence(first.id, { personId: anna.id, statut: '1' }, options)
+    await setEventPresence(second.id, { personId: anna.id, statut: '?' }, options)
+    await setEventPresence(first.id, { personId: zoe.id, statut: '0' }, options)
+    assert.equal((await listPresences(options)).length, 3)
+
+    const cleared = await setEventPresence(second.id, { personId: anna.id, statut: '' }, options)
+    assert.equal(cleared.deleted, true)
+    assert.equal((await listPresences(options)).length, 2)
+
+    const space = await getPublicMemberSpace(options)
+    const columns = inscriptionEventsForGrid(space.events.upcoming)
+    assert.equal(columns.length, 2)
+    assert.ok(space.presences.every((entry) => entry.eventId === first.id || entry.eventId === second.id))
+    assert.ok(space.pages.every((page) => page.corps === undefined))
   })
 })

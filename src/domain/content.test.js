@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { filterPublishedPages, groupPagesByCategory, normalizeContentPage, contentCoverMedia, articleLayout } from './content.js'
+import { filterPublishedPages, groupPagesByCategory, normalizeContentPage, contentCoverMedia, articleLayout, publicContentSummary } from './content.js'
 
 describe('normalizeContentPage', () => {
   it('normalise une page publiée', () => {
@@ -86,5 +86,22 @@ describe('filterPublishedPages', () => {
       { id: 'b', categorie: 'autre', titre: 'B', publie: false },
     ])
     assert.equal(pages.length, 1)
+  })
+})
+
+describe('publicContentSummary', () => {
+  it('expose un extrait sans le corps complet', () => {
+    const summary = publicContentSummary({
+      id: 'p1',
+      categorie: 'vocabulaire',
+      titre: 'Bragoù',
+      corps: '## Titre\nUn pantalon large pour la danse.',
+      publie: true,
+      ordre: 1,
+    })
+    assert.equal(summary.id, 'p1')
+    assert.match(summary.excerpt, /pantalon/)
+    assert.equal(summary.corps, undefined)
+    assert.equal(publicContentSummary({ id: 'x', publie: false }), null)
   })
 })

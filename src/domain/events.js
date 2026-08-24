@@ -1,3 +1,5 @@
+import { todayLocal } from './dates.js'
+
 export const EVENT_TYPES = [
   { id: 'repetition', label: 'Répétition', icon: 'mdi-calendar-clock', color: 'primary' },
   { id: 'sortie', label: 'Sortie', icon: 'mdi-drama-masks', color: 'deep-orange' },
@@ -113,15 +115,46 @@ export function filterPublishedEvents(events = []) {
   return events.filter((event) => event.publie !== false)
 }
 
+export function eventLocalDay(event) {
+  if (!event?.debut) return ''
+  const date = new Date(event.debut)
+  if (Number.isNaN(date.getTime())) return String(event.debut).slice(0, 10)
+  return todayLocal(date)
+}
+
 export function upcomingEvents(events = [], now = new Date()) {
-  const today = now.toISOString().slice(0, 10)
-  return sortEvents(filterPublishedEvents(events).filter((event) => (event.debut || '').slice(0, 10) >= today))
+  const today = todayLocal(now)
+  return sortEvents(
+    filterPublishedEvents(events).filter((event) => {
+      const day = eventLocalDay(event)
+      return day && day >= today
+    }),
+  )
 }
 
 export function pastEvents(events = [], now = new Date()) {
-  const today = now.toISOString().slice(0, 10)
+  const today = todayLocal(now)
   return sortEvents(
-    filterPublishedEvents(events).filter((event) => (event.debut || '').slice(0, 10) < today),
+    filterPublishedEvents(events).filter((event) => {
+      const day = eventLocalDay(event)
+      return day && day < today
+    }),
     { ascending: false },
   )
+}
+
+export function publicEventSummary(event, { includeDescription = false } = {}) {
+  if (!event?.id) return null
+  const description = includeDescription ? String(event.description || '').slice(0, 400) : ''
+  return {
+    id: event.id,
+    type: event.type,
+    titre: event.titre,
+    debut: event.debut,
+    fin: event.fin || event.debut,
+    lieu: event.lieu || '',
+    description,
+    inscriptionsOuvertes: eventAcceptsInscriptions(event),
+    groupes: Array.isArray(event.groupes) ? event.groupes : [],
+  }
 }
