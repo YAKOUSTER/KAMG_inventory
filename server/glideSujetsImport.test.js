@@ -13,7 +13,7 @@ describe('normalizeGlideMediaUrl', () => {
   it('convertit les liens Google Drive en URL directe', () => {
     assert.equal(
       normalizeGlideMediaUrl('https://drive.google.com/file/d/ABC123/view?usp=sharing'),
-      'https://drive.google.com/uc?export=view&id=ABC123',
+      'https://lh3.googleusercontent.com/d/ABC123=w1200',
     )
   })
 })
@@ -60,7 +60,7 @@ describe('buildMediasFromRow', () => {
       'Zone 1 : vidéo': 'https://youtu.be/abc123',
     })
     assert.equal(medias.length, 2)
-    assert.equal(medias[1].type, 'video')
+    assert.equal(medias[1].type, 'youtube')
   })
 })
 

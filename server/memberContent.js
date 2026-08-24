@@ -5,7 +5,7 @@ import { normalizeContentPage } from '../src/domain/content.js'
 import { SUPERSEDED_BY_GLIDE_IMPORT } from './glideSujetsImport.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-export const MEMBER_CONTENT_VERSION = 4
+export const MEMBER_CONTENT_VERSION = 6
 
 /** Anciennes pages du jeu d'exemple remplacées par member-pages.json */
 export const LEGACY_SUPERSEDED_PAGE_IDS = new Set([
@@ -50,12 +50,7 @@ export function normalizeMemberPages(pages = []) {
 export function upsertMemberPage(existing, seed) {
   const seedMedias = seed.medias || []
   const existingMedias = existing.medias || []
-  const medias =
-    seedMedias.length > 0
-      ? seedMedias
-      : existingMedias.length > 0
-        ? existingMedias
-        : []
+  const medias = seedMedias.length > 0 ? seedMedias : existingMedias
 
   const seedCorps = String(seed.corps ?? '').trim()
   const existingCorps = String(existing.corps ?? '').trim()

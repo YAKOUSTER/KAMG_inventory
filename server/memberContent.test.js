@@ -18,14 +18,14 @@ describe('shouldImportMemberContent', () => {
 })
 
 describe('upsertMemberPage', () => {
-  it('préfère le texte seed plus complet et conserve les médias existants', () => {
+  it('préfère le texte seed plus complet et conserve les médias locaux si le seed n’en a pas', () => {
     const merged = upsertMemberPage(
       {
         id: 'page-ca',
         categorie: 'newsletter',
         titre: 'CA',
         corps: 'Court',
-        medias: [{ type: 'image', url: '/uploads/photo.jpg', legende: 'Photo', ordre: 0 }],
+        medias: [{ type: 'image', url: 'https://example.com/photo.jpg', legende: 'Photo', ordre: 0 }],
         ordre: 1,
         publie: true,
         createdAt: '2026-01-01T00:00:00.000Z',
@@ -43,6 +43,30 @@ describe('upsertMemberPage', () => {
     assert.ok(merged.corps.includes('Texte plus long'))
     assert.equal(merged.medias.length, 1)
     assert.equal(merged.titre, 'Conseil d’administration')
+  })
+
+  it('remplace les médias quand le seed Glide en fournit', () => {
+    const merged = upsertMemberPage(
+      {
+        id: 'page-ca',
+        categorie: 'newsletter',
+        titre: 'CA',
+        corps: 'Court',
+        medias: [{ type: 'image', url: 'https://drive.google.com/uc?export=view&id=OLD', ordre: 0 }],
+        ordre: 1,
+        publie: true,
+      },
+      {
+        id: 'page-ca',
+        categorie: 'newsletter',
+        titre: 'CA',
+        corps: 'Texte long',
+        medias: [{ type: 'image', url: 'https://lh3.googleusercontent.com/d/NEW=w1200', ordre: 0 }],
+        ordre: 1,
+        publie: true,
+      },
+    )
+    assert.equal(merged.medias[0].url, 'https://lh3.googleusercontent.com/d/NEW=w1200')
   })
 })
 

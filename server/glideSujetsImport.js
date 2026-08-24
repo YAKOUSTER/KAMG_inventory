@@ -1,7 +1,10 @@
 /** Import des sujets Glide (export CSV) vers les pages espace membres. */
 
-const DRIVE_FILE_RE = /drive\.google\.com\/file\/d\/([^/?]+)/
-const YOUTUBE_RE = /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)/
+import {
+  mediaKind as resolveMediaKind,
+  normalizeMediaUrl,
+  youtubeEmbedUrl,
+} from '../src/domain/mediaUrls.js'
 
 const PAGE_ID_BY_TITLE = {
   Bienvenue: 'page-bienvenue',
@@ -86,25 +89,21 @@ function trim(value) {
 }
 
 export function normalizeGlideMediaUrl(raw) {
-  const url = trim(raw)
-  if (!url) return ''
-  const drive = url.match(DRIVE_FILE_RE)
-  if (drive) return `https://drive.google.com/uc?export=view&id=${drive[1]}`
-  return url
+  return normalizeMediaUrl(raw)
 }
 
 export function mediaKind(url) {
-  if (!url) return 'image'
-  if (YOUTUBE_RE.test(url) || /\.mp4(\?|$)/i.test(url)) return 'video'
-  return 'image'
+  return resolveMediaKind(url)
 }
 
 function pushMedia(medias, seen, rawUrl, legende = '') {
-  const url = normalizeGlideMediaUrl(rawUrl)
+  const kind = resolveMediaKind(rawUrl)
+  const url =
+    kind === 'youtube' ? youtubeEmbedUrl(rawUrl) : normalizeMediaUrl(rawUrl)
   if (!url || seen.has(url)) return
   seen.add(url)
   medias.push({
-    type: mediaKind(url),
+    type: kind === 'youtube' ? 'youtube' : kind,
     url,
     legende: trim(legende),
     ordre: medias.length,

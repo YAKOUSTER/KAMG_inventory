@@ -7,13 +7,13 @@
       </button>
 
       <article class="member-blog-article">
-        <figure v-if="coverMedia(selectedPage)" class="member-blog-article__hero">
-          <img
-            :src="coverMedia(selectedPage).url"
-            :alt="coverMedia(selectedPage).legende || selectedPage.titre"
-            loading="lazy"
-          />
-        </figure>
+          <figure v-if="coverMedia(selectedPage)" class="member-blog-article__hero">
+            <img
+              :src="mediaDisplayUrl(coverMedia(selectedPage).url)"
+              :alt="coverMedia(selectedPage).legende || selectedPage.titre"
+              loading="lazy"
+            />
+          </figure>
 
         <header class="member-blog-article__header">
           <v-chip size="small" variant="tonal" color="primary" class="text-none">
@@ -48,9 +48,18 @@
           >
             <img
               v-if="media.type === 'image'"
-              :src="media.url"
+              :src="mediaDisplayUrl(media.url)"
               :alt="media.legende || selectedPage.titre"
               loading="lazy"
+            />
+            <iframe
+              v-else-if="media.type === 'youtube'"
+              :src="media.url"
+              class="member-blog-article__youtube"
+              title="Vidéo"
+              loading="lazy"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen
             />
             <video
               v-else
@@ -105,7 +114,7 @@
         >
           <figure v-if="coverMedia(page)" class="member-blog-card__cover">
             <img
-              :src="coverMedia(page).url"
+              :src="mediaDisplayUrl(coverMedia(page).url)"
               :alt="coverMedia(page).legende || page.titre"
               loading="lazy"
             />
@@ -141,6 +150,7 @@ import {
   contentCategoryMeta,
   filterPublishedPages,
 } from '@/domain/content'
+import { normalizeMediaUrl } from '@/domain/mediaUrls'
 
 const props = defineProps({
   pages: { type: Array, default: () => [] },
@@ -187,6 +197,10 @@ function categoryMeta(category) {
 
 function coverMedia(page) {
   return (page.medias || []).find((media) => media.type === 'image') || null
+}
+
+function mediaDisplayUrl(url) {
+  return normalizeMediaUrl(url)
 }
 
 function galleryMedias(page) {
@@ -430,11 +444,18 @@ function closeArticle() {
 }
 
 .member-blog-article__figure img,
-.member-blog-article__figure video {
+.member-blog-article__figure video,
+.member-blog-article__youtube {
   display: block;
   width: 100%;
   border-radius: 12px;
   background: rgba(44, 51, 44, 0.04);
+}
+
+.member-blog-article__youtube {
+  aspect-ratio: 16 / 9;
+  border: 0;
+  min-height: 200px;
 }
 
 .member-blog-article__figure figcaption {

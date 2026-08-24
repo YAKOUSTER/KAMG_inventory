@@ -15,7 +15,7 @@ const pages = normalizeMemberPages(importGlideSujetsCsv(csv))
 
 const output = {
   meta: {
-    memberContentVersion: 4,
+    memberContentVersion: 6,
     source: 'Export Glide — App Sujets.csv',
     importedAt: new Date().toISOString(),
     pageCount: pages.length,

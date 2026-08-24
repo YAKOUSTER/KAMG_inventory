@@ -3,7 +3,7 @@
     "version": 1,
     "updatedAt": "2026-08-15T00:00:00.000Z",
     "label": "Jeu d'exemple — patrimoine textile KAMG",
-    "memberContentVersion": 4
+    "memberContentVersion": 6
   },
   "referentiels": {
     "categories": [
@@ -702,13 +702,13 @@
       "medias": [
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=1KG8myKBb2bFqxnMmrwBf09_IYk8MKcIU",
+          "url": "https://lh3.googleusercontent.com/d/1KG8myKBb2bFqxnMmrwBf09_IYk8MKcIU=w1200",
           "legende": "Bienvenue",
           "ordre": 0
         },
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=1nnBM-x7zqKsnjXfVj7WA3T7MRA_7CsyF",
+          "url": "https://lh3.googleusercontent.com/d/1nnBM-x7zqKsnjXfVj7WA3T7MRA_7CsyF=w1200",
           "legende": "Qu'est ce qu'un cercle celtique ?",
           "ordre": 1
         },
@@ -720,15 +720,15 @@
         },
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=1IK8JKYDmRo65VlHvrr3zHZM3mBjvSt8q",
+          "url": "https://lh3.googleusercontent.com/d/1IK8JKYDmRo65VlHvrr3zHZM3mBjvSt8q=w1200",
           "legende": "Notre cercle du Moulin Vert",
           "ordre": 3
         }
       ],
       "ordre": 1,
       "publie": true,
-      "createdAt": "2026-08-24T09:38:41.662Z",
-      "updatedAt": "2026-08-24T09:38:41.662Z"
+      "createdAt": "2026-08-24T09:57:44.726Z",
+      "updatedAt": "2026-08-24T09:57:44.726Z"
     },
     {
       "id": "page-inscription",
@@ -738,21 +738,21 @@
       "medias": [
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=1egXbqZHPrY4hIrNJiBLMB29yQcJTL0HD",
+          "url": "https://lh3.googleusercontent.com/d/1egXbqZHPrY4hIrNJiBLMB29yQcJTL0HD=w1200",
           "legende": "Comment s'inscrire ?",
           "ordre": 0
         },
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=1nnBM-x7zqKsnjXfVj7WA3T7MRA_7CsyF",
+          "url": "https://lh3.googleusercontent.com/d/1nnBM-x7zqKsnjXfVj7WA3T7MRA_7CsyF=w1200",
           "legende": "Le règlement",
           "ordre": 1
         }
       ],
       "ordre": 1,
       "publie": true,
-      "createdAt": "2026-08-24T09:38:41.662Z",
-      "updatedAt": "2026-08-24T09:38:41.662Z"
+      "createdAt": "2026-08-24T09:57:44.726Z",
+      "updatedAt": "2026-08-24T09:57:44.726Z"
     },
     {
       "id": "page-fournitures-danseurs",
@@ -762,57 +762,57 @@
       "medias": [
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=1ex3ezIaVgQ_Mm38nREbhHglLmx9kLy3a",
+          "url": "https://lh3.googleusercontent.com/d/1ex3ezIaVgQ_Mm38nREbhHglLmx9kLy3a=w1200",
           "legende": "Danseurs : fournitures",
           "ordre": 0
         },
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=10BgeS26BcKOSjE1q6NecsijBys7ZiZ9A",
+          "url": "https://lh3.googleusercontent.com/d/10BgeS26BcKOSjE1q6NecsijBys7ZiZ9A=w1200",
           "legende": "1. En haut sous le costume",
           "ordre": 1
         },
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=1KgXjUf-edaMV2_yGqWHQG-WEoW2ZSOn6",
+          "url": "https://lh3.googleusercontent.com/d/1KgXjUf-edaMV2_yGqWHQG-WEoW2ZSOn6=w1200",
           "legende": "2. Les chaussettes",
           "ordre": 2
         },
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=1ScWt1xzcNP37ctUUNdry6ZOOj5pZGluH",
+          "url": "https://lh3.googleusercontent.com/d/1ScWt1xzcNP37ctUUNdry6ZOOj5pZGluH=w1200",
           "legende": "3. Les chaussures",
           "ordre": 3
         },
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=1oq1nIyxxDjvcRDhrKvshJ0gJadB-e9II",
+          "url": "https://lh3.googleusercontent.com/d/1oq1nIyxxDjvcRDhrKvshJ0gJadB-e9II=w1200",
           "legende": "4. Matériel coiffure",
           "ordre": 4
         },
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=1TgWoW3zypnt7SQ7tRkyda7V1DhM6EMXT",
+          "url": "https://lh3.googleusercontent.com/d/1TgWoW3zypnt7SQ7tRkyda7V1DhM6EMXT=w1200",
           "legende": "5. Protection costume",
           "ordre": 5
         },
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=1owm5VpD1MseuqzZ2JtVixS5agUfmfe6j",
+          "url": "https://lh3.googleusercontent.com/d/1owm5VpD1MseuqzZ2JtVixS5agUfmfe6j=w1200",
           "legende": "6. Matériel costume",
           "ordre": 6
         },
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=1i1yBUPYG3Mtay45If7o1p2RWX01VORdi",
+          "url": "https://lh3.googleusercontent.com/d/1i1yBUPYG3Mtay45If7o1p2RWX01VORdi=w1200",
           "legende": "7. Parapluie",
           "ordre": 7
         }
       ],
       "ordre": 1,
       "publie": true,
-      "createdAt": "2026-08-24T09:38:41.663Z",
-      "updatedAt": "2026-08-24T09:38:41.663Z"
+      "createdAt": "2026-08-24T09:57:44.726Z",
+      "updatedAt": "2026-08-24T09:57:44.726Z"
     },
     {
       "id": "page-fournitures-danseuses",
@@ -822,63 +822,63 @@
       "medias": [
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=1ex3ezIaVgQ_Mm38nREbhHglLmx9kLy3a",
+          "url": "https://lh3.googleusercontent.com/d/1ex3ezIaVgQ_Mm38nREbhHglLmx9kLy3a=w1200",
           "legende": "Danseuses : fournitures",
           "ordre": 0
         },
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=189QgZ28HDgHLZC-6EAJg0bPjL22BZRfL",
+          "url": "https://lh3.googleusercontent.com/d/189QgZ28HDgHLZC-6EAJg0bPjL22BZRfL=w1200",
           "legende": "1. En haut sous le costume",
           "ordre": 1
         },
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=1Rc-aVRqBbSixu3dMpnt_hFQIXXpdrnPp",
+          "url": "https://lh3.googleusercontent.com/d/1Rc-aVRqBbSixu3dMpnt_hFQIXXpdrnPp=w1200",
           "legende": "2. Les sous-vêtements",
           "ordre": 2
         },
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=1E2uAwK24V6lN7ggcehqk5lQVVeBcXRBE",
+          "url": "https://lh3.googleusercontent.com/d/1E2uAwK24V6lN7ggcehqk5lQVVeBcXRBE=w1200",
           "legende": "3. Les bas et collants",
           "ordre": 3
         },
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=1bBqSEkXSH-2wvlBizpESS1vvG29e5rAF",
+          "url": "https://lh3.googleusercontent.com/d/1bBqSEkXSH-2wvlBizpESS1vvG29e5rAF=w1200",
           "legende": "4. Les soulliers / bottines",
           "ordre": 4
         },
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=1rPAl3YR4UXebk4ckUU-eaxvUYT3qBFtR",
+          "url": "https://lh3.googleusercontent.com/d/1rPAl3YR4UXebk4ckUU-eaxvUYT3qBFtR=w1200",
           "legende": "5. Matériel coiffure",
           "ordre": 5
         },
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=1AOj-cTIkyL_Qor3kbLgnSJY9-IjDP6-y",
+          "url": "https://lh3.googleusercontent.com/d/1AOj-cTIkyL_Qor3kbLgnSJY9-IjDP6-y=w1200",
           "legende": "6. Protection costume",
           "ordre": 6
         },
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=10q4klgsSor2TBaoaZ5fkxQP2l50Ccwzs",
+          "url": "https://lh3.googleusercontent.com/d/10q4klgsSor2TBaoaZ5fkxQP2l50Ccwzs=w1200",
           "legende": "7. Matériel costume",
           "ordre": 7
         },
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=1i1yBUPYG3Mtay45If7o1p2RWX01VORdi",
+          "url": "https://lh3.googleusercontent.com/d/1i1yBUPYG3Mtay45If7o1p2RWX01VORdi=w1200",
           "legende": "8. Parapluie",
           "ordre": 8
         }
       ],
       "ordre": 2,
       "publie": true,
-      "createdAt": "2026-08-24T09:38:41.663Z",
-      "updatedAt": "2026-08-24T09:38:41.663Z"
+      "createdAt": "2026-08-24T09:57:44.726Z",
+      "updatedAt": "2026-08-24T09:57:44.726Z"
     },
     {
       "id": "page-communication",
@@ -888,15 +888,15 @@
       "medias": [
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=168tbBwasFu1VFZ9KdcFCpudcAYmLDLNH",
+          "url": "https://lh3.googleusercontent.com/d/168tbBwasFu1VFZ9KdcFCpudcAYmLDLNH=w1200",
           "legende": "Nos outils de communication",
           "ordre": 0
         }
       ],
       "ordre": 2,
       "publie": true,
-      "createdAt": "2026-08-24T09:38:41.663Z",
-      "updatedAt": "2026-08-24T09:38:41.663Z"
+      "createdAt": "2026-08-24T09:57:44.726Z",
+      "updatedAt": "2026-08-24T09:57:44.726Z"
     },
     {
       "id": "page-pays-glazig",
@@ -906,8 +906,8 @@
       "medias": [],
       "ordre": 1,
       "publie": true,
-      "createdAt": "2026-08-24T09:38:41.663Z",
-      "updatedAt": "2026-08-24T09:38:41.663Z"
+      "createdAt": "2026-08-24T09:57:44.726Z",
+      "updatedAt": "2026-08-24T09:57:44.726Z"
     },
     {
       "id": "page-costume-petit-dimanche",
@@ -917,27 +917,27 @@
       "medias": [
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=1IJ636g12ZqPQYnnbaGQcKamnB8su8BMM",
+          "url": "https://lh3.googleusercontent.com/d/1IJ636g12ZqPQYnnbaGQcKamnB8su8BMM=w1200",
           "legende": "Le costume de \"Petit dimanche\"",
           "ordre": 0
         },
         {
-          "type": "video",
-          "url": "https://youtu.be/SOf62Fvaeo4",
+          "type": "youtube",
+          "url": "https://www.youtube.com/embed/SOf62Fvaeo4",
           "legende": "1 / La coiffure",
           "ordre": 1
         },
         {
-          "type": "video",
-          "url": "https://youtu.be/C0AVVdbbgXM",
+          "type": "youtube",
+          "url": "https://www.youtube.com/embed/C0AVVdbbgXM",
           "legende": "2 / Le costume",
           "ordre": 2
         }
       ],
       "ordre": 2,
       "publie": true,
-      "createdAt": "2026-08-24T09:38:41.663Z",
-      "updatedAt": "2026-08-24T09:38:41.663Z"
+      "createdAt": "2026-08-24T09:57:44.726Z",
+      "updatedAt": "2026-08-24T09:57:44.726Z"
     },
     {
       "id": "page-costume-velour",
@@ -947,165 +947,159 @@
       "medias": [
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=1pMkyDASJPX7yEig5OU9Ev0s_34g8xyiP",
+          "url": "https://lh3.googleusercontent.com/d/1pMkyDASJPX7yEig5OU9Ev0s_34g8xyiP=w1200",
           "legende": "Le costume velour 1935-1938",
           "ordre": 0
         },
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=1hKhPxuM7_G_T8o5hzMeRlRkQ-qunmIAM",
+          "url": "https://lh3.googleusercontent.com/d/1hKhPxuM7_G_T8o5hzMeRlRkQ-qunmIAM=w1200",
           "legende": "1/ Inspiration",
           "ordre": 1
         },
         {
           "type": "image",
-          "url": "277246805_526041459026580_6777485947074881710_n.jpg",
+          "url": "https://lh3.googleusercontent.com/d/1BAspp2CFz41O6vr-FrzSDr30LMxA4STr=w1200",
           "legende": "",
           "ordre": 2
         },
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=1BAspp2CFz41O6vr-FrzSDr30LMxA4STr",
+          "url": "https://lh3.googleusercontent.com/d/1xcv8DIaR_PEL1muA4skAQtCYapwcJILl=w1200",
           "legende": "",
           "ordre": 3
         },
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=1xcv8DIaR_PEL1muA4skAQtCYapwcJILl",
+          "url": "https://lh3.googleusercontent.com/d/1IDXD2XmwJQqa8ZM_7IbS3-HZdkodpQFn=w1200",
           "legende": "",
           "ordre": 4
         },
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=1IDXD2XmwJQqa8ZM_7IbS3-HZdkodpQFn",
+          "url": "https://lh3.googleusercontent.com/d/1T73ZVkwq5Mn8a9bE7zNq9tffKA5yuC96=w1200",
           "legende": "",
           "ordre": 5
         },
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=1T73ZVkwq5Mn8a9bE7zNq9tffKA5yuC96",
+          "url": "https://lh3.googleusercontent.com/d/1zbYeoLBrTGMlBazXyjS-XlmSutrO5_PU=w1200",
           "legende": "",
           "ordre": 6
         },
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=1zbYeoLBrTGMlBazXyjS-XlmSutrO5_PU",
+          "url": "https://lh3.googleusercontent.com/d/1gAB244yHKPyei9WGgYXxm5wJuJV5hvwM=w1200",
           "legende": "",
           "ordre": 7
         },
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=1gAB244yHKPyei9WGgYXxm5wJuJV5hvwM",
+          "url": "https://lh3.googleusercontent.com/d/1gsBny5diJtygyC2tDWOhtlo4UAUbKfrc=w1200",
           "legende": "",
           "ordre": 8
         },
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=1gsBny5diJtygyC2tDWOhtlo4UAUbKfrc",
+          "url": "https://lh3.googleusercontent.com/d/1wyTEBExmDHZpt33JtapegByIkxISElTd=w1200",
           "legende": "",
           "ordre": 9
         },
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=1wyTEBExmDHZpt33JtapegByIkxISElTd",
+          "url": "https://lh3.googleusercontent.com/d/10pPA0tC-ovREWX_hTuStcCtPowZePgBe=w1200",
           "legende": "",
           "ordre": 10
         },
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=10pPA0tC-ovREWX_hTuStcCtPowZePgBe",
+          "url": "https://lh3.googleusercontent.com/d/1VhoShl_NBVue2xlvRkFvTPOz-rda8z-B=w1200",
           "legende": "",
           "ordre": 11
         },
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=1VhoShl_NBVue2xlvRkFvTPOz-rda8z-B",
+          "url": "https://lh3.googleusercontent.com/d/1TnfDGtAmHBZ5hQL-S3XeFeU5FnxdoMqj=w1200",
           "legende": "",
           "ordre": 12
         },
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=1TnfDGtAmHBZ5hQL-S3XeFeU5FnxdoMqj",
+          "url": "https://lh3.googleusercontent.com/d/1u_BoE9OlTMnKLvio47Plq61EguY_Mpid=w1200",
           "legende": "",
           "ordre": 13
         },
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=1u_BoE9OlTMnKLvio47Plq61EguY_Mpid",
+          "url": "https://lh3.googleusercontent.com/d/1HBxRNFXfM0XvnFZM8FjcK-GTIs8iH1rf=w1200",
           "legende": "",
           "ordre": 14
         },
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=1HBxRNFXfM0XvnFZM8FjcK-GTIs8iH1rf",
+          "url": "https://lh3.googleusercontent.com/d/1tQA92YyWtSuF0sTi2_1oeYFe7DXszFeb=w1200",
           "legende": "",
           "ordre": 15
         },
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=1tQA92YyWtSuF0sTi2_1oeYFe7DXszFeb",
+          "url": "https://lh3.googleusercontent.com/d/1n7brb4Ouz80-r1moWvuRw2kZxRrfQzAB=w1200",
           "legende": "",
           "ordre": 16
         },
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=1n7brb4Ouz80-r1moWvuRw2kZxRrfQzAB",
+          "url": "https://lh3.googleusercontent.com/d/1RgD632skszqlhjRu08aynksDTL-3JjrT=w1200",
           "legende": "",
           "ordre": 17
         },
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=1RgD632skszqlhjRu08aynksDTL-3JjrT",
+          "url": "https://lh3.googleusercontent.com/d/11JfYyP6ZDRcX1DDo0ooearDYQrKOHTfy=w1200",
           "legende": "",
           "ordre": 18
         },
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=11JfYyP6ZDRcX1DDo0ooearDYQrKOHTfy",
+          "url": "https://lh3.googleusercontent.com/d/1qWFXg-fZ38CuZdSx6-b9MWpho42iK64X=w1200",
           "legende": "",
           "ordre": 19
         },
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=1qWFXg-fZ38CuZdSx6-b9MWpho42iK64X",
+          "url": "https://lh3.googleusercontent.com/d/1QgIi12drSyESHUySERaahYWtAZr9jtwl=w1200",
           "legende": "",
           "ordre": 20
         },
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=1QgIi12drSyESHUySERaahYWtAZr9jtwl",
+          "url": "https://lh3.googleusercontent.com/d/15lMW4Nm7vHaXhwbd9sToI7F_xi39efa_=w1200",
           "legende": "",
           "ordre": 21
         },
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=15lMW4Nm7vHaXhwbd9sToI7F_xi39efa_",
+          "url": "https://lh3.googleusercontent.com/d/15r4k16n2E__8UTU7dsCpVhVHsblEP9Cs=w1200",
           "legende": "",
           "ordre": 22
         },
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=15r4k16n2E__8UTU7dsCpVhVHsblEP9Cs",
+          "url": "https://lh3.googleusercontent.com/d/17qLw-p8PY2WYZkXY9waLqeI5vBXzhpRz=w1200",
           "legende": "",
           "ordre": 23
         },
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=17qLw-p8PY2WYZkXY9waLqeI5vBXzhpRz",
+          "url": "https://lh3.googleusercontent.com/d/11I-S8CAg4nkA0OemsaItx9k903_UIhIg=w1200",
           "legende": "",
           "ordre": 24
-        },
-        {
-          "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=11I-S8CAg4nkA0OemsaItx9k903_UIhIg",
-          "legende": "",
-          "ordre": 25
         }
       ],
       "ordre": 3,
       "publie": true,
-      "createdAt": "2026-08-24T09:38:41.663Z",
-      "updatedAt": "2026-08-24T09:38:41.663Z"
+      "createdAt": "2026-08-24T09:57:44.726Z",
+      "updatedAt": "2026-08-24T09:57:44.726Z"
     },
     {
       "id": "page-spectacle-2024",
@@ -1122,8 +1116,8 @@
       ],
       "ordre": 3,
       "publie": true,
-      "createdAt": "2026-08-24T09:38:41.663Z",
-      "updatedAt": "2026-08-24T09:38:41.663Z"
+      "createdAt": "2026-08-24T09:57:44.726Z",
+      "updatedAt": "2026-08-24T09:57:44.726Z"
     },
     {
       "id": "page-rond-pagan",
@@ -1140,8 +1134,8 @@
       ],
       "ordre": 1,
       "publie": true,
-      "createdAt": "2026-08-24T09:38:41.663Z",
-      "updatedAt": "2026-08-24T09:38:41.663Z"
+      "createdAt": "2026-08-24T09:57:44.726Z",
+      "updatedAt": "2026-08-24T09:57:44.726Z"
     },
     {
       "id": "page-pile-menu",
@@ -1150,16 +1144,16 @@
       "corps": "Chant\n\nQue la barbe m'en fume!\nPilé Menu\n\n-----\n\nC'est dans 10 ans, je chante et je ris\nJe bois un coup, je me divertis\nLe lendemain je jure : Que la barbe m'en fume !\nJ'aimerais mieux l'argent dans ma poche,\nEt n'avoir jamais fait la bamboche\n\nC'est dans 9 ans...\n\n\nVidéo : 2:03\n\nEn passant par le moulin blanc\nPilé Menu \n\n---\n\nY a bien dix ans, petit mouton blanc,\nJ'ai vu la meunière du moulin à vent\n« Y a bien dix ans, petit mouton blanc, »\n« J'ai vu la meunière du moulin à vent »\nEt elle voulait que je la caresse\nEt moi qui n'avait pas le temps\nLa belle attendait la belle à tantôt\nJe vous caresserai comme il faut\n« La belle attendait la belle à tantôt »\n« Je vous caresserai comme il faut »\n\nVidéo ci-dessous à 4:56\n\nVidéo : https://www.youtube.com/watch?v=9AXpScIft8E&ab_channel=TristanGloaguen",
       "medias": [
         {
-          "type": "video",
-          "url": "https://www.youtube.com/watch?v=9AXpScIft8E&ab_channel=TristanGloaguen",
+          "type": "youtube",
+          "url": "https://www.youtube.com/embed/9AXpScIft8E",
           "legende": "",
           "ordre": 0
         }
       ],
       "ordre": 2,
       "publie": true,
-      "createdAt": "2026-08-24T09:38:41.663Z",
-      "updatedAt": "2026-08-24T09:38:41.663Z"
+      "createdAt": "2026-08-24T09:57:44.726Z",
+      "updatedAt": "2026-08-24T09:57:44.726Z"
     },
     {
       "id": "page-ridee-6-temps",
@@ -1169,8 +1163,8 @@
       "medias": [],
       "ordre": 3,
       "publie": true,
-      "createdAt": "2026-08-24T09:38:41.663Z",
-      "updatedAt": "2026-08-24T09:38:41.663Z"
+      "createdAt": "2026-08-24T09:57:44.726Z",
+      "updatedAt": "2026-08-24T09:57:44.726Z"
     },
     {
       "id": "page-sorties-excel",
@@ -1180,8 +1174,8 @@
       "medias": [],
       "ordre": 4,
       "publie": true,
-      "createdAt": "2026-08-24T09:38:41.663Z",
-      "updatedAt": "2026-08-24T09:38:41.663Z"
+      "createdAt": "2026-08-24T09:57:44.726Z",
+      "updatedAt": "2026-08-24T09:57:44.726Z"
     },
     {
       "id": "page-mener-animation",
@@ -1191,33 +1185,33 @@
       "medias": [
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=1E1Y_BP8cfItEdahwqM34a7pWh0t6_5dR",
+          "url": "https://lh3.googleusercontent.com/d/1E1Y_BP8cfItEdahwqM34a7pWh0t6_5dR=w1200",
           "legende": "Mener une animation",
           "ordre": 0
         },
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=1CExgaInvnXRlbGlUzug6vH71ZBz4Zvfi",
+          "url": "https://lh3.googleusercontent.com/d/1CExgaInvnXRlbGlUzug6vH71ZBz4Zvfi=w1200",
           "legende": "1 / Type de sortie",
           "ordre": 1
         },
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=1lTICnn98qvDD1djN9wD6QYNgSVZGhPE9",
+          "url": "https://lh3.googleusercontent.com/d/1lTICnn98qvDD1djN9wD6QYNgSVZGhPE9=w1200",
           "legende": "2 / Faire le programme",
           "ordre": 2
         },
         {
           "type": "image",
-          "url": "https://drive.google.com/uc?export=view&id=1V9Y7xJvmyvXpgqyADGfIYKDgbxE1EdwW",
+          "url": "https://lh3.googleusercontent.com/d/1V9Y7xJvmyvXpgqyADGfIYKDgbxE1EdwW=w1200",
           "legende": "3/ Faire une introduction",
           "ordre": 3
         }
       ],
       "ordre": 3,
       "publie": true,
-      "createdAt": "2026-08-24T09:38:41.663Z",
-      "updatedAt": "2026-08-24T09:38:41.663Z"
+      "createdAt": "2026-08-24T09:57:44.726Z",
+      "updatedAt": "2026-08-24T09:57:44.726Z"
     },
     {
       "id": "page-liste-danses",
@@ -1227,8 +1221,8 @@
       "medias": [],
       "ordre": 4,
       "publie": true,
-      "createdAt": "2026-08-24T09:38:41.663Z",
-      "updatedAt": "2026-08-24T09:38:41.663Z"
+      "createdAt": "2026-08-24T09:57:44.726Z",
+      "updatedAt": "2026-08-24T09:57:44.726Z"
     },
     {
       "id": "page-checklist-spectacle",
@@ -1238,8 +1232,8 @@
       "medias": [],
       "ordre": 5,
       "publie": true,
-      "createdAt": "2026-08-24T09:38:41.663Z",
-      "updatedAt": "2026-08-24T09:38:41.663Z"
+      "createdAt": "2026-08-24T09:57:44.726Z",
+      "updatedAt": "2026-08-24T09:57:44.726Z"
     }
   ]
 }

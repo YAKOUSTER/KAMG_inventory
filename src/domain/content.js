@@ -1,3 +1,5 @@
+import { normalizeMediaUrl } from './mediaUrls.js'
+
 export const CONTENT_CATEGORIES = [
   { id: 'presentation', label: 'Présentation', icon: 'mdi-information-outline' },
   { id: 'newsletter', label: 'Infos & newsletter', icon: 'mdi-bullhorn-outline' },
@@ -31,8 +33,10 @@ function normalizeIsoDate(value) {
 
 function normalizeMedia(entry = {}, index = 0) {
   if (!entry) return null
-  const type = entry.type === 'video' ? 'video' : 'image'
-  const url = trim(entry.url)
+  const rawType = trim(entry.type)
+  const type =
+    rawType === 'youtube' ? 'youtube' : rawType === 'video' ? 'video' : 'image'
+  const url = type === 'youtube' ? trim(entry.url) : normalizeMediaUrl(entry.url)
   if (!url) return null
   return {
     type,
