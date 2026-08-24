@@ -97,6 +97,81 @@ export function filterPublishedPages(pages = []) {
   return sortContentPages(pages.filter((page) => page.publie !== false))
 }
 
+function parseLine(raw) {
+  const text = String(raw || '').trim()
+  if (!text) return null
+  const linkMatch = text.match(/^Lien\s*:\s*(https?:\/\/\S+)/i)
+  if (linkMatch) {
+    return { kind: 'link', url: linkMatch[1], label: linkMatch[1] }
+  }
+  const videoMatch = text.match(/^Vidéo\s*:\s*(https?:\/\/\S+)/i)
+  if (videoMatch) {
+    return { kind: 'video', url: videoMatch[1] }
+  }
+  if (/^https?:\/\/\S+$/.test(text)) {
+    return { kind: 'link', url: text, label: text }
+  }
+  return { kind: 'text', text }
+}
+
+export function parseContentBlocks(corps) {
+  return String(corps || '')
+    .split(/\n(?=## )/)
+    .map((chunk) => {
+      const trimmed = chunk.trim()
+      if (!trimmed) return null
+      const headingMatch = trimmed.match(/^## (.+?)(?:\n([\s\S]*))?$/)
+      if (headingMatch) {
+        return {
+          heading: headingMatch[1].trim(),
+          lines: (headingMatch[2] || '').split('\n').map(parseLine).filter(Boolean),
+        }
+      }
+      return {
+        heading: '',
+        lines: trimmed.split('\n').map(parseLine).filter(Boolean),
+      }
+    })
+    .filter(Boolean)
+}
+
+function headingKey(value) {
+  return String(value || '').trim().toLowerCase()
+}
+
+/** Associe chaque image/vidéo de zone (légende = sous-titre CSV) à son paragraphe. */
+export function articleLayout(page) {
+  const coverUrl = contentCoverMedia(page)?.url
+  const medias = (page.medias || []).filter((media) => media.url !== coverUrl)
+  const used = new Set()
+
+  const sections = parseContentBlocks(page?.corps).map((block) => {
+    const attached = []
+    if (block.heading) {
+      const key = headingKey(block.heading)
+      for (const media of medias) {
+        if (used.has(media.url)) continue
+        if (headingKey(media.legende) === key) {
+          attached.push(media)
+          used.add(media.url)
+        }
+      }
+    }
+    const hasEmbed = attached.some((media) => media.type === 'youtube' || media.type === 'video')
+    return {
+      heading: block.heading,
+      lines: hasEmbed ? block.lines.filter((line) => line.kind !== 'video') : block.lines,
+      images: attached.filter((media) => media.type === 'image'),
+      videos: attached.filter((media) => media.type !== 'image'),
+    }
+  })
+
+  return {
+    sections,
+    gallery: medias.filter((media) => !used.has(media.url)),
+  }
+}
+
 export function groupPagesByCategory(pages = []) {
   const grouped = new Map()
   for (const page of filterPublishedPages(pages)) {

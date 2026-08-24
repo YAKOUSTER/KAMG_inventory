@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { filterPublishedPages, groupPagesByCategory, normalizeContentPage, contentCoverMedia } from './content.js'
+import { filterPublishedPages, groupPagesByCategory, normalizeContentPage, contentCoverMedia, articleLayout } from './content.js'
 
 describe('normalizeContentPage', () => {
   it('normalise une page publiée', () => {
@@ -33,6 +33,36 @@ describe('normalizeContentPage', () => {
     )
     assert.equal(page.categorie, 'commencer_danse')
     assert.equal(contentCoverMedia(page).url, 'https://example.com/cover.jpg')
+  })
+})
+
+describe('articleLayout', () => {
+  it('place l’image de zone à côté de son paragraphe', () => {
+    const layout = articleLayout({
+      titre: 'Bienvenue',
+      corps: 'Intro\n\n## Kenleur\nTexte Kenleur\n\n## Autre\nSans photo',
+      couverture: { type: 'image', url: 'https://example.com/cover.jpg' },
+      medias: [
+        { type: 'image', url: 'https://example.com/kenleur.jpg', legende: 'Kenleur' },
+        { type: 'image', url: 'https://example.com/extra.jpg', legende: '' },
+      ],
+    })
+    assert.equal(layout.sections[1].heading, 'Kenleur')
+    assert.equal(layout.sections[1].images[0].url, 'https://example.com/kenleur.jpg')
+    assert.equal(layout.sections[2].images.length, 0)
+    assert.equal(layout.gallery.length, 1)
+    assert.equal(layout.gallery[0].url, 'https://example.com/extra.jpg')
+  })
+
+  it('associe une vidéo YouTube au paragraphe de même légende', () => {
+    const layout = articleLayout({
+      titre: 'Petit dimanche',
+      corps: '## 1 / La coiffure\nVidéo : https://youtu.be/abc123',
+      medias: [{ type: 'youtube', url: 'https://www.youtube.com/embed/abc123', legende: '1 / La coiffure' }],
+    })
+    assert.equal(layout.sections[0].videos[0].type, 'youtube')
+    assert.equal(layout.sections[0].lines.some((line) => line.kind === 'video'), false)
+    assert.equal(layout.gallery.length, 0)
   })
 })
 

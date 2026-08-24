@@ -23,8 +23,21 @@
         </header>
 
         <div class="member-blog-article__body">
-          <template v-for="(block, index) in contentBlocks(selectedPage.corps)" :key="index">
+          <section
+            v-for="(block, index) in selectedLayout.sections"
+            :key="index"
+            class="member-blog-article__section"
+          >
             <h3 v-if="block.heading" class="member-blog-article__heading">{{ block.heading }}</h3>
+
+            <figure
+              v-for="(media, mediaIndex) in block.images"
+              :key="`${selectedPage.id}-img-${index}-${mediaIndex}`"
+              class="member-blog-article__inline-figure"
+            >
+              <CoverImage :src="media.url" :alt="media.legende || selectedPage.titre" />
+            </figure>
+
             <div class="member-blog-article__paragraphs">
               <p v-for="(line, lineIndex) in block.lines" :key="lineIndex">
                 <template v-if="line.kind === 'link'">
@@ -36,21 +49,36 @@
                 <template v-else>{{ line.text }}</template>
               </p>
             </div>
-          </template>
+
+            <figure
+              v-for="(media, mediaIndex) in block.videos"
+              :key="`${selectedPage.id}-vid-${index}-${mediaIndex}`"
+              class="member-blog-article__figure"
+            >
+              <iframe
+                v-if="media.type === 'youtube'"
+                :src="media.url"
+                class="member-blog-article__youtube"
+                title="Vidéo"
+                loading="lazy"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+              />
+              <video v-else :src="media.url" controls preload="metadata" />
+            </figure>
+          </section>
         </div>
 
-        <div v-if="galleryMedias(selectedPage).length" class="member-blog-article__gallery">
+        <div v-if="selectedLayout.gallery.length" class="member-blog-article__gallery">
           <figure
-            v-for="(media, index) in galleryMedias(selectedPage)"
+            v-for="(media, index) in selectedLayout.gallery"
             :key="`${selectedPage.id}-gallery-${index}`"
             class="member-blog-article__figure"
           >
-            <img
+            <CoverImage
               v-if="media.type === 'image'"
-              :src="mediaDisplayUrl(media.url)"
+              :src="media.url"
               :alt="media.legende || selectedPage.titre"
-              loading="lazy"
-              @error="onMediaError"
             />
             <iframe
               v-else-if="media.type === 'youtube'"
@@ -61,12 +89,7 @@
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowfullscreen
             />
-            <video
-              v-else
-              :src="media.url"
-              controls
-              preload="metadata"
-            />
+            <video v-else :src="media.url" controls preload="metadata" />
             <figcaption v-if="media.legende">{{ media.legende }}</figcaption>
           </figure>
         </div>
@@ -172,11 +195,11 @@ import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   CONTENT_CATEGORIES,
+  articleLayout,
   contentCategoryMeta,
   contentCoverMedia,
   filterPublishedPages,
 } from '@/domain/content'
-import { driveImageFallbackUrls, normalizeMediaUrl } from '@/domain/mediaUrls'
 import CoverImage from '@/components/CoverImage.vue'
 
 const props = defineProps({
@@ -208,6 +231,10 @@ const showAgendaCard = computed(
   () => !selectedPage.value && (categoryFilter.value === 'tous' || categoryFilter.value === 'commencer_danse'),
 )
 
+const selectedLayout = computed(() =>
+  selectedPage.value ? articleLayout(selectedPage.value) : { sections: [], gallery: [] },
+)
+
 watch(
   () => route.query.article,
   (value) => {
@@ -234,22 +261,6 @@ function coverMedia(page) {
   return contentCoverMedia(page)
 }
 
-function mediaDisplayUrl(url) {
-  return normalizeMediaUrl(url)
-}
-
-function galleryMedias(page) {
-  const cover = coverMedia(page)
-  return (page.medias || []).filter((media) => !cover || media.url !== cover.url)
-}
-
-function onMediaError(event) {
-  const img = event.target
-  const fallbacks = driveImageFallbackUrls(img.getAttribute('src') || '')
-  const next = fallbacks.find((url) => url !== img.src)
-  if (next) img.src = next
-}
-
 function excerpt(corps, max = 180) {
   const text = String(corps || '')
     .replace(/^## .+$/gm, '')
@@ -257,45 +268,6 @@ function excerpt(corps, max = 180) {
     .trim()
   if (text.length <= max) return text
   return `${text.slice(0, max).trim()}…`
-}
-
-function parseLine(raw) {
-  const text = String(raw || '').trim()
-  if (!text) return null
-  const linkMatch = text.match(/^Lien\s*:\s*(https?:\/\/\S+)/i)
-  if (linkMatch) {
-    return { kind: 'link', url: linkMatch[1], label: linkMatch[1] }
-  }
-  const videoMatch = text.match(/^Vidéo\s*:\s*(https?:\/\/\S+)/i)
-  if (videoMatch) {
-    return { kind: 'video', url: videoMatch[1] }
-  }
-  if (/^https?:\/\/\S+$/.test(text)) {
-    return { kind: 'link', url: text, label: text }
-  }
-  return { kind: 'text', text }
-}
-
-function contentBlocks(corps) {
-  const chunks = String(corps || '').split(/\n(?=## )/)
-  return chunks
-    .map((chunk) => {
-      const trimmed = chunk.trim()
-      if (!trimmed) return null
-      const headingMatch = trimmed.match(/^## (.+?)(?:\n([\s\S]*))?$/)
-      if (headingMatch) {
-        const lines = (headingMatch[2] || '')
-          .split('\n')
-          .map(parseLine)
-          .filter(Boolean)
-        return { heading: headingMatch[1].trim(), lines }
-      }
-      return {
-        heading: '',
-        lines: trimmed.split('\n').map(parseLine).filter(Boolean),
-      }
-    })
-    .filter(Boolean)
 }
 
 function openArticle(id) {
@@ -463,6 +435,30 @@ function goToAgendaInscriptions() {
   margin-top: 0;
 }
 
+.member-blog-article__section {
+  margin-bottom: 8px;
+}
+
+.member-blog-article__section:first-child .member-blog-article__heading {
+  margin-top: 0;
+}
+
+.member-blog-article__inline-figure {
+  margin: 0 0 14px;
+  aspect-ratio: 16 / 9;
+  max-height: 280px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: rgba(71, 91, 145, 0.06);
+}
+
+.member-blog-article__inline-figure :deep(img) {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .member-blog-article__paragraphs p {
   margin: 0 0 10px;
   line-height: 1.65;
@@ -490,7 +486,7 @@ function goToAgendaInscriptions() {
   margin: 0;
 }
 
-.member-blog-article__figure img,
+.member-blog-article__figure :deep(img),
 .member-blog-article__figure video,
 .member-blog-article__youtube {
   display: block;
