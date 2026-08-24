@@ -2,9 +2,10 @@ import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { normalizeContentPage } from '../src/domain/content.js'
+import { SUPERSEDED_BY_GLIDE_IMPORT } from './glideSujetsImport.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-export const MEMBER_CONTENT_VERSION = 3
+export const MEMBER_CONTENT_VERSION = 4
 
 /** Anciennes pages du jeu d'exemple remplacées par member-pages.json */
 export const LEGACY_SUPERSEDED_PAGE_IDS = new Set([
@@ -12,6 +13,8 @@ export const LEGACY_SUPERSEDED_PAGE_IDS = new Set([
   'page-coiffe',
   'page-vocab-brago',
 ])
+
+export { SUPERSEDED_BY_GLIDE_IMPORT }
 
 export async function readMemberPagesSeed(options = {}) {
   const base = options.dataDir || path.resolve(__dirname, '../data')
@@ -81,7 +84,9 @@ export function mergeMemberPages(existingPages = [], seedPages = []) {
 }
 
 export function removeLegacyMemberPages(pages = []) {
-  return pages.filter((page) => !LEGACY_SUPERSEDED_PAGE_IDS.has(page.id))
+  return pages.filter(
+    (page) => !LEGACY_SUPERSEDED_PAGE_IDS.has(page.id) && !SUPERSEDED_BY_GLIDE_IMPORT.has(page.id),
+  )
 }
 
 export function shouldImportMemberContent(db) {

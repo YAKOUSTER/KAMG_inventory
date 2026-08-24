@@ -1,179 +1,557 @@
 {
   "meta": {
-    "memberContentVersion": 3,
-    "source": "Inspiré de l'app Glide KAMG — textes repris, médias à compléter via Contenus"
+    "memberContentVersion": 4,
+    "source": "Export Glide — App Sujets.csv",
+    "importedAt": "2026-08-24T09:38:41.663Z",
+    "pageCount": 16
   },
   "pages": [
     {
       "id": "page-bienvenue",
       "categorie": "presentation",
-      "titre": "Bienvenue au Moulin Vert",
+      "titre": "Bienvenue",
+      "corps": "dans le cercle celtique du Moulin Vert\n\n\n## Qu'est ce qu'un cercle celtique ?\n\nUn cercle celtique est un groupe qui promouvoit la culture bretonne à travers la danse, les modes vestimentaires traditionnelles, la musique... \nAu cercle celtique du Moulin Vert, nous avons même des crêpières qui partagent leurs connaissances/techniques lors des événements et qui font saliver les touristes (avec les crêpes !). \n\nIl existe plusieurs types de cercle celtique : \n- les cercles celtiques non adhérents\n- les cercles celtiques non-classés adhérents à Kenleur\n- les cercles celtiques classés adhérentes à Kenleur\n\nIl y a des cercles celtiques partout dans le monde, et partout en France. \nBeaucoup viennent en Bretagne pendant la saison estivale pour participer au concours.\n\n\n## La confédération Kenleur\n\nKenleur est LA confédération de danse bretonne à laquelle notre cercle celtique est affilié. Il s'agit d'une association avec 8 salariés. Son siège est à Auray. \nSolenn Boënnec et Rozenn Le Roy sont les présidentes.\nMathieu Lamour et Tristan Gloaguen sont les directeurs. \n\nLa confédération permet au cercles adhérents de bénéficier de formations et stages (danses, broderies, chants, histoires, ...), de répartir les cercles celtiques sur les événéments de la saison, d'organiser l'accueil, de contrôler le respects de la tradition, tout en chalengeant la créativité et la modernisation des groupes, aux travers des concours (danses, costumes et spectacles scéniques). \n\nSite internet de Kenleur :\n\nLien : https://www.kenleur.bzh/\n\n\n## Notre cercle du Moulin Vert\n\nNous sommes le cercle celtique qui représente le quartier du Moulin Vert à Quimper. Adhérent à Kenleur, nous nous classons en seconde catégorie. \n\nEn mai 2024, nous avons terminé le championnat et nous sommes arrivés 4ème sur 13, de la seconde catégorie. \nNous avons gagné un trophée en arrivant 3ème pour l'épreuve scénique avec notre spectacle DIVUZUL.\n\nNotre cercle se compose : \n\n• d'un groupe Loisir : apprendre la danse bretonne sans concours et sans représentations en costume\n\n• d'un groupe Enfant : apprentissage progressif de la danse bretonne et saison estivale en costume pour présenter leur spectacle lors d'événements culturels\n\n• d'un groupe Tremplin : nouveau depuis 2022. Pour l'instant il permet surtout de mettre à niveau les jeunes danseurs. Ils ont participé aux concours 2023. \n\n• d'un groupe Concours : apprentissages des danses pour préparer les concours. Nombreuses représentation en costumes. Il s'agit du groupe qui représente officiellement le cercle complet au championnat. \n\n• d'un atelier Costume\n\nA Quimper, il existe 5 cercles celtiques \n- Eostiged Ar Stangala (Kerfeunteun) - catégorie Excellence\n- Danserien Kemper (Ergue-Armel) - 3 ème catégorie\n- Mederien Kemper (Penhars), notre cercle est issu de ce cercle. Ils sont dans la catégorie Label\n- Keltiad (Centre-Ville). Ils ont déménagé à Langolen. C'est une assocation loisir-théâtre maintenant. Ils ne particient pas au championnat.\n\nNous sommes le plus jeune cercle celtique de Quimper, notre groupe a été créé en 2000. Au départ, il s'agissait d'un groupe enfant uniquement.\n\n\n## Le Conseil d'Administration (CA)\n\nLes Conseils d'Administration (CA) ont lieu une fois toutes les trois semaines environ. A l’issue de ceux-ci vous recevrez un compte-rendu par mail. \n \nChaque année, vous serez invité à l'Assemblée Générale (AG) qui se déroule fin septembre ou début octobre. Lors de cette soirée, le conseil d'administration fait un point sur l'année passée, les membres se réunissent et le nouveau conseil d'administration pour l'année suivante est élu grâce à vos votes (des procurations sont possibles).\n\nSi vous voulez participer à la vie de l'association en faisant partie du Conseil d'Administration, vous devez adresser une demande par courrier selon les délais indiqués dans la convocation à l'AG.  \n\nLe CA 2023-2024\n\nPrésident : Pascal NICOL\nVice-Présidente : Lenawenn TOPIN \nSecrétaire : Dany ROCUET\nSecrétaire Adjointe : Audrey ROCUET\nTrésorière : Gaëlle LOUBOUTIN\nTrésorière Adjointe : Maureen GUIARD\n\nLes membres du CA :\nMarine NEDELEC, Sterenn FONSECA, Malo GUIARD, Typhaine SOYER, Christiane LE TREUT et Gaëlle ROBIN.",
+      "medias": [
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=1KG8myKBb2bFqxnMmrwBf09_IYk8MKcIU",
+          "legende": "Bienvenue",
+          "ordre": 0
+        },
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=1nnBM-x7zqKsnjXfVj7WA3T7MRA_7CsyF",
+          "legende": "Qu'est ce qu'un cercle celtique ?",
+          "ordre": 1
+        },
+        {
+          "type": "image",
+          "url": "https://tiarvro-bro-gwened.bzh/wp-content/uploads/2020/06/Kenleur.jpg",
+          "legende": "La confédération Kenleur",
+          "ordre": 2
+        },
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=1IK8JKYDmRo65VlHvrr3zHZM3mBjvSt8q",
+          "legende": "Notre cercle du Moulin Vert",
+          "ordre": 3
+        }
+      ],
       "ordre": 1,
       "publie": true,
-      "corps": "Bienvenue dans le cercle celtique Korriganed Ar Meilhoù Glas.\n\nNous représentons le quartier du Moulin Vert à Quimper et promouvons la culture bretonne à travers la danse, les costumes traditionnels et la musique. Au cercle, des crêpières partagent aussi leurs techniques lors des événements.\n\nIl existe plusieurs types de cercles celtiques : non adhérents, non classés adhérents à Kenleur, et classés adhérents à Kenleur. Des cercles bretons existent partout en France et dans le monde ; beaucoup viennent en Bretagne en été pour les concours.",
-      "medias": []
-    },
-    {
-      "id": "page-kenlieur",
-      "categorie": "presentation",
-      "titre": "La confédération Kenleur",
-      "ordre": 2,
-      "publie": true,
-      "corps": "Kenleur est la confédération de danse bretonne à laquelle notre cercle est affilié (siège à Auray, 8 salariés).\n\nLa confédération permet aux cercles adhérents de bénéficier de formations et stages (danses, broderies, chants, histoires…), de répartir les cercles sur les événements de la saison, d'organiser l'accueil, de veiller au respect de la tradition et d'encourager la créativité via les concours (danses, costumes, spectacles scéniques).\n\nSite : kenleur.bzh",
-      "medias": []
-    },
-    {
-      "id": "page-notre-cercle",
-      "categorie": "presentation",
-      "titre": "Notre cercle en bref",
-      "ordre": 3,
-      "publie": true,
-      "corps": "Adhérent à Kenleur, nous évoluons en seconde catégorie.\n\nEn mai 2024 : 4ème sur 13 au championnat de 2e catégorie, et 3ème du trophée scénique avec le spectacle « DIVUZUL ».\n\nCréé en 2000, nous sommes le plus jeune cercle celtique de Quimper (groupe enfant à l'origine).",
-      "medias": []
-    },
-    {
-      "id": "page-groupes",
-      "categorie": "presentation",
-      "titre": "Les groupes du cercle",
-      "ordre": 4,
-      "publie": true,
-      "corps": "• Groupe Loisir — apprendre la danse bretonne sans concours ni représentations en costume\n• Groupe Enfant — progression et saison estivale en costume (9-12 ans)\n• Groupe Tremplin — montée en niveau des jeunes danseurs (depuis 2022, concours 2023)\n• Groupe Concours — préparation des concours, nombreuses sorties costumées, représentation officielle au championnat\n• Atelier Costume — confection et entretien des tenues",
-      "medias": []
-    },
-    {
-      "id": "page-cercles-quimper",
-      "categorie": "presentation",
-      "titre": "Les cercles de Quimper",
-      "ordre": 5,
-      "publie": true,
-      "corps": "À Quimper, cinq cercles celtiques :\n• Eostiged Ar Stangala (Kerfeunteun) — Excellence\n• Danserien Kemper (Ergue-Armel) — 3e catégorie\n• Medarien Kemper (Penhars) — Label ; notre cercle en est issu\n• Keltiad (Centre-Ville), aujourd'hui à Langolen — loisir-théâtre, hors concours\n• Korriganed Ar Meilhoù Glas (Moulin Vert) — 2e catégorie",
-      "medias": []
-    },
-    {
-      "id": "page-ca",
-      "categorie": "newsletter",
-      "titre": "Conseil d'administration",
-      "ordre": 1,
-      "publie": true,
-      "corps": "Le Conseil d'administration se réunit environ toutes les trois semaines. Un compte-rendu est envoyé par mail après chaque CA.\n\nL'Assemblée Générale a lieu fin septembre ou début octobre : bilan de l'année, élection du CA (procurations possibles). Pour candidater au CA, adresser une demande par courrier dans les délais de la convocation.\n\nCA 2023-2024 :\n• Président : Pascal NICOL\n• Vice-présidente : Loïquenn TOPIN\n• Secrétaire : Soizig GOURLET\n• Secrétaire adjointe : Audrey ROCUET\n• Trésorière : Gaëlle LOUBOUTIN\n• Trésorière adjointe : Maureen GUIARD\n• Membres : Marine NÉDELEC, Sterenn FONSECA, Malo GUIARD, Typhaine SOYER, Christiane LE TREUT, Gaëlle ROBIN",
-      "medias": []
+      "createdAt": "2026-08-24T09:38:41.662Z",
+      "updatedAt": "2026-08-24T09:38:41.662Z"
     },
     {
       "id": "page-inscription",
       "categorie": "newsletter",
       "titre": "Comment s'inscrire ?",
-      "ordre": 2,
-      "publie": true,
-      "corps": "Les documents d'inscription sont remis aux nouveaux danseurs lors des premières répétitions, à rendre dans les semaines suivantes. Demandez-les si besoin et lisez le règlement intérieur.\n\nDocuments :\n• Coordonnées, autorisations, droit à l'image, signature du règlement\n• Fiche sanitaire",
-      "medias": []
-    },
-    {
-      "id": "page-communication",
-      "categorie": "newsletter",
-      "titre": "Nos outils de communication",
-      "ordre": 3,
-      "publie": true,
-      "corps": "Le cercle communique via :\n• Le groupe WhatsApp / messagerie interne (invitation sur demande)\n• Les comptes-rendus de CA par mail\n• Cet espace membres et le Google Agenda partagé\n• Les répétitions et annonces en fin de séance\n\nPour toute question : contactez un membre du CA ou votre responsable de groupe.",
-      "medias": []
-    },
-    {
-      "id": "page-sorties",
-      "categorie": "newsletter",
-      "titre": "S'inscrire aux sorties",
-      "ordre": 4,
-      "publie": true,
-      "corps": "Les sorties de l'année (spectacles, défilés, fest-noz…) sont listées dans l'onglet Agenda, synchronisé avec le Google Agenda du cercle.\n\nInscrivez-vous aux dates concernant votre groupe (Ado, Tremplin, Concours, Loisir, Gwennyn…). En cas de doute, vérifiez avec votre responsable avant de vous engager.",
-      "medias": []
-    },
-    {
-      "id": "page-costume-petit-dimanche",
-      "categorie": "tuto_habillage",
-      "titre": "Costume « Petit dimanche »",
+      "corps": "Les documents d'inscription sont distribués aux nouveaux danseurs lors des premières répétitions et sont à rendre les semaines suivantes. N'hésitez pas à les demander. Nous vous invitons également à lire le règlement intérieur.\n\nDans ces documents, vous trouverez :\n\n- Coordonnées et autorisations, droit à l'image et votre signature concernant le règlement\n- Fiche sanitaire\n\n\n## Le règlement\n\nLien : https://drive.google.com/file/d/1URbRx9xMc2y9a9eFjT8GwZGHXB8UmBZd/view?usp=sharing",
+      "medias": [
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=1egXbqZHPrY4hIrNJiBLMB29yQcJTL0HD",
+          "legende": "Comment s'inscrire ?",
+          "ordre": 0
+        },
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=1nnBM-x7zqKsnjXfVj7WA3T7MRA_7CsyF",
+          "legende": "Le règlement",
+          "ordre": 1
+        }
+      ],
       "ordre": 1,
       "publie": true,
-      "corps": "Costume du Pays Glazig porté pour les cérémonies du dimanche et certaines sorties.\n\nSe renseigner auprès de l'atelier costume pour la liste complète des pièces, l'ordre d'habillage et les accessoires (chemise, jupe, gilet, coiffe, chaussures…).\n\nAjoutez ici les photos de référence depuis Contenus (médias) lorsque disponibles.",
-      "medias": []
-    },
-    {
-      "id": "page-costume-velour",
-      "categorie": "tuto_habillage",
-      "titre": "Costume velours 1935-1938",
-      "ordre": 2,
-      "publie": true,
-      "corps": "Costume de référence velours de l'entre-deux-guerres, pièce patrimoniale du Pays Glazig.\n\nManipulation avec soin. L'atelier costume indique les règles de port, d'entreposage et de nettoyage.\n\nPhotos et schémas d'habillage : à compléter dans les médias de cette page.",
-      "medias": []
-    },
-    {
-      "id": "page-coiffure",
-      "categorie": "tuto_coiffure",
-      "titre": "Coiffes du Pays Glazig",
-      "ordre": 1,
-      "publie": true,
-      "corps": "Les coiffes bigoudènes demandent de l'entraînement et de l'aide les premières fois.\n\nBases :\n1. Cheveux dégagés, légèrement humidifiés si besoin\n2. Centrage de la coiffe sur la tête\n3. Fixation avec épingles en croisillons\n4. Vérification de la tenue avant la sortie\n\nDemandez l'aide de l'atelier ou d'une danseuse expérimentée. Ajoutez vos tutos photo/vidéo via Contenus.",
-      "medias": []
+      "createdAt": "2026-08-24T09:38:41.662Z",
+      "updatedAt": "2026-08-24T09:38:41.662Z"
     },
     {
       "id": "page-fournitures-danseurs",
       "categorie": "autre",
       "titre": "Danseurs : fournitures",
+      "corps": "S'équiper quand on est un danseur\n\nBienvenue au cercle celtique du Moulin Vert ! Si vous vous êtes inscrits dans le groupe Enfants, le groupe Tremplin ou le groupe Concours, vous allez devoir réaliser votre trousseau. Nous vous invitons à prendre connaissance de la liste dans les liens ci-dessous.\n\nIl faut savoir que lorsqu'on rentre dans un cercle, il a quelques dépenses à prévoir. Mais si on se débrouille bien, ces dépenses peuvent servir pour plusieurs années au sein de n'importe quel cercle celtique.\n\nLien : https://drive.google.com/file/d/1kXkWYQIin59h-93gtcCoZjstA5HRUa47/view\n\n\n## 1. En haut sous le costume\n\nLes danseurs portent des chemises sous leur costume. Cette chemise diffère en fonction de l'époque. Évitez les chemises transparentes.\n\n1880-1920 : chemise blanche à col \"Mao\" ou  col officier en coton. Manches bouffantes. \n\n1930 : chemise blanche à col en pointes amidonnées + manchette amidonnées.\n\n\n## 2. Les chaussettes\n\nPrévoir des chaussettes noires unies montantes.\n\n\n## 3. Les chaussures\n\nLes chaussures peuvent varier d'une époque à une autre. Pour les hommes c'est plus simple que pour les femmes.\n\n\n## 4. Matériel coiffure\n\nPour les enfants : rien à prévoir. \n\nPour les hommes adultes : \nVous pouvez prévoir un peigne et du gel afin de parfaire votre coupe. \n\nVoir les coupes pour les différentes modes de costumes dans les fiches costumes.\n\n\n## 5. Protection costume\n\n- Hausse opaque\n- Ceintre pour la chemise\n- Ceintre pour le gilet et la veste\n- Ceintre à pince pour le pantalon\n- Boites à chapeau (50cm de longueur, 20 cm de largeur, 20cm de hauteur) pour le chapeau et guêtres.\n\n\n## 6. Matériel costume\n\n- Epingles à nourrice / Epingles de suretés x3\n\n\n## 7. Parapluie\n\nUn parapluie noir, manche type canne. Le costume et le chapeau doivent toujours être protégés de la pluie.",
+      "medias": [
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=1ex3ezIaVgQ_Mm38nREbhHglLmx9kLy3a",
+          "legende": "Danseurs : fournitures",
+          "ordre": 0
+        },
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=10BgeS26BcKOSjE1q6NecsijBys7ZiZ9A",
+          "legende": "1. En haut sous le costume",
+          "ordre": 1
+        },
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=1KgXjUf-edaMV2_yGqWHQG-WEoW2ZSOn6",
+          "legende": "2. Les chaussettes",
+          "ordre": 2
+        },
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=1ScWt1xzcNP37ctUUNdry6ZOOj5pZGluH",
+          "legende": "3. Les chaussures",
+          "ordre": 3
+        },
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=1oq1nIyxxDjvcRDhrKvshJ0gJadB-e9II",
+          "legende": "4. Matériel coiffure",
+          "ordre": 4
+        },
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=1TgWoW3zypnt7SQ7tRkyda7V1DhM6EMXT",
+          "legende": "5. Protection costume",
+          "ordre": 5
+        },
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=1owm5VpD1MseuqzZ2JtVixS5agUfmfe6j",
+          "legende": "6. Matériel costume",
+          "ordre": 6
+        },
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=1i1yBUPYG3Mtay45If7o1p2RWX01VORdi",
+          "legende": "7. Parapluie",
+          "ordre": 7
+        }
+      ],
       "ordre": 1,
       "publie": true,
-      "corps": "Liste indicative (à compléter selon les consignes de votre responsable) :\n• Chaussures de danse\n• Chaussettes / guêtres\n• Sous-vêtements adaptés au costume\n• Sac de transport\n• Broches et accessoires personnels autorisés\n\nConsultez l'atelier costume pour la liste à jour.",
-      "medias": []
+      "createdAt": "2026-08-24T09:38:41.663Z",
+      "updatedAt": "2026-08-24T09:38:41.663Z"
     },
     {
       "id": "page-fournitures-danseuses",
       "categorie": "autre",
       "titre": "Danseuses : fournitures",
+      "corps": "S'équiper quand on est une danseuse\n\nBienvenue au cercle celtique du Moulin Vert ! Si vous vous êtes inscrits dans le groupe Enfants, le groupe Tremplin ou le groupe Concours, vous allez devoir réaliser votre trousseau. Nous vous invitons à prendre connaissance de la liste dans les liens ci-dessous.\r\n\r\nIl faut savoir que lorsqu'on rentre dans un cercle, il a quelques dépenses à prévoir. Mais si on se débrouille bien, ces dépenses peuvent servir pour plusieurs années au sein de n'importe quel cercle celtique.\n\nLien : https://drive.google.com/file/d/1C9k-nZwEXBafKIXEIXiO9k18q4xeQkNV/view?usp=share_link\n\n\n## 1. En haut sous le costume\n\nLes danseuses doivent également prévoir un haut blanc qui couvre les aisselles, pour protéger les costumes de la transpiration. Ce haut ne devra pas être visible sous le costume.\n\nIdéalement, on pourrait porter une chemise longue à col rond. \nMais nous avons qu'il est plus simple de trouver des vieux t-shirt découpé.\n\n\n## 2. Les sous-vêtements\n\nIl faudra prévoir un panty et un jurpon. Il s'agit de sous-vêtements anciens. \n1920 : La jupe du costume arrive à 25 cm du sol. \n1930 : La jupe du costume arrive à 13 cm sous le genous. Il faut faire en sorte que les sous-vêtements ne se voient pas.\n\n\nPour les concevoir, voici un liste qui permet de faire un panty OU un jupon. Si vous devez réaliser les deux, il faudra prévoir 2 fois cette liste : \n\n- Prévoir un coupon de tissu de coton blanc de 1,5 à 2 mètres de large pour 1 mètre de hauteur (en fonction de la taille de la danseuse), compter +5 cm pour les ourlets et +10cm pour les enfants (pouvoir l'agrandir au fur et à mesure des années.)\n- Prévoir également de la dentelle qui s'ajoutera dans le bas du tissu (en fonction de ce que l'on trouve dans le magasin) :\n----Soit 2 mètres de coton blanc avec broderie anglaise à trou-trou blanche,\n---- Soit 2 mètres de coton blanc + 2,5 mètres de broderie anglaise à trou-trou blanche.\nIl vous faudra également du fil de coton blanc et 1 mètre d'élastique plat de 1cm de hauteur.\n\nOù le(s) concevoir ?\n\nSoit vous savez vous débrouiller avec une machine à coudre et vous pouvez concevoir le panty et/ou le jupon avec l'aide des couturières présentes le samedi matin, au local costume du cercle. Les patrons seront sur place.\n\nSoit vous faites demande à une couturière de métier, il faudra alors prévoir un budget supplémentaire (env. 80 euros) pour le service. \n\n\nACTUCE : Faites le nécessaire pour que le panty et le jupon puissent être rallonger en grandissant.\n\n\n## 3. Les bas et collants\n\nSelon les époques et le costume porté pour la saison, on pourra porter différentes choses.\n\nLes danseuse devront prévoir une paire de collant ou de bas. \n\nLa couleur dépend du costume :\n\nPour les costumes de Petit Dimanche, de Mariée et de Grand Dimanche, le collant ou les bas devront être noirs.\n\nSi la danseuse porte un costume de Porteuse de Vierge, de Communiante le collant (pas de bas) devra être blanc.\n\nSi la danseuse porte un costume de communiante, le collant ou les bas devront être de couleur chair.\n\nN'hésitez pas à jeter un oeil aux différentes fiches costumes.\n\n\n## 4. Les soulliers / bottines\n\nLes chaussures varient énormément selon les costumes et les époques. Nous vous conseillons d'attendre de connaitre le costume porté par le danseurs ou la danseuse pour investir dans une paire.\n\n\n## 5. Matériel coiffure\n\n- Brosse à cheveux\n- Peigne à queue\n- Elastique x3\n- Filets à chignon x3\n- Laque\n- Pot de gel\n- Projecteur d'eau pour humidifier les cheveux (enfants non concernés)\n- Pinces neiges de la couleur des cheveux x20\n- Pinces plates de la couleur des cheveux x20\n- Peigne arrondi pour l'arrière de la tête (enfants non concernés)\n- Pince à crans x20 (enfants non concernés)\n\nVoir les coupes pour les différentes modes de costumes dans les fiches costumes.\n\n\n## 6. Protection costume\n\n- Hausses opaque\n- Ceintre pour la camisole et le corselet (l'un sur l'autre)\n- Ceintre à pince pour la jupe\n- Ceintre à pince pour le tablier\n- Boites à coiffe (30cm de diamètre idéalement, 20cm de hauteur)\n\n\n## 7. Matériel costume\n\n- Epingles à nourrice / Epingles de suretés x10\n- Longue épingles à têtes noires x50\n- Longue épingles à têtes blanches x50\n\n\n## 8. Parapluie\n\nUn parapluie noir, manche type canne. Le costume et la coiffe doivent toujours être protégés de la pluie.",
+      "medias": [
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=1ex3ezIaVgQ_Mm38nREbhHglLmx9kLy3a",
+          "legende": "Danseuses : fournitures",
+          "ordre": 0
+        },
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=189QgZ28HDgHLZC-6EAJg0bPjL22BZRfL",
+          "legende": "1. En haut sous le costume",
+          "ordre": 1
+        },
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=1Rc-aVRqBbSixu3dMpnt_hFQIXXpdrnPp",
+          "legende": "2. Les sous-vêtements",
+          "ordre": 2
+        },
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=1E2uAwK24V6lN7ggcehqk5lQVVeBcXRBE",
+          "legende": "3. Les bas et collants",
+          "ordre": 3
+        },
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=1bBqSEkXSH-2wvlBizpESS1vvG29e5rAF",
+          "legende": "4. Les soulliers / bottines",
+          "ordre": 4
+        },
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=1rPAl3YR4UXebk4ckUU-eaxvUYT3qBFtR",
+          "legende": "5. Matériel coiffure",
+          "ordre": 5
+        },
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=1AOj-cTIkyL_Qor3kbLgnSJY9-IjDP6-y",
+          "legende": "6. Protection costume",
+          "ordre": 6
+        },
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=10q4klgsSor2TBaoaZ5fkxQP2l50Ccwzs",
+          "legende": "7. Matériel costume",
+          "ordre": 7
+        },
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=1i1yBUPYG3Mtay45If7o1p2RWX01VORdi",
+          "legende": "8. Parapluie",
+          "ordre": 8
+        }
+      ],
       "ordre": 2,
       "publie": true,
-      "corps": "Liste indicative (à compléter selon les consignes de votre responsable) :\n• Coiffe et épingles de rechange\n• Chaussures\n• Bas / collants si requis\n• Sac de transport\n• Kit de retouches (fil, épingles…)\n\nConsultez l'atelier costume pour la liste à jour.",
-      "medias": []
+      "createdAt": "2026-08-24T09:38:41.663Z",
+      "updatedAt": "2026-08-24T09:38:41.663Z"
     },
     {
-      "id": "page-danses-branles",
-      "categorie": "vocabulaire",
-      "titre": "Branles et rondes",
+      "id": "page-communication",
+      "categorie": "newsletter",
+      "titre": "Nos outils de communication",
+      "corps": "Discord, l'application et les mails\n\n\n## 1 / Discord\n\nDiscord est une plateforme de communication en ligne qui fonctionne sur le principe de \"serveurs\". En cliquant sur le lien ci-dessous vous allez rejoindre le \"serveur du cercle du Moulin Vert\". L'application est disponible sur mobile ou sur PC, elle permet à tous de pouvoir échanger, que ce soit par écrit, en appel audio ou même en visioconférence.\n\nLa plateforme propose un service de canaux/channel qui permet de découper les sujets de conversation. \n\nNous l'utilisons pour les échanges instantannés. Vous pouvez prévenir de vos absences en répétitions ou poser des questions.\n\nLien : https://discord.gg/GmZZqaGkBE\n\n\n## 2 / Les mails\n\nLa secrétaire du cercle, Dany, vous enverra des informations importantes via l'adresse mail du cercle c.korriganed@gmail.com.\n\n\n## 3 / Cette application\n\nEt oui, le dernier outil que nous utilsons est cette application qui permet d'avoir des informations sur le cercle, les costumes, le planning des répétitions,...",
+      "medias": [
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=168tbBwasFu1VFZ9KdcFCpudcAYmLDLNH",
+          "legende": "Nos outils de communication",
+          "ordre": 0
+        }
+      ],
+      "ordre": 2,
+      "publie": true,
+      "createdAt": "2026-08-24T09:38:41.663Z",
+      "updatedAt": "2026-08-24T09:38:41.663Z"
+    },
+    {
+      "id": "page-pays-glazig",
+      "categorie": "tuto_habillage",
+      "titre": "Le Pays Glazig",
+      "corps": "Terroir\n\nLe pays Glazig (petit bleu : nom provenant de la couleur de l’étoffe des gilets masculins) est un terroir important puisqu’il regroupe une petite trentaine de communes. Cette zone géographique de forme triangulaire est délimitée par les Montagnes Noires, le Menez Hom, le plateau de Scaër, le cours de l’Odet, du Jet, du Ris et la ria de Combrit. \r\nL’histoire du terroir Glazig est fortement marquée par celle de Quimper, capitale de la Cornouaille.\n\n\n## I/ Début de l'histoire de Quimper\n\nDébutons nos pérégrinations par Quimper. Tout au long de son histoire, cette ville a été un lieu de passage. C’est à l’époque gauloise qu’elle fut fondée ainsi que son port, sur le site actuel de Locmaria. Au Moyen Âge, le centre urbain se déplace en amont au niveau du confluent de l’Odet et du Steir, d’où son nom. Tout comme les remparts, la construction de la cathédrale Saint-Corentin débuta au XIIIe siècle. Cet édifice fut achevé qu’au XIXe siècle par ses deux flèches de 76 mètres. Entre celles-ci trône le roi Gradlon sur son cheval dont la légende, ainsi que celle de Saint-Corentin moine ermite, est liée au terroir glazig.\n\n\n## II / Après la Révolution\n\nAprès la Révolution, l’activité économique s’intensifie. Le port, de plus en plus fréquenté, voit l’aménagement de ses quais. C’est également à cette époque que la ville est choisie en tant que chef-lieu du département. De même au XIXe siècle, les industries sont florissantes, notamment celles des faïenceries implantées depuis 1690. Pendant de longues années, elles seront le fleuron des entreprises quimpéroises. Les faïences sont décorées selon la technique du décor dit « à la touche » basé sur cinq couleurs : le bleu, le vert, le rouge, le jaune et le violet de manganèse. C’est d’ailleurs ce style si particulier, ces personnages bretons et ces décors floraux qui font la réputation de ces faïences à travers le monde.",
+      "medias": [],
       "ordre": 1,
       "publie": true,
-      "corps": "Famille des branles anciens et rondes :\nHanter Dro, En-Dro, Dans Trikot, Rond de Saint-Vincent-sur-Oust, Rond de Sautron, Rond Paludier, Ridée 6 temps, Ridée de Saint-Gildas, Laridé 8 temps, Ridées de Saint-Gildas-de-Rhuys, Laridé de la côte (mode Carnac), Laridé mode Baud, Rond de Landéda, Rond Pagan, Maraîchine, Pilé-Menu, Passepied, Tour et en-dedans, Poudou-fer.",
-      "medias": []
+      "createdAt": "2026-08-24T09:38:41.663Z",
+      "updatedAt": "2026-08-24T09:38:41.663Z"
     },
     {
-      "id": "page-danses-suites",
-      "categorie": "vocabulaire",
-      "titre": "Suites et gavottes",
+      "id": "page-costume-petit-dimanche",
+      "categorie": "tuto_habillage",
+      "titre": "Le costume de \"Petit dimanche\"",
+      "corps": "Coiffure et habillement\n\nCe costume en drap et en velours est le premier costume créé par le cercle. Il se porte dès l'âge de 6 ans. Les plus jeunes pourront le porter avec un bonnet noir perlé.\nOn parle de petit-dimanche car il est plus riche qu'un costume de travail car il comporte du velour et sera porté avec des tabliers en matières également nobles. \n\nLes adultes peuvent l'agrémenter de bijoux.\n\nNéanmoins ce costume est en cours d'une réétude à l'atetier costume afin d'améliorer sa fiche de présentation.\n\n\n## 1 / La coiffure\n\nLa coiffure consiste en un simple chignon. A l'arrière de celui-ci, il faut placer un large peigne.\n\nMatériels : \n- une brosse à cheveux\n- une peigne \n- un élastique\n- un filet de la couleur des cheveux\n- des pinces neiges / à chignons\n- des pinces plates\n- laque et/ou gel\n- large peigne\n\nN'hésitez pas à aller voir la liste des fournitures d'une danseuse dans la rubrique 'Commencer la danse\".\n\nVidéo : https://youtu.be/SOf62Fvaeo4\n\n\n## 2 / Le costume\n\nLe costume se compose de : \n- un corselet à manche longue\n- un corselet\n- une jupe \n- un tablier\n- une coiffe \n\n- collant noir\n- bottines noires à talons ou plates\n\nVers 12 ans, on peut y ajouter un tour de cou. \nPuis dès 15 ans, un sautoir.\n\nVidéo : https://youtu.be/C0AVVdbbgXM",
+      "medias": [
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=1IJ636g12ZqPQYnnbaGQcKamnB8su8BMM",
+          "legende": "Le costume de \"Petit dimanche\"",
+          "ordre": 0
+        },
+        {
+          "type": "video",
+          "url": "https://youtu.be/SOf62Fvaeo4",
+          "legende": "1 / La coiffure",
+          "ordre": 1
+        },
+        {
+          "type": "video",
+          "url": "https://youtu.be/C0AVVdbbgXM",
+          "legende": "2 / Le costume",
+          "ordre": 2
+        }
+      ],
       "ordre": 2,
       "publie": true,
-      "corps": "Suites :\nGavotte des montagnes, Suite Gavotte mode Spezet, Suite de Loudéac, Suite Plinn, Suite Glazig, Suite Bigoudène, Suite Rouzig, Suite de l'Aven (Clohars-Carnoët), Suite Dardoup, Suite Châteauneuf-du-Faou, Suite Kemenevdez, Suite Trequer, Suite Fisel, Suite du Cap Sizun, Suite du pays Calanhel, Suite de Poher.\n\nGavottes / Dans tro : Gavotte des montagnes, Kost Ar C'hoad, Gavotte de Plougastel, Gavotte Pourlet.\n\nDérobées : Guingamp, Brasparts, Montfarine de Braspart.",
-      "medias": []
+      "createdAt": "2026-08-24T09:38:41.663Z",
+      "updatedAt": "2026-08-24T09:38:41.663Z"
     },
     {
-      "id": "page-danses-corteges",
-      "categorie": "vocabulaire",
-      "titre": "Cortèges, couples, quadrilles",
+      "id": "page-costume-velour",
+      "categorie": "tuto_habillage",
+      "titre": "Le costume velour 1935-1938",
+      "corps": "Présentation du costume\n\nIl s'agit d'un costume récemment réalisé au sein de l'atelier costume. Les danseuses de la génération Concours 2018-2019 ont initié le projet. Elles ont souhaité créer une collection féminine et masculine plus récente avec des coupes plus ajustées et fluides. Avec l'aide de Christophe Rochet, collectionneur et passionné et de l'atelier costume, elles ont lancé cette nouvelle série.\n\nCette page de l'application expliquera comment le porter et des inspirations de coiffures, bijoux, accessoires.\n\nPour en apprendre plus sur le costume, je vous invite à lire le dossier présentant les recherches et les étapes de conception :\n\nLien : https://drive.google.com/file/d/1jPG-fx-dvdp2rLBwT9PvoPVzqca3uGbP/view?usp=sharing\n\n\n## 1/ Inspiration\n\nVoici la photo qui a inspiré le choix de l'époque. Il s'agit d'une photo issue de la collection personnelle de Christophe Rochet.\n\n\n## 2 / La coiffure\n\nLe style de coiffure est assez varié mais toujours imposant. On retrouve des crans comme dans les années folles, des permanentes bouclées, des \"coques\" basiques, des raies centrales... \n\nSwipes dans les images pour trouver ton style :\n\n\n## 2 / Le costume\n\nLe costume se compose de : \n- un corselet à manche longue et large\n- un corselet\n- une jupe \n- un tablier\n- une coiffe \n- des bijoux\n- des accessoires\n\n- collant noir ou collant chair\n- escarpin de type mocassin, salomé ou babies",
+      "medias": [
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=1pMkyDASJPX7yEig5OU9Ev0s_34g8xyiP",
+          "legende": "Le costume velour 1935-1938",
+          "ordre": 0
+        },
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=1hKhPxuM7_G_T8o5hzMeRlRkQ-qunmIAM",
+          "legende": "1/ Inspiration",
+          "ordre": 1
+        },
+        {
+          "type": "image",
+          "url": "277246805_526041459026580_6777485947074881710_n.jpg",
+          "legende": "",
+          "ordre": 2
+        },
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=1BAspp2CFz41O6vr-FrzSDr30LMxA4STr",
+          "legende": "",
+          "ordre": 3
+        },
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=1xcv8DIaR_PEL1muA4skAQtCYapwcJILl",
+          "legende": "",
+          "ordre": 4
+        },
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=1IDXD2XmwJQqa8ZM_7IbS3-HZdkodpQFn",
+          "legende": "",
+          "ordre": 5
+        },
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=1T73ZVkwq5Mn8a9bE7zNq9tffKA5yuC96",
+          "legende": "",
+          "ordre": 6
+        },
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=1zbYeoLBrTGMlBazXyjS-XlmSutrO5_PU",
+          "legende": "",
+          "ordre": 7
+        },
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=1gAB244yHKPyei9WGgYXxm5wJuJV5hvwM",
+          "legende": "",
+          "ordre": 8
+        },
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=1gsBny5diJtygyC2tDWOhtlo4UAUbKfrc",
+          "legende": "",
+          "ordre": 9
+        },
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=1wyTEBExmDHZpt33JtapegByIkxISElTd",
+          "legende": "",
+          "ordre": 10
+        },
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=10pPA0tC-ovREWX_hTuStcCtPowZePgBe",
+          "legende": "",
+          "ordre": 11
+        },
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=1VhoShl_NBVue2xlvRkFvTPOz-rda8z-B",
+          "legende": "",
+          "ordre": 12
+        },
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=1TnfDGtAmHBZ5hQL-S3XeFeU5FnxdoMqj",
+          "legende": "",
+          "ordre": 13
+        },
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=1u_BoE9OlTMnKLvio47Plq61EguY_Mpid",
+          "legende": "",
+          "ordre": 14
+        },
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=1HBxRNFXfM0XvnFZM8FjcK-GTIs8iH1rf",
+          "legende": "",
+          "ordre": 15
+        },
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=1tQA92YyWtSuF0sTi2_1oeYFe7DXszFeb",
+          "legende": "",
+          "ordre": 16
+        },
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=1n7brb4Ouz80-r1moWvuRw2kZxRrfQzAB",
+          "legende": "",
+          "ordre": 17
+        },
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=1RgD632skszqlhjRu08aynksDTL-3JjrT",
+          "legende": "",
+          "ordre": 18
+        },
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=11JfYyP6ZDRcX1DDo0ooearDYQrKOHTfy",
+          "legende": "",
+          "ordre": 19
+        },
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=1qWFXg-fZ38CuZdSx6-b9MWpho42iK64X",
+          "legende": "",
+          "ordre": 20
+        },
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=1QgIi12drSyESHUySERaahYWtAZr9jtwl",
+          "legende": "",
+          "ordre": 21
+        },
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=15lMW4Nm7vHaXhwbd9sToI7F_xi39efa_",
+          "legende": "",
+          "ordre": 22
+        },
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=15r4k16n2E__8UTU7dsCpVhVHsblEP9Cs",
+          "legende": "",
+          "ordre": 23
+        },
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=17qLw-p8PY2WYZkXY9waLqeI5vBXzhpRz",
+          "legende": "",
+          "ordre": 24
+        },
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=11I-S8CAg4nkA0OemsaItx9k903_UIhIg",
+          "legende": "",
+          "ordre": 25
+        }
+      ],
       "ordre": 3,
       "publie": true,
-      "corps": "Cortèges : Kas a-barh mode Carnac-Plouharnel, Kas a-barh mode Langedig.\n\nHaute-Bretagne : Aéroplane.\n\nCouples : Scottish, Valse écossaise, Mazurka, Valse, Polka, Galop nantais.\n\nQuadrilles : Avant-deux de travers, Saint-Martin-sur-Oust, du coglais, Bazouges, Les Touches, Châteaubriant, Jabadao de Locquenolé, Kerouzée.",
-      "medias": []
+      "createdAt": "2026-08-24T09:38:41.663Z",
+      "updatedAt": "2026-08-24T09:38:41.663Z"
     },
     {
-      "id": "page-vocab-costume",
+      "id": "page-spectacle-2024",
+      "categorie": "newsletter",
+      "titre": "Spectacle 2024",
+      "corps": "Création\n\nLes danses du spectacle 2024 n'ont pas encore été décidés. Vous souhaitez faire partie de la commission chorégraphie, dîtes le nous !",
+      "medias": [
+        {
+          "type": "image",
+          "url": "https://storage.googleapis.com/glide-prod.appspot.com/uploads-v2/1loF4CnlfDqRoj8eUWHI/pub/yxyEhAiOXVzLyyN2LEeF.png",
+          "legende": "Spectacle 2024",
+          "ordre": 0
+        }
+      ],
+      "ordre": 3,
+      "publie": true,
+      "createdAt": "2026-08-24T09:38:41.663Z",
+      "updatedAt": "2026-08-24T09:38:41.663Z"
+    },
+    {
+      "id": "page-rond-pagan",
       "categorie": "vocabulaire",
-      "titre": "Vocabulaire costume",
+      "titre": "Rond de Pagan",
+      "corps": "Chant\n\nLà-bas, là-haut sur la colline\nRond de Pagan (Dañs Round)\n\n-----\n\nLà-bas, là-haut sur la colline, là-bas, là-haut sur la colline,\nIl y a des moutons blancs, ran tan plan belle rose,\nIl y a des moutons blancs, belle rose du printemps\n\nC'est la bergère qui les garde,\nAvec son tablier blanc,\n\nUn beau monsieur passant près d'elle,\nElle lui dit tout simplement,\n\nCombien gagnez-vous la belle ?\nCombien gagnez-vous par an,\n\nJe ne gagne pas grand chose,\nL'argent d'un tablier blanc,\n\nVenez avec moi la belle\nJe vous en donnerai autant\n\nVous n'aurez pas grand chose à faire,\nFaire mon lit tout simplement\n\nLe faire et le défaire,\nCoucher avec moi dedans\n\nJe ne couche point avec les hommes,\nCar maman me le défend\n\nN'écoutez pas votre chère mère,\nCar elle en a fait autant\n\nSi elle n'avait pas voulu le faire\nElle n'aurait pas eu d'enfants",
+      "medias": [
+        {
+          "type": "image",
+          "url": "https://storage.googleapis.com/glide-prod.appspot.com/uploads-v2/1loF4CnlfDqRoj8eUWHI/pub/D2kKcfDaHX9VD4uxRPZm.jpg",
+          "legende": "Rond de Pagan",
+          "ordre": 0
+        }
+      ],
+      "ordre": 1,
+      "publie": true,
+      "createdAt": "2026-08-24T09:38:41.663Z",
+      "updatedAt": "2026-08-24T09:38:41.663Z"
+    },
+    {
+      "id": "page-pile-menu",
+      "categorie": "vocabulaire",
+      "titre": "Pilé-Menu",
+      "corps": "Chant\n\nQue la barbe m'en fume!\nPilé Menu\n\n-----\n\nC'est dans 10 ans, je chante et je ris\nJe bois un coup, je me divertis\nLe lendemain je jure : Que la barbe m'en fume !\nJ'aimerais mieux l'argent dans ma poche,\nEt n'avoir jamais fait la bamboche\n\nC'est dans 9 ans...\n\n\nVidéo : 2:03\n\nEn passant par le moulin blanc\nPilé Menu \n\n---\n\nY a bien dix ans, petit mouton blanc,\nJ'ai vu la meunière du moulin à vent\n« Y a bien dix ans, petit mouton blanc, »\n« J'ai vu la meunière du moulin à vent »\nEt elle voulait que je la caresse\nEt moi qui n'avait pas le temps\nLa belle attendait la belle à tantôt\nJe vous caresserai comme il faut\n« La belle attendait la belle à tantôt »\n« Je vous caresserai comme il faut »\n\nVidéo ci-dessous à 4:56\n\nVidéo : https://www.youtube.com/watch?v=9AXpScIft8E&ab_channel=TristanGloaguen",
+      "medias": [
+        {
+          "type": "video",
+          "url": "https://www.youtube.com/watch?v=9AXpScIft8E&ab_channel=TristanGloaguen",
+          "legende": "",
+          "ordre": 0
+        }
+      ],
+      "ordre": 2,
+      "publie": true,
+      "createdAt": "2026-08-24T09:38:41.663Z",
+      "updatedAt": "2026-08-24T09:38:41.663Z"
+    },
+    {
+      "id": "page-ridee-6-temps",
+      "categorie": "vocabulaire",
+      "titre": "Ridée 6 temps",
+      "corps": "Chant\n\nA la première auberge\nRidée 6 temps\n\n---\n\nÀ la première auberge là nous boirons,\nÀ la première auberge là nous boirons.\nLà nous boirons si les filles sont belles,\nLà nous boirons si le vin est bon.\n\nLégère variante :\n\nÀ la première auberge nous y boirons,\nÀ la première auberge nous y boirons.\nNous y boirons si les filles sont belles,\nNous y boirons si le vin est bon.\n\n(idem avec deuxième, troisième, quatrième, etc.)",
+      "medias": [],
+      "ordre": 3,
+      "publie": true,
+      "createdAt": "2026-08-24T09:38:41.663Z",
+      "updatedAt": "2026-08-24T09:38:41.663Z"
+    },
+    {
+      "id": "page-sorties-excel",
+      "categorie": "newsletter",
+      "titre": "Tableau excel",
+      "corps": "L'été, notre groupe propose des prestations pour diverses manifestations, festivals, fêtes ou événements.\n\nLégende :\n\n1 : présent\n0 : absent\n? : peut-être\n\nVoici le lien de l'excel, il y a un onglet pour le groupe enfant et un onglet pour le groupe concours.\n\nLien : https://docs.google.com/spreadsheets/d/1XWLTPZT9we3s8VKUN1JRTesXk2lsSyt7wxxZyCO16W0/edit?usp=sharing",
+      "medias": [],
       "ordre": 4,
       "publie": true,
-      "corps": "• Bragoù bras — pantalon\n• Roched — chemise\n• Jiletenn — gilet\n• Chupenn — veste courte\n• Gouriz — ceinture\n• Coiffe — selon âge et statut\n• Guêtres, brodeuses, collerettes…\n\nDemandez l'atelier costume pour les termes spécifiques à votre tenue.",
-      "medias": []
+      "createdAt": "2026-08-24T09:38:41.663Z",
+      "updatedAt": "2026-08-24T09:38:41.663Z"
     },
     {
-      "id": "page-themes-dates",
+      "id": "page-mener-animation",
       "categorie": "autre",
-      "titre": "Comprendre les dates par groupe",
+      "titre": "Mener une animation",
+      "corps": "Animateur/Animatrice\n\nPour chaque sortie, il faut un meneur qui se chargera de parler au nom du cercle. Etes-vous capable de mener une sortie ?\n\n\n## 1 / Type de sortie\n\nIl existe plusieurs types de sorties : \n\n- les sorties défilé et spectacle\n- les sorties défilé, spectacle et animation\n- les sorties animation\n\n\n## 2 / Faire le programme\n\nVous allez animer une sortie, veillez à connaitre à l'avance le temps de prestation et les attendus dans le contrat : \n\n- Horaire d'arrivée ? Horaire de fin ? Est-ce qu'il y a une entracte ? \n- Quels danseurs : enfants, tremplin, concours ?\n- Est-ce qu'il y a des loges pour se changer ? Devons-nous arriver en costume dans ce cas ?\n- Public français ou étranger ?\n- Les musiciens doivent-ils être présents ? S'il s'agit d'une animation hors concours, les organisateurs ont-ils payé un supplément pour avoir des musiciens ?\n- Les musiciens devront-ils faire des balances ?\n- La taille de la scène permet-elle de présenter le spectacle ? \n- Devons-nous stocker des accessoires pour le spectacle ?\n- Les organisateurs souhaitaient-ils un défilé, une présentation de costume, une initiation à la danse, une danse des milles ? \n- Les musiciens présents pourront-ils assurer la présentation du spectacle (s'ils sont que 2 sur 5 par exemple) ? \n- Quel est le répertoire possible des musiciens pour les danses de l'animation ? \n- Les danseurs présents connaissent-ils les danses de leur répertoire ? \n- Une sono sera t-elle mise à disposition ? Devons-nous apporter notre sono et branchements pour les musiciens ? \n- Le public est-il assis ou debout ?\n- Le public pourra-t'il danser ? \n\nLes organisations ne donnent parfois pas d'indications de contenu. C'est donc au meneur et aux musiciens de créer l'ordre de l'animation et de faire des choix selon le public présent. \n\n\n--------------------------Exemple de cas-------------------------\n\nNous avons une sortie de 2h dans une petite fête locale. Il n'y a pas de défilé. Il y a une scène de taille moyenne, les musiciens doivent être présents (les organisateurs ont payé un supplément pour les avoir). \nVoici un exemple de programme d'une durée de 2 heures : \n\n20h : arrivée des danseurs sur le lieu en costume\n20h30 : début de la prestation\n\n1// une danse d'entrée dynamique : 5 min\n2// présentation du cercle au micro par le meneur et phrase d'introduction pour annoncer la suite glazig : 5 min\n3// suite glazig : 15min\n4// présentation costume : 15 minutes\n5// 2-3 danses qui ne sont présentes dans le spectacle : 10min\n6// présentation des concours et de notre spectacle : 5min\n7// spectacle : 20 minutes\n8// initiation à la danse hanter dro et rond de st vincent : 30 minutes \n9// échange et photo avec le public : 10min\n\nRemarque : En général en camping et hotel, on ne peut pas présenter le spectacle, les conditions ne sont pas favorables. C'est donc interessant d'avoir un spectacle de type animation.\n\n\n## 3/ Faire une introduction\n\nEn fonction de la sortie, le public n'est pas le même. \n\nEst-ce qu'il s'agit d'un public averti ? Connait-il le monde des cercles celtiques ? \nParlent-ils français ou une autre langue ? \n\n\nExemple de textes à s'approprier avec ses mots : \n\n\"\"\nBonjour à toutes et à tous, nous sommes ravis d'être à vos côtés {ce soir} ! \n\nNous sommes les Korriganed Ar Meilhoù Glas, le cercle celtique du quartier du Moulin Vert à Quimper. Quimper, capital de la Cornouaille bien connue pour ces faiencerie Henriot. Elle se situe à {une demi-heure d'ici}, n'hésitez pas à y faire un tour lors de votre séjour en Bretagne. Notre cercle est le plus jeune cercle de Quimper, il a été créé en 2000. Quimper a la chance de compter 4 cerce qui représente les différents quartiers, elle est une des seules villes à en compter autant. \nSavez-vous ce qu'est un cercle celtique ? \nUn cercle celtique est une association qui a pour but de promouvoir la culture bretonne à travers la danse, la musique, la mode vestimentaire, le chant,... Nous travaillons toute l'année l'apprentissage des danses à partir de collectages anciens transmis par des référents. Nous créons chaque année, un spectacle pour le présenter à nos concours annuels. \nCe soir nous sommes accompagnés de nos musiciens et nous allons vous présenter différentes danses traditionnelles sous leur forme anciennes et parfois modernisées par des mouvements chorégraphique. Nous vous présenterons également notre création scénique {2024}. \nBelle prestation, à tout à l'heure ! \n\n\"\"\n\n\n## 4/ Choisir les danses\n\nQuand vous choisissez les danses du programme de votre animation, il faut essayer de varier les styles et les dynamiques, tout en pensant à l'épuisement des danseurs. \n\nIl s'agit d'une prestation payée donc nous devons montrer une bonne image du cercle : des costumes bien portés, des sourires, un programme organisé et rythmé, des transitions rapides et de la technique. \n\nNe faites pas durer les danses plus de 2min30 car ça peut donner l'impression d'être interminable pour le public, surtout si c'est uniquement une ronde. En parler avec les musiciens. \n\nLes enchainements entre les danses doivent être nets. Restez sur scène, sortez tous, ... faites des choix propres. \n\nVoir la page avec une liste non exhaustive de danse.\n\n\n## 5/ Présentation des costumes\n\nCe n'est pas obligatoirement le meneur qui présente les costume mais celui-ci doit être là pour ryhtmer la prestation globale. La ou les personnes qui se chargeront de présentation les costumes portés doivent s'adapter aux costumes présents lors de la soirée. \n\n\nFaire une présentation pour expliquer les terroirs de danses, l'identité bretonne à travers le costume...\n\n\n## 6/ Initiation à la danse\n\nL'initiation clôture, en général, la prestation car le public devient l'acteur du moment. Il est important de ne pas bacler ce moment qui donnera la dernière image du cercle. \n\nChoisissez 2 danses simples : \n- Hanter Dro - c'est idéal de commencer avec une danse qui n'a pas de bras\n- Andro\n- Rond de St-Vincent\n- Scottish - interessant quand il y a beaucoup de couples\n- Cercle circassin - très convivial pour les mariages \n\nVoici les étapes : \n\nETAPE 1 \nInformez le public que nous allons faire une initiation à la danse\n\"Maintenant que vous avez pu vous imprégniez de nos pas de danse, C'est à vous de danser ! venez, n'hésitez pas... Nous allons former une grande ronde. Les danseurs vont s'intercaler entre vous pour vous aider...\". \n\nETAPE 2\nInvitez les à se placer en ronde autour de vous et placez vous au centre. Demander leur de ne pas se tenir pour le moment. \n\nETAPE 3 : \nLever votre jupe pour dévoiler vos pieds et montrer d'abord le pas. Il faut rassurer le public. Donner du contexte sur la danse.\n\"Je vais commencer par vous montrer la danse que nous allons apprendre. Elle est très simple. Il s' agit de l'Hanter Dro, une danse du pays Vannetais. On le compte en 4 temps. 1, 2, 3...4.\"\n\nETAPE 4 \nMaintenant que vous avez montrer la danse. N'hésitez pas à relancer les plus timides. \n\"Vous voyez ce n'est pas compliqué, si certains veulent nous rejoindre et tenter quelques pas de danse bretonne, n'hésitez pas c'est encore le moment !\"\n\n\nETAPE 5\nL'apprentissage. \nPrenez le temps de décomposer les pas mais pas trop non plus. Le mimétisme c'est souvent la clé : faites le pas lentement en disant Gauche, Droite, Gauche,... Droite. et enchainez-en plusieurs lentement. Le public va l'avoir très facilement.\n\nETAPE 6 \nFaites tourner quelques pas sans musique en compter. Accélérez progressivement pour arriver à la vitesse réelle. N'oubliez pas d'encourager les danseurs : \"C'est ça !... Vous êtes doués, beaucoup d'entre vous sont prêts à aller sur scène\". \nIl faut que les gens se sentent à l'aise. Mettez les à l'aise avec des petites notes d'humour. Surtout ne laissez pas un silence, parlez !\n\n\nETAPE 7\nDanser en musique. \n\nSi on a des musiciens : n'interrompez pas les danseurs et demandez aux musiciens de commencer à jouer sur vos 1, 2, 3, ...4. La musique doit s'installer progressivement. \n\nSi on est avec enregistrement : annoncer que vous allez mettre la musique.Commencer à compter sur la musique sans danser puis annoncer \"on y va... 1, 2, 3...4\". Comptez sur la musique. \n\n\nETAPE 8 \nLaissez les danser tout en commentant. \nC'est bon ils dansent sur la musique. Vous pouvez aller danser avec eux ou alors continuer de compter pour aider les danseurs qui galèrent. N'hésitez pas à commenter et dire que c'est bien.\n\n\nETAPE 9 \nUne autre danse ? \n\"Je vous propose maintenant d'apprendre une autre danse, ça vous dit\"...\n\n\n## 6/ Clotûrer la soirée\n\nExemple de texte \n\n\"Merci à tous pour votre énergie. Nous espérons que vous avez passé une belle soirée à nos côtés. On espère vous voir bientôt sur des pistes de danse en Fest noz. \n\nN'hésitez pas à nous suivre sur les réseaux sociaux : Facebook et Instagram. Nous avons le QR Code sur notre bannière. \n\nNous sommes disponibles pour prendre quelques photos. N'hésitez pas à nous solliciter ! \n\nMerci, belle soirée et bon séjour. \"",
+      "medias": [
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=1E1Y_BP8cfItEdahwqM34a7pWh0t6_5dR",
+          "legende": "Mener une animation",
+          "ordre": 0
+        },
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=1CExgaInvnXRlbGlUzug6vH71ZBz4Zvfi",
+          "legende": "1 / Type de sortie",
+          "ordre": 1
+        },
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=1lTICnn98qvDD1djN9wD6QYNgSVZGhPE9",
+          "legende": "2 / Faire le programme",
+          "ordre": 2
+        },
+        {
+          "type": "image",
+          "url": "https://drive.google.com/uc?export=view&id=1V9Y7xJvmyvXpgqyADGfIYKDgbxE1EdwW",
+          "legende": "3/ Faire une introduction",
+          "ordre": 3
+        }
+      ],
       "ordre": 3,
       "publie": true,
-      "corps": "Dans l'Agenda, les événements Google peuvent concerner :\n• Korrigan (5-8 ans), Enfant (9-12), Ado (13-15)\n• Tremplin, Concours, Loisir (un vendredi sur deux)\n• Gwennyn, Sorties communes, Monitorat, Commissions\n\nFiltrez l'onglet Agenda par puce pour n'afficher que votre groupe.",
-      "medias": []
+      "createdAt": "2026-08-24T09:38:41.663Z",
+      "updatedAt": "2026-08-24T09:38:41.663Z"
+    },
+    {
+      "id": "page-liste-danses",
+      "categorie": "autre",
+      "titre": "Liste des danses",
+      "corps": "Idées en vrac\n\n\n## Famille des branles anciens\n\n- Hanter Dro\n- En-Dro\n- Dans Trikot\n\n- Rond de Saint-Vincent-sur-Oust\n- Rond de Sautron\n- Rond Paludier (l'en dedans et l'enlevé (2 mode : petits ou grand pas)) \n\n- Ridée 6 temps\n- Ridée de Saint-Gildas\n- Ridée ou Laridé 8 temps\n- Ridée de Saint-Gildas-de-Rhuys\n- Laridé de la côte mode Carnac\n- Laridé mode Baud\n\n- Rond de Sautron (pays de Nantes) \n- Rond de Landéda\n- Rond Pagan\n- Maraichine\n- Pilé-Menu\n- Pachpi / Passepied\n- Tour et en-dedans\n- Poudou-fer (danse jeu)\n\n\n## Suite complète\n\n- Suite Gavotte des montages (ton simple, bal, ton double) \n\n- Suite Gavotte mode Spezet (ton simple, tamm kreiz, ton double) \n\n- Suite de Loudéac (rond, baleu, rond et riqueniée)\n\n- Suite Plinn (ton simple, bal, ton double)\n\n- Suite Glazig (gavotte glazig, bals, jabadao et gavotte d'honneur) \n\n- Suite Bigoudène\n\n- Suite Rouzig\n\n- Suite de l'Aven à la mode Clohars Carnoët (gavotte à 4, bal à 4, bal à 2) \n\n- Suite Dardoup (gavotte à 4, bal à 4, bal à 8)\n\n- Suite Chateauneuf du Faou \n\n- Suite Kernevodez (chaînes en couples, bal en chaînes)\n\n- Suite Treguer (2 rondes : intérieur F et extérieur H, cortège à deux inverse aiguille d'une montre, cortège rapide horaire)\n\n- Suite Fisel (ronde, bal à deux, ronde)\n\n- Suite du Cap Sizun\n\n- Suite du pays Calanhel\n\n- Suite de Poher (gavotte ts, bal, gavotte td)\n\n\n## Les gavottes / Dans Tro\n\n- Gavotte des montagnes\n- Kost Ar C'hoad\n- Gavotte de Plougastel\n- Gavotte Pour let\n\n\n## Dérobée\n\n- Dérobée de Guingamp\n- Dérobée de Brasparts\n- Montfarine de Braspart (vol d'une cavalière)\n\n\n## Danse en cortège\n\n- Kas a-barh (ou En-Dro) mode Carnac-Plouharnel\n- Kas a-barh mode Langedig\n\n\n- - - - - - - - - - - - - - -  Haute-Bretagne - - - - - - - - - - - - -\n\n- Aéroplane\n\n\n## Danse en couple\n\n- Scottish\n- Valse écossaise\n- Mazurka\n- Valse\n- Valse écossaise\n- Polka\n- Galop Nantais\n\n\n## Quadrille\n\n- Avant-deux de travers\n- Avant-deux de St-Martin sur Oust\n- Avant-deux du coglais\n- Avant-deux de Bazouges\n- Avant-deux de ligné les touches\n- Avant-deux de Châteaubriant\n\n\n- Jabadao de Locquenolé (tregor) \n\n\n- Kerouezée (Le Penthievre) - 2 modes",
+      "medias": [],
+      "ordre": 4,
+      "publie": true,
+      "createdAt": "2026-08-24T09:38:41.663Z",
+      "updatedAt": "2026-08-24T09:38:41.663Z"
+    },
+    {
+      "id": "page-checklist-spectacle",
+      "categorie": "newsletter",
+      "titre": "Check-List spectacle",
+      "corps": "## Commun\n\n- Malle\n- 20 objets\n\n\n## Chacun\n\n- Faux Tablier / Torchons\n- Sac à main ou panier\n- Chaussure",
+      "medias": [],
+      "ordre": 5,
+      "publie": true,
+      "createdAt": "2026-08-24T09:38:41.663Z",
+      "updatedAt": "2026-08-24T09:38:41.663Z"
     }
   ]
 }
