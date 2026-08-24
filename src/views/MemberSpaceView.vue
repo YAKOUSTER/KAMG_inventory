@@ -82,8 +82,9 @@
           >
             <h2 class="member-section__title">S’inscrire aux sorties</h2>
             <p class="member-section__intro">
-              Indiquez si vous serez présent (1), absent (0) ou peut-être (?) — une colonne par date,
-              comme l’ancien tableur Excel. Choisissez votre nom, puis passez de case en case.
+              Indiquez si vous serez présent (1), absent (0) ou peut-être (?) — une colonne par
+              sortie, même s’il y en a plusieurs le même jour. Choisissez votre nom, puis passez
+              de case en case.
             </p>
             <PresenceGrid
               :events="inscriptionEvents"

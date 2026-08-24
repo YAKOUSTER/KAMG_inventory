@@ -28,9 +28,10 @@
     </div>
 
     <p class="presence-grid__legend">
-      Comme un tableur : une colonne par date, une ligne par personne. Cliquez une case pour
-      cycler <strong>1</strong> (présent), <strong>0</strong> (absent), <strong>?</strong> (peut-être),
-      vide. Flèches pour changer de case, puis 1 / 0 / ? / Suppr.
+      Comme un tableur : une colonne par événement (même s’il y en a plusieurs le même jour),
+      une ligne par personne. Cliquez une case pour cycler <strong>1</strong> (présent),
+      <strong>0</strong> (absent), <strong>?</strong> (peut-être), vide.
+      Sur ordinateur : flèches puis 1 / 0 / ? / Suppr.
     </p>
 
     <v-alert v-if="publicMode && !selectedPersonId" type="info" variant="tonal" class="mb-3" density="compact">
@@ -46,6 +47,7 @@
             <th v-for="column in columns" :key="column.id" class="presence-grid__date-col">
               <div class="presence-grid__weekday">{{ column.weekday }}</div>
               <div class="presence-grid__date">{{ column.dateLabel }}</div>
+              <div v-if="column.timeLabel" class="presence-grid__time">{{ column.timeLabel }}</div>
               <div class="presence-grid__event" :title="column.titre">{{ column.titre }}</div>
               <div class="presence-grid__counts">
                 {{ summaryFor(column.id).present }} /
@@ -194,7 +196,8 @@ function cellClass(personId, eventId) {
 function cellAria(person, column) {
   const statut = currentStatut(person.id, column.id)
   const label = presenceStatutMeta(statut)?.label || 'sans réponse'
-  return `${displayName(person)}, ${column.titre} ${column.dateLabel} : ${label}`
+  const when = [column.dateLabel, column.timeLabel].filter(Boolean).join(' ')
+  return `${displayName(person)}, ${column.titre} ${when} : ${label}`
 }
 
 function canEditCell(personId) {
@@ -367,6 +370,12 @@ thead .presence-grid__name-col {
 
 .presence-grid__date {
   font-size: 0.92rem;
+}
+
+.presence-grid__time {
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
 .presence-grid__event {

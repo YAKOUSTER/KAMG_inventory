@@ -1,6 +1,6 @@
 import { eventAcceptsInscriptions } from './events.js'
 import { todayLocal } from './dates.js'
-import { WEEKDAY_LABELS, parseLocalDay, toLocalDay } from './calendarViews.js'
+import { WEEKDAY_LABELS, eventTimeLabel, parseLocalDay, toLocalDay } from './calendarViews.js'
 import { presenceStatutMeta } from './presence.js'
 
 export function presenceCellKey(eventId, personId) {
@@ -63,6 +63,7 @@ export function presenceColumnMeta(event) {
     day,
     weekday,
     dateLabel,
+    timeLabel: eventTimeLabel(event),
     titre: event?.titre || '',
   }
 }

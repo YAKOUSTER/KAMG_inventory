@@ -24,8 +24,8 @@
         v-if="gridEvents.length"
         variant="text"
         class="text-none"
-        href="#feuille-presences"
         prepend-icon="mdi-table"
+        @click="scrollToGrid"
       >
         Feuille de présences
       </v-btn>
@@ -52,7 +52,7 @@
     <section v-if="gridEvents.length && people.length" id="feuille-presences" class="presence-sheet">
       <h2 class="text-subtitle-1 font-weight-bold mb-2">Feuille de présences</h2>
       <p class="text-body-2 text-medium-emphasis mb-3">
-        Toutes les sorties à venir en colonnes. Cliquez une case ou naviguez au clavier comme dans un tableur.
+        Toutes les sorties à venir, une colonne par événement — y compris s’il y en a plusieurs le même jour.
       </p>
       <PresenceGrid
         :events="gridEvents"
@@ -131,6 +131,10 @@ function openEvent(event) {
 
 function createOnDay(isoDay) {
   router.push({ name: 'event-create', query: { debut: isoDay } })
+}
+
+function scrollToGrid() {
+  document.getElementById('feuille-presences')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
 function onPresenceUpdated(record) {

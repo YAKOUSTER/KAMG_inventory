@@ -50,6 +50,19 @@ describe('inscriptionEventsForGrid', () => {
     assert.equal(presenceColumnMeta(columns[0]).dateLabel.length, 5)
     assert.equal(cellShortLabel('present'), '1')
   })
+
+  it('crée une colonne par événement, même le même jour', () => {
+    const events = [
+      { id: 'matin', type: 'sortie', debut: '2026-12-02T10:00:00.000Z', inscriptionsOuvertes: true, titre: 'Défilé' },
+      { id: 'soir', type: 'sortie', debut: '2026-12-02T18:00:00.000Z', inscriptionsOuvertes: true, titre: 'Fest-noz' },
+    ]
+    const columns = inscriptionEventsForGrid(events, new Date('2026-08-24T12:00:00.000Z')).map(presenceColumnMeta)
+    assert.equal(columns.length, 2)
+    assert.equal(columns[0].day, columns[1].day)
+    assert.notEqual(columns[0].id, columns[1].id)
+    assert.ok(columns[0].timeLabel)
+    assert.notEqual(columns[0].timeLabel, columns[1].timeLabel)
+  })
 })
 
 describe('indexPresences', () => {

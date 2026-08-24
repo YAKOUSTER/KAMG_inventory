@@ -6,6 +6,7 @@ import {
   groupEventsByDay,
   groupEventsByMonth,
   isAgendaView,
+  listGroupsByDay,
   monthCells,
   periodLabel,
   shiftPeriod,
@@ -56,6 +57,16 @@ describe('événements', () => {
     const day = toLocalDay('2026-04-14T18:00:00.000Z')
     assert.equal(eventsOnDay(byDay, day).length, 2)
     assert.equal(eventsOnDay(byDay, day)[0].id, 'b')
+    assert.equal(eventsOnDay(byDay, day)[1].id, 'a')
+  })
+
+  it('garde deux événements distincts le même jour dans la liste', () => {
+    const groups = listGroupsByDay(events)
+    assert.equal(groups[0].events.length, 2)
+    assert.deepEqual(
+      groups[0].events.map((event) => event.id),
+      ['b', 'a'],
+    )
   })
 
   it('regroupe la liste par mois', () => {

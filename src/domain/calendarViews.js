@@ -98,6 +98,24 @@ export function eventsOnDay(byDay, isoDay) {
   return byDay.get(isoDay) || []
 }
 
+export function listGroupsByDay(events = []) {
+  const groups = []
+  const index = new Map()
+  const sorted = [...events].sort((a, b) => String(a.debut || '').localeCompare(String(b.debut || '')))
+  for (const event of sorted) {
+    const day = toLocalDay(event?.debut)
+    if (!day) continue
+    let group = index.get(day)
+    if (!group) {
+      group = { day, events: [] }
+      index.set(day, group)
+      groups.push(group)
+    }
+    group.events.push(event)
+  }
+  return groups
+}
+
 export function groupEventsByMonth(events = []) {
   const groups = []
   const indexByKey = new Map()
