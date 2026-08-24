@@ -29,9 +29,11 @@
 
     <p class="presence-grid__legend">
       Comme un tableur : une colonne par événement (même s’il y en a plusieurs le même jour),
-      une ligne par personne. Cliquez une case pour cycler <strong>1</strong> (présent),
+      une ligne par personne. Touchez une case pour cycler <strong>1</strong> (présent),
       <strong>0</strong> (absent), <strong>?</strong> (peut-être), vide.
-      Sur ordinateur : flèches puis 1 / 0 / ? / Suppr.
+      <span class="presence-grid__legend-desktop">
+        Sur ordinateur : flèches puis 1 / 0 / ? / Suppr.
+      </span>
     </p>
 
     <v-alert v-if="publicMode && !selectedPersonId" type="info" variant="tonal" class="mb-3" density="compact">
@@ -311,9 +313,12 @@ function onKeydown(event) {
 .presence-grid__scroll {
   overflow: auto;
   max-height: min(70vh, 720px);
+  max-width: 100%;
   border: 1px solid var(--kamg-border);
   border-radius: 12px;
   background: #fff;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 .presence-grid__table {
@@ -341,6 +346,10 @@ function onKeydown(event) {
   font-weight: 600;
   padding: 8px 10px !important;
   box-shadow: 4px 0 8px rgba(44, 51, 44, 0.04);
+}
+
+tbody .presence-grid__name-col {
+  background: #fff;
 }
 
 thead .presence-grid__name-col,
@@ -444,12 +453,21 @@ tr.is-mine .presence-grid__name-col {
 }
 
 @media (max-width: 700px) {
+  .presence-grid__legend-desktop {
+    display: none;
+  }
+
   .presence-grid__name-col {
-    min-width: 120px;
+    min-width: 112px;
+    font-size: 0.86rem;
   }
 
   .presence-grid__date-col {
-    min-width: 76px;
+    min-width: 84px;
+  }
+
+  .presence-grid__cell {
+    min-height: 48px;
   }
 }
 </style>

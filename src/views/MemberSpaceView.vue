@@ -22,8 +22,7 @@
         <v-tab value="emprunts" class="text-none">Emprunts</v-tab>
       </v-tabs>
 
-      <v-tabs-window v-model="tab" class="member-space__panels">
-        <v-tabs-window-item value="agenda">
+      <div v-show="tab === 'agenda'" class="member-space__panel">
           <section class="member-section member-section--subscribe">
             <h2 class="member-section__title">Calendrier du cercle</h2>
             <p class="member-section__intro">
@@ -94,14 +93,14 @@
               @updated="onPresenceUpdated"
             />
           </section>
-        </v-tabs-window-item>
+      </div>
 
-        <v-tabs-window-item value="infos">
-          <MemberBlogPanel v-if="infosVisited" :pages="data.pages" />
-        </v-tabs-window-item>
+      <div v-if="infosVisited" v-show="tab === 'infos'" class="member-space__panel">
+        <MemberBlogPanel :pages="data.pages" />
+      </div>
 
-        <v-tabs-window-item value="emprunts">
-          <section v-if="empruntsVisited" class="member-section">
+      <div v-if="empruntsVisited" v-show="tab === 'emprunts'" class="member-space__panel">
+          <section class="member-section">
             <h2 class="member-section__title">Emprunts en cours</h2>
             <p class="member-section__intro">
               Pièces actuellement sorties du patrimoine du cercle (spectacles, répétitions, etc.).
@@ -128,8 +127,7 @@
             </div>
             <v-alert v-else type="info" variant="tonal">Aucun emprunt en cours.</v-alert>
           </section>
-        </v-tabs-window-item>
-      </v-tabs-window>
+      </div>
     </template>
 
     <v-dialog v-model="eventDialog" max-width="520">
@@ -305,6 +303,10 @@ function openMemberEvent(event) {
 
 .member-space__tabs {
   margin-bottom: 16px;
+}
+
+.member-space__panel {
+  min-width: 0;
 }
 
 .member-section {

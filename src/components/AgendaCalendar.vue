@@ -667,10 +667,6 @@ function openMonth(entry) {
   cursor: pointer;
 }
 
-.agenda-cal__mini-day:disabled {
-  cursor: default;
-}
-
 .agenda-cal__mini-day.has-events {
   font-weight: 700;
   border-radius: 999px;
