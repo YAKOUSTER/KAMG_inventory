@@ -70,7 +70,8 @@ import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { api } from '@/services/api'
-import { EVENT_TYPES } from '@/domain/events'
+import { eventMatchesKindFilter } from '@/domain/events'
+import { eventKindFilterItems } from '@/domain/eventKinds'
 import { applyPresenceUpdate } from '@/domain/presence'
 import { inscriptionEventsForGrid } from '@/domain/presenceGrid'
 import AgendaCalendar from '@/components/AgendaCalendar.vue'
@@ -86,12 +87,11 @@ const importing = ref(false)
 const importMessage = ref('')
 const importOk = ref(false)
 
-const typeItems = [{ title: 'Tout', value: 'Tout' }, ...EVENT_TYPES.map((type) => ({ title: type.label, value: type.id }))]
+const typeItems = eventKindFilterItems()
 
-const filtered = computed(() => {
-  if (typeFilter.value === 'Tout') return events.value
-  return events.value.filter((event) => event.type === typeFilter.value)
-})
+const filtered = computed(() =>
+  events.value.filter((event) => eventMatchesKindFilter(event, typeFilter.value)),
+)
 
 const gridEvents = computed(() => inscriptionEventsForGrid(events.value))
 

@@ -18,7 +18,39 @@ describe('normalizeEvent', () => {
     assert.equal(event.type, 'sortie')
     assert.equal(event.publie, true)
     assert.equal(event.inscriptionsOuvertes, true)
+    assert.deepEqual(event.kinds, [])
+    assert.equal(event.titre, 'Festival de Lorient')
     assert.ok(event.debut.endsWith('Z') || event.debut.includes('T'))
+  })
+
+  it('préfixe le titre seulement si les types sont explicites', () => {
+    const event = normalizeEvent(
+      {
+        kinds: ['sortie'],
+        titre: 'Festival de Lorient',
+        debut: '2026-08-10T14:00:00',
+        sortie: { format: 'defile', transport: 'car' },
+      },
+      { id: 'evt-sortie' },
+    )
+    assert.equal(event.titre, '[SORTIE] Festival de Lorient')
+    assert.deepEqual(event.kinds, ['sortie'])
+    assert.equal(event.sortie.format, 'defile')
+    assert.equal(event.sortie.transport, 'car')
+  })
+
+  it('ne réécrit pas un titre Google inféré', () => {
+    const event = normalizeEvent(
+      {
+        source: 'google',
+        type: 'repetition',
+        titre: 'Répétition Ado+Tremplin #4',
+        debut: '2026-08-10T14:00:00',
+      },
+      { id: 'google-rep' },
+    )
+    assert.equal(event.titre, 'Répétition Ado+Tremplin #4')
+    assert.deepEqual(event.kinds, [])
   })
 
   it('ouvre les inscriptions par défaut seulement pour les sorties', () => {
@@ -86,6 +118,8 @@ describe('event lists', () => {
     )
     assert.equal(summary.description.length, 400)
     assert.equal(summary.inscriptionsOuvertes, true)
+    assert.ok(Array.isArray(summary.kinds))
+    assert.equal(summary.kinds.includes('sortie'), true)
   })
 
   it('filtre les événements passés publiés', () => {

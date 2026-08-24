@@ -130,14 +130,12 @@
       </div>
     </template>
 
-    <v-dialog v-model="eventDialog" max-width="520">
+    <v-dialog v-model="eventDialog" max-width="760">
       <v-card v-if="selectedEvent" class="pa-2">
         <v-card-title class="text-wrap">{{ selectedEvent.titre }}</v-card-title>
         <v-card-text>
           <div class="d-flex flex-wrap ga-1 mb-3">
-            <v-chip size="small" :color="eventTypeMeta(selectedEvent.type).color" variant="tonal">
-              {{ eventTypeLabel(selectedEvent.type) }}
-            </v-chip>
+            <EventKindChips :event="selectedEvent" size="small" />
             <v-chip
               v-for="group in selectedEvent.groupes || []"
               :key="group"
@@ -152,6 +150,15 @@
           <p v-if="selectedEvent.description" class="text-body-2" style="white-space: pre-wrap">
             {{ selectedEvent.description }}
           </p>
+          <SortieFiche
+            v-if="showSortieFiche"
+            class="mt-4"
+            :titre="selectedEvent.titre"
+            :debut="selectedEvent.debut"
+            :lieu="selectedEvent.lieu"
+            :sortie="selectedEvent.sortie || emptySortie()"
+            :dancer-count="selectedDancerCount"
+          />
           <AddToCalendarButton :event="selectedEvent" />
         </v-card-text>
         <v-card-actions>
@@ -169,10 +176,11 @@ import { useRoute, useRouter } from 'vue-router'
 import { api } from '@/services/api'
 import { GROUP_NAME, LOGO_SRC } from '@/domain/brand'
 import { displayDate, displayDateTime } from '@/domain/dates'
-import { eventTypeLabel, eventTypeMeta, eventAcceptsInscriptions } from '@/domain/events'
+import { eventAcceptsInscriptions, eventIsSortie } from '@/domain/events'
+import { emptySortie, sortieHasContent } from '@/domain/sortie'
 import { loanStatusColor, loanStatusLabel, openLoanLines } from '@/domain/loans'
 import { EVENT_GROUPS, eventGroupLabel, filterEventsByGroup } from '@/domain/eventGroups'
-import { applyPresenceUpdate } from '@/domain/presence'
+import { applyPresenceUpdate, summarizePresences } from '@/domain/presence'
 import {
   appCalendarIcsUrl,
   appCalendarWebcalUrl,
@@ -182,6 +190,8 @@ import AddToCalendarButton from '@/components/AddToCalendarButton.vue'
 import MemberBlogPanel from '@/components/MemberBlogPanel.vue'
 import AgendaCalendar from '@/components/AgendaCalendar.vue'
 import PresenceGrid from '@/components/PresenceGrid.vue'
+import EventKindChips from '@/components/EventKindChips.vue'
+import SortieFiche from '@/components/SortieFiche.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -208,6 +218,13 @@ const calendarEvents = computed(() => filterEventsByGroup(allEvents.value, group
 const inscriptionEvents = computed(() =>
   (data.value?.events?.upcoming || []).filter((event) => eventAcceptsInscriptions(event)),
 )
+const showSortieFiche = computed(
+  () => eventIsSortie(selectedEvent.value) && sortieHasContent(selectedEvent.value?.sortie),
+)
+const selectedDancerCount = computed(() => {
+  if (!selectedEvent.value || !data.value) return 0
+  return summarizePresences(data.value.presences, selectedEvent.value.id).present
+})
 
 watch(tab, (value) => {
   if (value === 'infos') infosVisited.value = true

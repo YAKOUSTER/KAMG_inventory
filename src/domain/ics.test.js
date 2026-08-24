@@ -32,6 +32,8 @@ describe('parseIcsEvents', () => {
     assert.equal(events.length, 1)
     assert.equal(events[0].source, 'google')
     assert.equal(events[0].type, 'repetition')
+    assert.equal(events[0].titre, 'Répétition Ado+Tremplin #4')
+    assert.deepEqual(events[0].kinds, [])
     assert.ok(events[0].groupes.includes('ado'))
     assert.ok(events[0].groupes.includes('tremplin'))
   })

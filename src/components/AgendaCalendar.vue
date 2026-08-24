@@ -47,9 +47,7 @@
           </time>
           <div class="agenda-cal__list-body">
             <div class="d-flex flex-wrap ga-1 align-center mb-1">
-              <v-chip size="x-small" :color="eventTypeMeta(event.type).color" variant="tonal">
-                {{ eventTypeLabel(event.type) }}
-              </v-chip>
+              <EventKindChips :event="event" />
               <v-chip v-if="event.publie === false" size="x-small" color="warning" variant="tonal">
                 Brouillon
               </v-chip>
@@ -102,7 +100,7 @@
         v-for="cell in month"
         :key="cell.iso"
         class="agenda-cal__cell"
-        :class="dayClass(cell.iso, cell.inMonth)"
+        :class="{ ...dayClass(cell.iso, cell.inMonth), 'has-events': eventsFor(cell.iso).length > 0 }"
       >
         <button type="button" class="agenda-cal__cell-num" @click="openDay(cell.iso)">
           {{ dayNumber(cell.iso) }}
@@ -171,9 +169,7 @@
             @click="selectFromDay(event)"
           >
             <span class="agenda-cal__chip-time">{{ eventTimeLabel(event) }}</span>
-            <v-chip size="x-small" :color="eventTypeMeta(event.type).color" variant="tonal">
-              {{ eventTypeLabel(event.type) }}
-            </v-chip>
+            <EventKindChips :event="event" />
             <span class="agenda-cal__list-title">{{ event.titre }}</span>
             <span v-if="event.lieu" class="agenda-cal__list-meta">{{ event.lieu }}</span>
           </button>
@@ -201,7 +197,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { displayDate, todayLocal } from '@/domain/dates'
-import { eventTypeLabel, eventTypeMeta } from '@/domain/events'
+import EventKindChips from '@/components/EventKindChips.vue'
 import {
   AGENDA_VIEWS,
   WEEKDAY_LABELS,
@@ -536,6 +532,14 @@ function openMonth(entry) {
   background: rgba(106, 140, 105, 0.18);
 }
 
+.agenda-cal__chip--concours {
+  background: rgba(201, 162, 39, 0.2);
+}
+
+.agenda-cal__chip--atelier {
+  background: rgba(141, 110, 99, 0.18);
+}
+
 .agenda-cal__chip--stage,
 .agenda-cal__chip--cours {
   background: rgba(83, 115, 106, 0.16);
@@ -696,8 +700,25 @@ function openMonth(entry) {
   }
 
   .agenda-cal__cell {
-    min-height: 64px;
+    min-height: 48px;
     padding: 4px;
+  }
+
+  .agenda-cal__month .agenda-cal__chip,
+  .agenda-cal__month .agenda-cal__more {
+    display: none;
+  }
+
+  .agenda-cal__cell.has-events {
+    background: rgba(106, 140, 105, 0.12);
+  }
+
+  .agenda-cal__views span {
+    display: none;
+  }
+
+  .agenda-cal__view {
+    padding: 8px 10px;
   }
 }
 </style>

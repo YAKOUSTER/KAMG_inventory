@@ -150,4 +150,43 @@ describe('workflows métier', () => {
     assert.ok(space.presences.every((entry) => entry.eventId === first.id || entry.eventId === second.id))
     assert.ok(space.pages.every((page) => page.corps === undefined))
   })
+
+  it('crée une fiche sortie typée avec préfixe de titre', async () => {
+    const event = await createEvent(
+      {
+        kinds: ['sortie'],
+        titre: 'Festival de Lorient',
+        debut: '2027-08-08T14:00:00.000Z',
+        lieu: 'Lorient',
+        publie: true,
+        sortie: {
+          format: 'defile_animation_spectacle',
+          transport: 'minibus_voitures',
+          parkingFestival: 'oui',
+          musique: 'enregistrement_ibiza',
+          rdvHeure: '08:30',
+          rdvLieu: 'Moulin Vert',
+          costume: 'traditionnel',
+          change: 'oui',
+          repasMidi: 'pique_nique',
+          repasSoir: 'pas_concerne',
+          gourde: 'oui',
+          programme: 'Défilé 14h, spectacle 16h',
+          responsable: 'Anna Le Gall',
+        },
+      },
+      options,
+    )
+    assert.equal(event.titre, '[SORTIE] Festival de Lorient')
+    assert.deepEqual(event.kinds, ['sortie'])
+    assert.equal(event.sortie.format, 'defile_animation_spectacle')
+    assert.equal(event.sortie.transport, 'minibus_voitures')
+
+    const space = await getPublicMemberSpace(options)
+    const published = space.events.upcoming.find((entry) => entry.id === event.id)
+    assert.ok(published)
+    assert.equal(published.titre, '[SORTIE] Festival de Lorient')
+    assert.equal(published.sortie.format, 'defile_animation_spectacle')
+    assert.equal(published.sortie.responsable, 'Anna Le Gall')
+  })
 })

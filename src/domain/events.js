@@ -1,9 +1,34 @@
 import { todayLocal } from './dates.js'
+import {
+  applyEventTitlePrefix,
+  inferEventKinds,
+  normalizeEventKinds,
+  primaryTypeFromKinds,
+  groupesFromKinds,
+  eventKindsOf,
+  eventIsSortie,
+  eventKindMeta,
+  eventKindLabel,
+} from './eventKinds.js'
+import { emptySortie, normalizeSortie } from './sortie.js'
+
+export {
+  EVENT_KINDS,
+  eventKindLabel,
+  eventKindsOf,
+  eventIsSortie,
+  eventMatchesKindFilter,
+  eventTitlePrefix,
+  eventTitleRest,
+  applyEventTitlePrefix,
+} from './eventKinds.js'
 
 export const EVENT_TYPES = [
   { id: 'repetition', label: 'Répétition', icon: 'mdi-calendar-clock', color: 'primary' },
   { id: 'sortie', label: 'Sortie', icon: 'mdi-drama-masks', color: 'deep-orange' },
+  { id: 'concours', label: 'Concours', icon: 'mdi-trophy-outline', color: 'amber' },
   { id: 'stage', label: 'Stage', icon: 'mdi-school-outline', color: 'purple' },
+  { id: 'atelier', label: 'Atelier', icon: 'mdi-scissors-cutting', color: 'brown' },
   { id: 'cours', label: 'Cours', icon: 'mdi-human-male-female', color: 'teal' },
   { id: 'autre', label: 'Autre', icon: 'mdi-calendar-star', color: 'secondary' },
 ]
@@ -34,8 +59,18 @@ export function normalizeEvent(input = {}, { id } = {}) {
   const nextId = trim(id || input.id)
   if (!nextId) throw new Error('Identifiant d’événement requis')
 
-  const type = EVENT_TYPE_IDS.has(input.type) ? input.type : 'autre'
-  const titre = trim(input.titre)
+  const explicitKinds = Array.isArray(input.kinds) ? normalizeEventKinds(input.kinds) : []
+  const inferred = explicitKinds.length
+    ? explicitKinds
+    : inferEventKinds(input.titre, input.description, input.type)
+  const type = inferred.length
+    ? primaryTypeFromKinds(inferred, EVENT_TYPE_IDS.has(input.type) ? input.type : 'autre')
+    : EVENT_TYPE_IDS.has(input.type)
+      ? input.type
+      : 'autre'
+
+  const rawTitre = trim(input.titre)
+  const titre = explicitKinds.length ? applyEventTitlePrefix(rawTitre, explicitKinds) : rawTitre
   if (!titre) throw new Error('Le titre est requis')
 
   const debut = normalizeIsoDate(input.debut)
@@ -46,14 +81,26 @@ export function normalizeEvent(input = {}, { id } = {}) {
     ? [...new Set(input.cible.map((value) => trim(value)).filter(Boolean))]
     : []
 
+  const derivedGroupes = groupesFromKinds(explicitKinds)
+  const groupes =
+    explicitKinds.length && derivedGroupes.length
+      ? derivedGroupes
+      : Array.isArray(input.groupes)
+        ? [...new Set(input.groupes.map((value) => trim(value)).filter(Boolean))]
+        : derivedGroupes
+
+  const isSortie = explicitKinds.includes('sortie') || type === 'sortie'
   const inscriptionsOuvertes =
-    input.inscriptionsOuvertes == null ? type === 'sortie' : Boolean(input.inscriptionsOuvertes)
+    input.inscriptionsOuvertes == null
+      ? isSortie || type === 'concours' || explicitKinds.includes('concours')
+      : Boolean(input.inscriptionsOuvertes)
 
   return {
     id: nextId,
     source: trim(input.source) || 'local',
     googleUid: trim(input.googleUid),
     type,
+    kinds: explicitKinds,
     titre,
     debut,
     fin: fin || debut,
@@ -62,9 +109,8 @@ export function normalizeEvent(input = {}, { id } = {}) {
     publie: input.publie !== false,
     inscriptionsOuvertes,
     cible,
-    groupes: Array.isArray(input.groupes)
-      ? [...new Set(input.groupes.map((value) => trim(value)).filter(Boolean))]
-      : [],
+    groupes,
+    sortie: isSortie ? normalizeSortie(input.sortie) : null,
     createdAt: normalizeIsoDate(input.createdAt) || new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   }
@@ -73,7 +119,7 @@ export function normalizeEvent(input = {}, { id } = {}) {
 export function eventAcceptsInscriptions(event) {
   if (!event) return false
   if (event.inscriptionsOuvertes != null) return Boolean(event.inscriptionsOuvertes)
-  return event.type === 'sortie'
+  return eventIsSortie(event) || eventKindsOf(event).includes('concours') || event?.type === 'concours'
 }
 
 export function applyEventOverlay(event, overlay) {
@@ -85,25 +131,55 @@ export function applyEventOverlay(event, overlay) {
     }
   }
 
-  const titre = trim(overlay.titre) || event.titre
-  const type = EVENT_TYPE_IDS.has(overlay.type) ? overlay.type : event.type
+  const kinds = Array.isArray(overlay.kinds) ? normalizeEventKinds(overlay.kinds) : event.kinds || []
+  const rawTitre = overlay.titre == null ? event.titre : trim(overlay.titre)
+  const titre = Array.isArray(overlay.kinds) && kinds.length ? applyEventTitlePrefix(rawTitre, kinds) : rawTitre
+  const type = kinds.length
+    ? primaryTypeFromKinds(kinds, event.type)
+    : EVENT_TYPE_IDS.has(overlay.type)
+      ? overlay.type
+      : event.type
   const description = overlay.description == null ? event.description : trim(overlay.description)
   const lieu = overlay.lieu == null ? event.lieu : trim(overlay.lieu)
   const publie = overlay.publie == null ? event.publie !== false : overlay.publie !== false
   const inscriptionsOuvertes =
     overlay.inscriptionsOuvertes == null
-      ? eventAcceptsInscriptions({ ...event, type })
+      ? eventAcceptsInscriptions({ ...event, type, kinds })
       : Boolean(overlay.inscriptionsOuvertes)
+  const isSortie = kinds.includes('sortie') || type === 'sortie'
+  const sortie = overlay.sortie
+    ? normalizeSortie(overlay.sortie)
+    : isSortie
+      ? event.sortie || emptySortie()
+      : event.sortie || null
 
   return {
     ...event,
     type,
+    kinds,
     titre,
     lieu,
     description,
     publie,
     inscriptionsOuvertes,
+    sortie,
   }
+}
+
+export function eventDisplayChips(event) {
+  const kinds = eventKindsOf(event)
+  if (kinds.length) {
+    return kinds.map((id) => {
+      const kind = eventKindMeta(id)
+      return {
+        id,
+        label: eventKindLabel(id),
+        color: kind?.color || eventTypeMeta(kind?.family).color,
+      }
+    })
+  }
+  const type = eventTypeMeta(event?.type)
+  return [{ id: type.id, label: type.label, color: type.color }]
 }
 
 export function sortEvents(events = [], { ascending = true } = {}) {
@@ -156,5 +232,7 @@ export function publicEventSummary(event, { includeDescription = false } = {}) {
     description,
     inscriptionsOuvertes: eventAcceptsInscriptions(event),
     groupes: Array.isArray(event.groupes) ? event.groupes : [],
+    kinds: eventKindsOf(event),
+    sortie: event.sortie || null,
   }
 }

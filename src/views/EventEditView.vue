@@ -6,11 +6,28 @@
 
     <v-form v-if="ready" @submit.prevent="submit">
       <div class="form-fields-grid form-fields-grid--2">
-        <FieldRow label="Type">
-          <v-select v-model="form.type" :items="typeItems" hide-details="auto" :rules="[required]" />
+        <FieldRow label="Type" hint="Plusieurs choix possibles" class="form-fields-grid__span-2">
+          <v-select
+            v-model="form.kinds"
+            :items="kindItems"
+            multiple
+            chips
+            closable-chips
+            hide-details="auto"
+            :rules="isEdit ? [] : [requiredKinds]"
+          />
         </FieldRow>
-        <FieldRow label="Titre">
-          <v-text-field v-model="form.titre" hide-details="auto" :rules="[required]" />
+        <FieldRow label="Titre" class="form-fields-grid__span-2">
+          <div class="event-title-field">
+            <span v-if="titlePrefix" class="event-title-field__prefix">{{ titlePrefix }}</span>
+            <v-text-field
+              v-model="form.titleRest"
+              hide-details="auto"
+              :rules="[requiredTitle]"
+              :placeholder="titlePrefix ? 'Nom de la sortie' : 'Titre'"
+            />
+          </div>
+          <p class="text-caption text-medium-emphasis mt-1">Titre enregistré : {{ fullTitle }}</p>
         </FieldRow>
         <FieldRow label="Début">
           <v-text-field
@@ -41,10 +58,23 @@
         </FieldRow>
       </div>
 
+      <section v-if="isSortie" class="mt-8">
+        <h2 class="text-subtitle-1 font-weight-bold mb-3">Fiche sortie</h2>
+        <SortieFiche
+          :titre="fullTitle"
+          :debut="fromLocalInput(form.debut)"
+          :lieu="form.lieu"
+          :sortie="form.sortie"
+          :dancer-count="dancerCount"
+          :people="people"
+          editable
+        />
+      </section>
+
       <div v-if="isEdit && form.inscriptionsOuvertes" class="mt-6">
         <h2 class="text-subtitle-1 font-weight-bold mb-3">Présences</h2>
         <EventPresencePanel
-          :event="{ id: props.id, ...form }"
+          :event="{ id: props.id, ...form, titre: fullTitle }"
           :people="people"
           :presences="presences"
           @updated="onPresenceUpdated"
@@ -74,10 +104,18 @@ import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import FieldRow from '@/components/FieldRow.vue'
 import EventPresencePanel from '@/components/EventPresencePanel.vue'
+import SortieFiche from '@/components/SortieFiche.vue'
 import { api } from '@/services/api'
 import { useAuthStore } from '@/stores/auth'
-import { EVENT_TYPES } from '@/domain/events'
-import { applyPresenceUpdate } from '@/domain/presence'
+import { applyPresenceUpdate, summarizePresences } from '@/domain/presence'
+import {
+  applyEventTitlePrefix,
+  eventKindSelectItems,
+  eventTitlePrefix,
+  eventTitleRest,
+  primaryTypeFromKinds,
+} from '@/domain/eventKinds'
+import { emptySortie, normalizeSortie } from '@/domain/sortie'
 
 const props = defineProps({ id: { type: String, default: '' } })
 const router = useRouter()
@@ -89,28 +127,46 @@ const deleting = ref(false)
 const error = ref('')
 const people = ref([])
 const presences = ref([])
+const originalType = ref('autre')
 const isEdit = computed(() => Boolean(props.id))
+const kindItems = eventKindSelectItems()
 
-const typeItems = EVENT_TYPES.map((type) => ({ title: type.label, value: type.id }))
 const form = reactive({
-  type: 'repetition',
-  titre: '',
+  kinds: [],
+  titleRest: '',
   debut: '',
   fin: '',
   lieu: '',
   description: '',
   publie: true,
   inscriptionsOuvertes: false,
+  sortie: emptySortie(),
 })
 
+const titlePrefix = computed(() => eventTitlePrefix(form.kinds))
+const fullTitle = computed(() => applyEventTitlePrefix(form.titleRest, form.kinds))
+const isSortie = computed(() => form.kinds.includes('sortie'))
+const dancerCount = computed(() => summarizePresences(presences.value, props.id).present)
 const required = (value) => Boolean(String(value || '').trim()) || 'Champ requis'
+const requiredKinds = (value) => (Array.isArray(value) && value.length > 0) || 'Choisissez au moins un type'
+const requiredTitle = () => Boolean(String(fullTitle.value || '').trim()) || 'Champ requis'
 
 watch(
-  () => form.type,
-  (type) => {
-    if (!isEdit.value) form.inscriptionsOuvertes = type === 'sortie'
+  () => form.kinds.join(','),
+  () => {
+    if (!isEdit.value) {
+      form.inscriptionsOuvertes = form.kinds.includes('sortie') || form.kinds.includes('concours')
+    }
   },
 )
+
+function kindsFromEvent(event) {
+  if (Array.isArray(event.kinds) && event.kinds.length) return [...event.kinds]
+  if (event.type === 'sortie') return ['sortie']
+  if (event.type === 'concours') return ['concours']
+  if (event.type === 'stage') return ['stage']
+  return []
+}
 
 function toLocalInput(value) {
   if (!value) return ''
@@ -128,24 +184,22 @@ function fromLocalInput(value) {
 
 onMounted(async () => {
   try {
+    people.value = await api.people().catch(() => [])
     if (props.id) {
       const event = await api.event(props.id)
+      originalType.value = event.type || 'autre'
       Object.assign(form, {
-        type: event.type,
-        titre: event.titre,
+        kinds: kindsFromEvent(event),
+        titleRest: eventTitleRest(event.titre),
         debut: toLocalInput(event.debut),
         fin: toLocalInput(event.fin),
         lieu: event.lieu || '',
         description: event.description || '',
         publie: event.publie !== false,
         inscriptionsOuvertes: event.inscriptionsOuvertes === true,
+        sortie: normalizeSortie(event.sortie),
       })
-      const [peopleList, presenceList] = await Promise.all([
-        api.people().catch(() => []),
-        api.eventPresences(props.id).catch(() => []),
-      ])
-      people.value = peopleList
-      presences.value = presenceList
+      presences.value = await api.eventPresences(props.id).catch(() => [])
     } else {
       const debut = String(route.query.debut || '')
       if (/^\d{4}-\d{2}-\d{2}$/.test(debut)) {
@@ -163,14 +217,16 @@ async function submit() {
   error.value = ''
   try {
     const payload = {
-      type: form.type,
-      titre: form.titre,
+      kinds: form.kinds,
+      type: primaryTypeFromKinds(form.kinds, originalType.value),
+      titre: form.titleRest,
       debut: fromLocalInput(form.debut),
       fin: fromLocalInput(form.fin),
       lieu: form.lieu,
       description: form.description,
       publie: form.publie,
       inscriptionsOuvertes: form.inscriptionsOuvertes,
+      sortie: isSortie.value ? form.sortie : null,
     }
     const saved = props.id ? await api.updateEvent(props.id, payload) : await api.createEvent(payload)
     await router.push({ name: 'event-edit', params: { id: saved.id } })
@@ -199,3 +255,26 @@ async function remove() {
   }
 }
 </script>
+
+<style scoped>
+.event-title-field {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.event-title-field__prefix {
+  flex: 0 1 auto;
+  margin-top: 8px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(83, 115, 106, 0.16);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.event-title-field .v-text-field {
+  flex: 1;
+}
+</style>
