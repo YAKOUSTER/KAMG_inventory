@@ -1,19 +1,17 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createProductionApp } from './app.js'
-import { ensureDb, readDb, syncGoogleCalendar } from './store.js'
+import { ensureDb, readDb, importGoogleCalendarEvents } from './store.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const distDir = path.resolve(__dirname, '../dist')
 const port = Number(process.env.PORT || 4173)
-const AGENDA_SYNC_MS = 15 * 60 * 1000
 
 await ensureDb()
 await readDb()
-syncGoogleCalendar().catch(() => {})
-setInterval(() => {
-  syncGoogleCalendar().catch(() => {})
-}, AGENDA_SYNC_MS)
+importGoogleCalendarEvents({ onlyIfNeeded: true }).catch((error) => {
+  console.warn('Import Google Agenda ignoré :', error.message)
+})
 
 const app = createProductionApp(distDir)
 app.listen(port, () => {

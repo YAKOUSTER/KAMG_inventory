@@ -1,18 +1,30 @@
 <template>
   <div>
     <v-alert type="info" variant="tonal" class="mb-4">
-      Les répétitions et sorties proviennent du
-      <strong>Google Agenda</strong> du cercle (synchro automatique).
-      Vous pouvez ajouter ici des événements complémentaires locaux uniquement.
+      Créez, modifiez et supprimez les dates ici. Google Agenda et l’iPhone se mettent à jour
+      en s’abonnant au calendrier publié (Paramètres, ou boutons d’abonnement dans l’espace membres).
     </v-alert>
 
     <div class="d-flex flex-wrap align-center ga-3 page-header">
       <h1 class="text-h5 text-md-h4 page-title">Agenda</h1>
       <v-spacer />
+      <v-btn
+        v-if="auth.can('agenda.write')"
+        variant="tonal"
+        :loading="importing"
+        prepend-icon="mdi-google"
+        @click="importGoogle"
+      >
+        Importer Google
+      </v-btn>
       <v-btn v-if="auth.can('agenda.write')" color="primary" to="/agenda/nouveau" prepend-icon="mdi-plus">
         Ajouter
       </v-btn>
     </div>
+
+    <v-alert v-if="importMessage" :type="importOk ? 'success' : 'error'" variant="tonal" class="mb-4">
+      {{ importMessage }}
+    </v-alert>
 
     <v-row class="mb-4">
       <v-col cols="12" md="4">
@@ -36,11 +48,6 @@
       <template #item.type="{ item }">
         <v-chip size="small" :color="eventTypeMeta(item.type).color" variant="tonal">
           {{ eventTypeLabel(item.type) }}
-        </v-chip>
-      </template>
-      <template #item.source="{ item }">
-        <v-chip size="small" :color="item.source === 'google' ? 'info' : 'secondary'" variant="tonal">
-          {{ item.source === 'google' ? 'Google' : 'Local' }}
         </v-chip>
       </template>
       <template #item.publie="{ item }">
@@ -102,6 +109,9 @@ const display = useDisplay()
 const events = ref([])
 const typeFilter = ref('Tout')
 const periodFilter = ref('avenir')
+const importing = ref(false)
+const importMessage = ref('')
+const importOk = ref(false)
 
 const typeItems = [{ title: 'Tout', value: 'Tout' }, ...EVENT_TYPES.map((type) => ({ title: type.label, value: type.id }))]
 const periodItems = [
@@ -113,7 +123,6 @@ const periodItems = [
 const headers = [
   { title: 'Date', key: 'debut' },
   { title: 'Type', key: 'type' },
-  { title: 'Source', key: 'source' },
   { title: 'Titre', key: 'titre' },
   { title: 'Lieu', key: 'lieu' },
   { title: 'Statut', key: 'publie' },
@@ -135,6 +144,22 @@ const filtered = computed(() => {
 onMounted(async () => {
   events.value = await api.events()
 })
+
+async function importGoogle() {
+  importing.value = true
+  importMessage.value = ''
+  try {
+    const result = await api.syncAgenda()
+    events.value = await api.events()
+    importOk.value = true
+    importMessage.value = `${result.imported ?? result.newCount ?? 0} événement(s) importé(s) depuis Google.`
+  } catch (error) {
+    importOk.value = false
+    importMessage.value = error.message || 'Import Google impossible.'
+  } finally {
+    importing.value = false
+  }
+}
 
 function openEvent(event) {
   if (auth.can('agenda.write')) {

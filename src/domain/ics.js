@@ -134,3 +134,102 @@ export function mergeAgendaEvents(localEvents = [], googleEvents = []) {
   const locals = localEvents.filter((event) => event.source !== 'google' && !googleUids.has(event.googleUid))
   return [...googleEvents, ...locals]
 }
+
+export function toIcsUtcDate(iso) {
+  const date = new Date(iso)
+  if (Number.isNaN(date.getTime())) return ''
+  const pad = (value) => String(value).padStart(2, '0')
+  return (
+    `${date.getUTCFullYear()}${pad(date.getUTCMonth() + 1)}${pad(date.getUTCDate())}` +
+    `T${pad(date.getUTCHours())}${pad(date.getUTCMinutes())}${pad(date.getUTCSeconds())}Z`
+  )
+}
+
+export function escapeIcsText(value) {
+  return String(value || '')
+    .replace(/\\/g, '\\\\')
+    .replace(/\n/g, '\\n')
+    .replace(/\r/g, '')
+    .replace(/,/g, '\\,')
+    .replace(/;/g, '\\;')
+}
+
+export function foldIcsLine(line) {
+  const text = String(line || '')
+  if (text.length <= 75) return text
+  const chunks = [text.slice(0, 75)]
+  let rest = text.slice(75)
+  while (rest.length) {
+    chunks.push(` ${rest.slice(0, 74)}`)
+    rest = rest.slice(74)
+  }
+  return chunks.join('\r\n')
+}
+
+export function eventIcsUid(event) {
+  const googleUid = String(event?.googleUid || '').trim()
+  if (googleUid) return googleUid
+  const id = String(event?.id || 'event').replace(/[^a-zA-Z0-9._-]+/g, '-')
+  return `kamg-${id}@kamg.sterennfonseca.fr`
+}
+
+function veventLines(event) {
+  const debut = toIcsUtcDate(event.debut)
+  const fin = toIcsUtcDate(event.fin || event.debut) || debut
+  const stamp = toIcsUtcDate(event.updatedAt || event.createdAt || new Date().toISOString()) || toIcsUtcDate(new Date().toISOString())
+  const lines = [
+    'BEGIN:VEVENT',
+    `UID:${eventIcsUid(event)}`,
+    `DTSTAMP:${stamp}`,
+    `LAST-MODIFIED:${stamp}`,
+    `DTSTART:${debut}`,
+    `DTEND:${fin}`,
+    `SUMMARY:${escapeIcsText(event.titre || 'Événement KAMG')}`,
+  ]
+  if (event.description) lines.push(`DESCRIPTION:${escapeIcsText(event.description)}`)
+  if (event.lieu) lines.push(`LOCATION:${escapeIcsText(event.lieu)}`)
+  if (event.publie === false) lines.push('STATUS:TENTATIVE')
+  else lines.push('STATUS:CONFIRMED')
+  lines.push('END:VEVENT')
+  return lines
+}
+
+export function isPublishableEvent(event) {
+  if (!event || event.publie === false) return false
+  const time = Date.parse(event.debut)
+  if (!Number.isFinite(time)) return false
+  if (time < Date.parse('1980-01-01T00:00:00Z')) return false
+  return Boolean(String(event.titre || '').trim())
+}
+
+export function buildSingleEventIcs(event) {
+  const lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//KAMG//Gestion KAMG//FR',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    ...veventLines(event),
+    'END:VCALENDAR',
+  ]
+  return `${lines.map(foldIcsLine).join('\r\n')}\r\n`
+}
+
+export function buildCalendarIcs(events = [], { calName = 'Korriganed Ar Meilhoù Glas' } = {}) {
+  const published = events.filter(isPublishableEvent)
+  const sorted = [...published].sort((a, b) => String(a.debut).localeCompare(String(b.debut)))
+  const lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//KAMG//Gestion KAMG//FR',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    `X-WR-CALNAME:${escapeIcsText(calName)}`,
+    'X-WR-TIMEZONE:Europe/Paris',
+    'REFRESH-INTERVAL;VALUE=DURATION:PT1H',
+    'X-PUBLISHED-TTL:PT1H',
+  ]
+  for (const event of sorted) lines.push(...veventLines(event))
+  lines.push('END:VCALENDAR')
+  return `${lines.map(foldIcsLine).join('\r\n')}\r\n`
+}

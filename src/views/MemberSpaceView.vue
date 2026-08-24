@@ -27,7 +27,8 @@
           <section class="member-section member-section--subscribe">
             <h2 class="member-section__title">Calendrier du cercle</h2>
             <p class="member-section__intro">
-              Dates synchronisées depuis Google Agenda (répétitions, sorties, stages…).
+              Dates gérées dans l’application. Abonnez-vous pour que Google Agenda ou l’iPhone
+              se mettent à jour automatiquement.
             </p>
             <div class="d-flex flex-wrap ga-2 mb-4">
               <v-btn
@@ -202,7 +203,11 @@ import { displayDate, displayDateTime } from '@/domain/dates'
 import { eventTypeLabel, eventTypeMeta, eventAcceptsInscriptions } from '@/domain/events'
 import { loanStatusColor, loanStatusLabel, openLoanLines } from '@/domain/loans'
 import { EVENT_GROUPS, eventGroupLabel, filterEventsByGroup } from '@/domain/eventGroups'
-import { googleCalendarSubscribeUrl, googleCalendarIcalSubscribeUrl } from '@/domain/agendaSettings'
+import {
+  appCalendarIcsUrl,
+  appCalendarWebcalUrl,
+  googleCalendarSubscribeFromIcsUrl,
+} from '@/domain/agendaSettings'
 import AddToCalendarButton from '@/components/AddToCalendarButton.vue'
 import MemberBlogPanel from '@/components/MemberBlogPanel.vue'
 import EventPresencePanel from '@/components/EventPresencePanel.vue'
@@ -216,8 +221,9 @@ const tab = ref(route.query.onglet || 'agenda')
 const groupFilter = ref('tous')
 
 const eventGroups = EVENT_GROUPS
-const googleSubscribeUrl = computed(() => googleCalendarSubscribeUrl(data.value?.agenda || {}))
-const icalSubscribeUrl = computed(() => googleCalendarIcalSubscribeUrl(data.value?.agenda || {}))
+const origin = typeof window === 'undefined' ? '' : window.location.origin
+const googleSubscribeUrl = computed(() => googleCalendarSubscribeFromIcsUrl(appCalendarIcsUrl(origin)))
+const icalSubscribeUrl = computed(() => appCalendarWebcalUrl(origin))
 const filteredUpcoming = computed(() =>
   filterEventsByGroup(data.value?.events?.upcoming || [], groupFilter.value),
 )

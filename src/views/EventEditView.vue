@@ -4,11 +4,6 @@
     <v-alert v-if="error" type="error" class="mb-4">{{ error }}</v-alert>
     <v-progress-linear v-if="!ready && !error" indeterminate color="primary" class="mb-4" />
 
-    <v-alert v-if="isGoogle" type="info" variant="tonal" class="mb-4">
-      Événement synchronisé depuis Google Agenda. Les dates restent celles de Google ;
-      vous pouvez ajuster le type, le lieu, la visibilité et ouvrir les inscriptions.
-    </v-alert>
-
     <v-form v-if="ready" @submit.prevent="submit">
       <div class="form-fields-grid form-fields-grid--2">
         <FieldRow label="Type">
@@ -23,11 +18,10 @@
             type="datetime-local"
             hide-details="auto"
             :rules="[required]"
-            :disabled="isGoogle"
           />
         </FieldRow>
         <FieldRow label="Fin">
-          <v-text-field v-model="form.fin" type="datetime-local" hide-details="auto" :disabled="isGoogle" />
+          <v-text-field v-model="form.fin" type="datetime-local" hide-details="auto" />
         </FieldRow>
         <FieldRow label="Lieu" class="form-fields-grid__span-2">
           <v-text-field v-model="form.lieu" hide-details />
@@ -62,7 +56,7 @@
         <v-btn variant="text" :to="{ name: 'agenda' }">Annuler</v-btn>
         <v-spacer />
         <v-btn
-          v-if="isEdit && !isGoogle && auth.can('agenda.write')"
+          v-if="isEdit && auth.can('agenda.write')"
           color="error"
           variant="text"
           :loading="deleting"
@@ -91,11 +85,9 @@ const ready = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
 const error = ref('')
-const source = ref('local')
 const people = ref([])
 const presences = ref([])
 const isEdit = computed(() => Boolean(props.id))
-const isGoogle = computed(() => source.value === 'google')
 
 const typeItems = EVENT_TYPES.map((type) => ({ title: type.label, value: type.id }))
 const form = reactive({
@@ -136,7 +128,6 @@ onMounted(async () => {
   try {
     if (props.id) {
       const event = await api.event(props.id)
-      source.value = event.source || 'local'
       Object.assign(form, {
         type: event.type,
         titre: event.titre,
@@ -167,14 +158,12 @@ async function submit() {
     const payload = {
       type: form.type,
       titre: form.titre,
+      debut: fromLocalInput(form.debut),
+      fin: fromLocalInput(form.fin),
       lieu: form.lieu,
       description: form.description,
       publie: form.publie,
       inscriptionsOuvertes: form.inscriptionsOuvertes,
-    }
-    if (!isGoogle.value) {
-      payload.debut = fromLocalInput(form.debut)
-      payload.fin = fromLocalInput(form.fin)
     }
     const saved = props.id ? await api.updateEvent(props.id, payload) : await api.createEvent(payload)
     await router.push({ name: 'event-edit', params: { id: saved.id } })

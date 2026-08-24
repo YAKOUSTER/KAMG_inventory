@@ -14,8 +14,8 @@ import { todayLocal, formatDate } from '../src/domain/dates.js'
 import { normalizeEvent, filterPublishedEvents, upcomingEvents, pastEvents, sortEvents, applyEventOverlay, eventAcceptsInscriptions } from '../src/domain/events.js'
 import { normalizeContentPage, filterPublishedPages, sortContentPages } from '../src/domain/content.js'
 import { normalizePresenceRecord, publicPerson } from '../src/domain/presence.js'
-import { normalizeAgendaSettings, DEFAULT_AGENDA_SETTINGS } from '../src/domain/agendaSettings.js'
-import { mergeAgendaEvents } from '../src/domain/ics.js'
+import { normalizeAgendaSettings, DEFAULT_AGENDA_SETTINGS, publishedCalendarName } from '../src/domain/agendaSettings.js'
+import { buildCalendarIcs } from '../src/domain/ics.js'
 import { fetchGoogleCalendarEvents, resetGoogleCalendarCache } from './googleCalendar.js'
 import {
   readMemberPagesSeed,
@@ -934,7 +934,7 @@ export async function getBootstrap(user, options = {}) {
 
 export async function getPublicMemberSpace(options = {}) {
   const db = await readDb(options)
-  const merged = await listMergedEvents(db, options)
+  const merged = listLocalEvents(db)
   const publishedEvents = filterPublishedEvents(merged)
   const now = new Date()
   const loans = db.loans
@@ -954,22 +954,21 @@ export async function getPublicMemberSpace(options = {}) {
   }
 }
 
-async function listMergedEvents(db, options = {}) {
-  let googleEvents = []
-  try {
-    googleEvents = await fetchGoogleCalendarEvents(db.settings?.agenda || {}, options)
-  } catch {
-    googleEvents = []
-  }
+function listLocalEvents(db) {
   const overlays = db.eventOverlays || {}
-  return mergeAgendaEvents(db.events || [], googleEvents).map((event) =>
-    applyEventOverlay(event, overlays[event.id]),
-  )
+  return (db.events || []).map((event) => applyEventOverlay(event, overlays[event.id]))
 }
 
 export async function listEvents(options = {}) {
   const db = await readDb(options)
-  return sortEvents(await listMergedEvents(db, options))
+  return sortEvents(listLocalEvents(db))
+}
+
+export async function getPublicCalendarIcs(options = {}) {
+  const db = await readDb(options)
+  return buildCalendarIcs(filterPublishedEvents(listLocalEvents(db)), {
+    calName: publishedCalendarName(db.settings?.agenda || {}),
+  })
 }
 
 export async function getAgendaSettings(options = {}) {
@@ -980,32 +979,93 @@ export async function getAgendaSettings(options = {}) {
 export async function updateAgendaSettings(payload, options = {}) {
   return withDb((db) => {
     db.settings = db.settings || {}
-    db.settings.agenda = normalizeAgendaSettings(payload)
+    const current = db.settings.agenda || {}
+    db.settings.agenda = normalizeAgendaSettings({ ...current, ...payload })
     resetGoogleCalendarCache()
     appendAudit(db, options.actor, {
       action: 'agenda.settings.update',
       entityType: 'settings',
       entityId: 'agenda',
-      entityLabel: 'Google Agenda',
-      summary: 'Mise à jour de la synchronisation Google Agenda',
+      entityLabel: 'Agenda',
+      summary: 'Mise à jour des paramètres d’agenda',
     })
     return db.settings.agenda
   }, options)
 }
 
-export async function syncGoogleCalendar(options = {}) {
-  resetGoogleCalendarCache()
-  const events = await fetchGoogleCalendarEvents(
-    (await readDb(options)).settings?.agenda || {},
-    options,
+function eventAlreadyStored(db, googleEvent) {
+  return (db.events || []).some(
+    (event) =>
+      event.id === googleEvent.id ||
+      (googleEvent.googleUid && event.googleUid === googleEvent.googleUid),
   )
+}
+
+function toStoredLocalEvent(googleEvent, overlay) {
+  const merged = applyEventOverlay(googleEvent, overlay)
+  return normalizeEvent(
+    {
+      ...merged,
+      source: 'local',
+      googleUid: googleEvent.googleUid || merged.googleUid,
+    },
+    { id: googleEvent.id },
+  )
+}
+
+export async function importGoogleCalendarEvents(options = {}) {
+  const current = await readDb(options)
+  if (options.onlyIfNeeded && current.settings?.agenda?.googleImportedAt) {
+    return {
+      count: 0,
+      imported: 0,
+      skipped: (current.events || []).length,
+      newCount: 0,
+      syncedAt: current.settings.agenda.googleImportedAt,
+    }
+  }
+  resetGoogleCalendarCache()
+  const settings = (await readDb(options)).settings?.agenda || {}
+  const googleEvents = await fetchGoogleCalendarEvents(settings, options)
+  const detectionPreview = detectNewGoogleEvents(await readDb(options), googleEvents)
+
   return withDb(async (db) => {
-    const detection = detectNewGoogleEvents(db, events)
+    db.events = db.events || []
+    db.eventOverlays = db.eventOverlays || {}
+    let imported = 0
+    let skipped = 0
+    const importedEvents = []
+    for (const googleEvent of googleEvents) {
+      if (!googleEvent?.debut || Date.parse(googleEvent.debut) < Date.parse('1980-01-01T00:00:00Z')) {
+        skipped += 1
+        continue
+      }
+      if (eventAlreadyStored(db, googleEvent)) {
+        skipped += 1
+        continue
+      }
+      const overlay = db.eventOverlays[googleEvent.id]
+      const local = toStoredLocalEvent(googleEvent, overlay)
+      db.events.push(local)
+      if (overlay) delete db.eventOverlays[googleEvent.id]
+      imported += 1
+      importedEvents.push(local)
+    }
     db.settings = db.settings || {}
-    db.settings.agenda = db.settings.agenda || normalizeAgendaSettings({})
-    db.settings.agenda.knownGoogleEventUids = detection.allUids
-    if (!detection.baseline) {
-      for (const event of detection.newEvents) {
+    db.settings.agenda = normalizeAgendaSettings({
+      ...(db.settings.agenda || {}),
+      googleImportedAt: new Date().toISOString(),
+      knownGoogleEventUids: detectionPreview.allUids,
+    })
+    appendAudit(db, options.actor, {
+      action: 'agenda.google.import',
+      entityType: 'settings',
+      entityId: 'agenda',
+      entityLabel: 'Agenda',
+      summary: `Import Google Agenda : ${imported} nouveau(x), ${skipped} déjà présent(s)`,
+    })
+    if (!detectionPreview.baseline) {
+      for (const event of importedEvents) {
         await notifyManagers(db, {
           title: 'Nouvelle date au calendrier',
           body: `${event.titre} — ${event.lieu || 'lieu à préciser'}`,
@@ -1014,22 +1074,27 @@ export async function syncGoogleCalendar(options = {}) {
       }
     }
     return {
-      count: events.length,
-      newCount: detection.newEvents.length,
-      syncedAt: new Date().toISOString(),
+      count: googleEvents.length,
+      imported,
+      skipped,
+      newCount: imported,
+      syncedAt: db.settings.agenda.googleImportedAt,
     }
   }, options)
 }
 
+export async function syncGoogleCalendar(options = {}) {
+  return importGoogleCalendarEvents(options)
+}
+
 export async function getEvent(id, options = {}) {
   const db = await readDb(options)
-  const event = (await listMergedEvents(db, options)).find((entry) => entry.id === id)
-  return event || null
+  return listLocalEvents(db).find((entry) => entry.id === id) || null
 }
 
 export async function createEvent(payload, options = {}) {
   return withDb((db) => {
-    const event = runDomain(normalizeEvent, payload, { id: randomUUID() })
+    const event = runDomain(normalizeEvent, { ...payload, source: 'local' }, { id: randomUUID() })
     db.events = db.events || []
     db.events.push(event)
     appendAudit(db, options.actor, {
@@ -1056,39 +1121,18 @@ export async function createEvent(payload, options = {}) {
 }
 
 export async function updateEvent(id, payload, options = {}) {
-  return withDb(async (db) => {
+  return withDb((db) => {
     db.events = db.events || []
     const index = db.events.findIndex((entry) => entry.id === id)
-    if (index !== -1 && db.events[index].source !== 'google') {
-      const event = runDomain(normalizeEvent, { ...db.events[index], ...payload, id, source: 'local' }, { id })
-      db.events[index] = event
-      appendAudit(db, options.actor, {
-        action: 'event.update',
-        entityType: 'event',
-        entityId: event.id,
-        entityLabel: event.titre,
-        summary: `Modification de l’événement « ${event.titre} »`,
-      })
-      return event
-    }
-
-    const current = (await listMergedEvents(db, options)).find((entry) => entry.id === id)
-    if (!current) throw Object.assign(new Error('Événement introuvable'), { status: 404 })
-
-    db.eventOverlays = db.eventOverlays || {}
-    const prev = db.eventOverlays[id] || {}
-    const overlay = {
-      ...prev,
-      type: payload.type ?? prev.type,
-      titre: payload.titre ?? prev.titre,
-      lieu: payload.lieu ?? prev.lieu,
-      description: payload.description ?? prev.description,
-      publie: payload.publie ?? prev.publie,
-      inscriptionsOuvertes: payload.inscriptionsOuvertes ?? prev.inscriptionsOuvertes,
-      updatedAt: new Date().toISOString(),
-    }
-    db.eventOverlays[id] = overlay
-    const event = applyEventOverlay(current, overlay)
+    if (index === -1) throw Object.assign(new Error('Événement introuvable'), { status: 404 })
+    const current = applyEventOverlay(db.events[index], db.eventOverlays?.[id])
+    const event = runDomain(
+      normalizeEvent,
+      { ...current, ...payload, id, source: 'local', googleUid: current.googleUid },
+      { id },
+    )
+    db.events[index] = event
+    if (db.eventOverlays?.[id]) delete db.eventOverlays[id]
     appendAudit(db, options.actor, {
       action: 'event.update',
       entityType: 'event',
@@ -1105,10 +1149,9 @@ export async function deleteEvent(id, options = {}) {
     db.events = db.events || []
     const index = db.events.findIndex((entry) => entry.id === id)
     if (index === -1) throw Object.assign(new Error('Événement introuvable'), { status: 404 })
-    if (db.events[index].source === 'google') {
-      throw Object.assign(new Error('Les événements Google Agenda se suppriment dans Google'), { status: 400 })
-    }
     const [removed] = db.events.splice(index, 1)
+    if (db.eventOverlays?.[id]) delete db.eventOverlays[id]
+    db.presences = (db.presences || []).filter((entry) => entry.eventId !== id)
     appendAudit(db, options.actor, {
       action: 'event.delete',
       entityType: 'event',
@@ -1127,7 +1170,7 @@ export async function listEventPresences(eventId, options = {}) {
 
 export async function setEventPresence(eventId, payload, options = {}) {
   return withDb(async (db) => {
-    const event = (await listMergedEvents(db, options)).find((entry) => entry.id === eventId)
+    const event = listLocalEvents(db).find((entry) => entry.id === eventId)
     if (!event) throw Object.assign(new Error('Événement introuvable'), { status: 404 })
     if (!eventAcceptsInscriptions(event)) {
       throw Object.assign(new Error('Les inscriptions ne sont pas ouvertes pour cet événement'), { status: 400 })

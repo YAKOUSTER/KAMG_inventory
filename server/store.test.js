@@ -30,7 +30,11 @@ import {
   createEvent,
   getEvent,
   updateEvent,
+  deleteEvent,
   setEventPresence,
+  listEvents,
+  importGoogleCalendarEvents,
+  getPublicCalendarIcs,
 } from './store.js'
 
 async function tmpOptions() {
@@ -520,5 +524,58 @@ describe('json store', () => {
     const person = await createPerson({ nom: 'Le Gall', prenom: 'Anna', roles: ['danseur_concours'] }, options)
     const presence = await setEventPresence(created.id, { personId: person.id, statut: '1' }, options)
     assert.equal(presence.statut, 'present')
+  })
+
+  it('importe Google une fois puis gère tout le CRUD en local', async () => {
+    const sampleIcs = `BEGIN:VCALENDAR
+BEGIN:VEVENT
+DTSTART:20260910T163000Z
+DTEND:20260910T173000Z
+UID:import-test@google.com
+SUMMARY:Répétition importée
+LOCATION:Moulin Vert
+END:VEVENT
+END:VCALENDAR`
+
+    const first = await importGoogleCalendarEvents({
+      ...options,
+      ttlMs: 0,
+      fetchImpl: async () => ({ ok: true, text: async () => sampleIcs }),
+    })
+    assert.equal(first.imported, 1)
+    const events = await listEvents(options)
+    assert.equal(events.length, 1)
+    assert.equal(events[0].source, 'local')
+    assert.equal(events[0].titre, 'Répétition importée')
+
+    const updated = await updateEvent(
+      events[0].id,
+      { titre: 'Répétition KAMG', debut: '2026-09-10T18:00:00.000Z', lieu: 'Quimper' },
+      options,
+    )
+    assert.equal(updated.titre, 'Répétition KAMG')
+    assert.equal(updated.debut, '2026-09-10T18:00:00.000Z')
+    assert.equal(updated.lieu, 'Quimper')
+
+    const second = await importGoogleCalendarEvents({
+      ...options,
+      ttlMs: 0,
+      fetchImpl: async () => ({ ok: true, text: async () => sampleIcs }),
+    })
+    assert.equal(second.imported, 0)
+    assert.equal(second.skipped, 1)
+    const afterReimport = await getEvent(events[0].id, options)
+    assert.equal(afterReimport.titre, 'Répétition KAMG')
+    assert.equal(afterReimport.debut, '2026-09-10T18:00:00.000Z')
+
+    const ics = await getPublicCalendarIcs(options)
+    assert.match(ics, /SUMMARY:Répétition KAMG/)
+    assert.match(ics, /UID:import-test@google.com/)
+    assert.match(ics, /LOCATION:Quimper/)
+
+    const removed = await deleteEvent(events[0].id, options)
+    assert.equal(removed.deleted, true)
+    assert.equal((await listEvents(options)).length, 0)
+    assert.doesNotMatch(await getPublicCalendarIcs(options), /Répétition KAMG/)
   })
 })

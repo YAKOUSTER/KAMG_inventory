@@ -117,6 +117,44 @@ describe('API HTTP', () => {
     assert.ok(Array.isArray(res.body.presences))
   })
 
+  it('publie un flux ICS des événements de l’app', async () => {
+    const app = createApiApp()
+    const login = await request(app, 'POST', '/api/auth/login', {
+      body: { login: 'admin', password: 'admin' },
+    })
+    const created = await request(app, 'POST', '/api/events', {
+      token: login.body.token,
+      body: {
+        type: 'sortie',
+        titre: 'Sortie ICS',
+        debut: '2026-10-01T18:00:00.000Z',
+        lieu: 'Quimper',
+        publie: true,
+      },
+    })
+    assert.equal(created.status, 200)
+
+    const ics = await request(app, 'GET', '/api/public/calendar.ics')
+    assert.equal(ics.status, 200)
+    assert.match(String(ics.headers.get('content-type') || ''), /text\/calendar/)
+    assert.match(ics.body.raw || '', /BEGIN:VCALENDAR/)
+    assert.match(ics.body.raw || '', /SUMMARY:Sortie ICS/)
+    assert.match(ics.body.raw || '', /LOCATION:Quimper/)
+
+    const draft = await request(app, 'POST', '/api/events', {
+      token: login.body.token,
+      body: {
+        type: 'repetition',
+        titre: 'Brouillon secret',
+        debut: '2026-10-02T18:00:00.000Z',
+        publie: false,
+      },
+    })
+    assert.equal(draft.status, 200)
+    const icsAfterDraft = await request(app, 'GET', '/api/public/calendar.ics')
+    assert.doesNotMatch(icsAfterDraft.body.raw || '', /Brouillon secret/)
+  })
+
   it('permet d’indiquer une présence publique sur une sortie', async () => {
     const app = createApiApp()
     const login = await request(app, 'POST', '/api/auth/login', {

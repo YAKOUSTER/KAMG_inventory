@@ -51,6 +51,7 @@ import {
   getAgendaSettings,
   updateAgendaSettings,
   syncGoogleCalendar,
+  getPublicCalendarIcs,
   getPushConfig,
   subscribePush,
   unsubscribePush,
@@ -147,6 +148,26 @@ export function createApiApp() {
       keyFn: (req) => req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || 'public-presence',
     }),
     handle((req) => setEventPresence(req.params.id, req.body || {})),
+  )
+  app.get(
+    '/api/public/calendar.ics',
+    createRateLimiter({
+      windowMs: 15 * 60 * 1000,
+      max: 120,
+      keyFn: (req) => req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || 'public-ics',
+    }),
+    async (_req, res) => {
+      try {
+        const ics = await getPublicCalendarIcs()
+        res.setHeader('Content-Type', 'text/calendar; charset=utf-8')
+        res.setHeader('Content-Disposition', 'inline; filename="kamg.ics"')
+        res.setHeader('Cache-Control', 'public, max-age=300')
+        res.send(ics)
+      } catch (error) {
+        const status = error.status || 500
+        res.status(status).json({ error: error.message || 'Erreur interne' })
+      }
+    },
   )
   app.post(
     '/api/auth/login',
