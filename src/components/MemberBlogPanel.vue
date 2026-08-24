@@ -8,10 +8,9 @@
 
       <article class="member-blog-article">
           <figure v-if="coverMedia(selectedPage)" class="member-blog-article__hero">
-            <img
-              :src="mediaDisplayUrl(coverMedia(selectedPage).url)"
+            <CoverImage
+              :src="coverMedia(selectedPage).url"
               :alt="coverMedia(selectedPage).legende || selectedPage.titre"
-              loading="lazy"
             />
           </figure>
 
@@ -51,6 +50,7 @@
               :src="mediaDisplayUrl(media.url)"
               :alt="media.legende || selectedPage.titre"
               loading="lazy"
+              @error="onMediaError"
             />
             <iframe
               v-else-if="media.type === 'youtube'"
@@ -102,7 +102,33 @@
         </v-chip>
       </div>
 
-      <div v-if="filteredPages.length" class="member-blog__feed">
+      <div v-if="filteredPages.length || showAgendaCard" class="member-blog__feed">
+        <article
+          v-if="showAgendaCard"
+          class="member-blog-card member-blog-card--agenda"
+          tabindex="0"
+          role="button"
+          @click="goToAgendaInscriptions"
+          @keydown.enter="goToAgendaInscriptions"
+        >
+          <div class="member-blog-card__cover member-blog-card__cover--placeholder">
+            <v-icon size="32" color="deep-orange">mdi-calendar-check</v-icon>
+          </div>
+          <div class="member-blog-card__body">
+            <v-chip size="x-small" variant="tonal" color="deep-orange" class="text-none mb-2">
+              Agenda
+            </v-chip>
+            <h3 class="member-blog-card__title">S’inscrire aux sorties de l’année</h3>
+            <p class="member-blog-card__excerpt">
+              Indiquez votre présence (1 présent, 0 absent, ? peut-être) directement dans l’agenda,
+              à la place du tableur Excel.
+            </p>
+            <span class="member-blog-card__cta">
+              Ouvrir l’agenda
+              <v-icon size="16">mdi-arrow-right</v-icon>
+            </span>
+          </div>
+        </article>
         <article
           v-for="page in filteredPages"
           :key="page.id"
@@ -113,10 +139,9 @@
           @keydown.enter="openArticle(page.id)"
         >
           <figure v-if="coverMedia(page)" class="member-blog-card__cover">
-            <img
-              :src="mediaDisplayUrl(coverMedia(page).url)"
+            <CoverImage
+              :src="coverMedia(page).url"
               :alt="coverMedia(page).legende || page.titre"
-              loading="lazy"
             />
           </figure>
           <div v-else class="member-blog-card__cover member-blog-card__cover--placeholder">
@@ -148,9 +173,11 @@ import { useRoute, useRouter } from 'vue-router'
 import {
   CONTENT_CATEGORIES,
   contentCategoryMeta,
+  contentCoverMedia,
   filterPublishedPages,
 } from '@/domain/content'
-import { normalizeMediaUrl } from '@/domain/mediaUrls'
+import { driveImageFallbackUrls, normalizeMediaUrl } from '@/domain/mediaUrls'
+import CoverImage from '@/components/CoverImage.vue'
 
 const props = defineProps({
   pages: { type: Array, default: () => [] },
@@ -177,6 +204,10 @@ const selectedPage = computed(() =>
   publishedPages.value.find((page) => page.id === selectedArticleId.value) || null,
 )
 
+const showAgendaCard = computed(
+  () => !selectedPage.value && (categoryFilter.value === 'tous' || categoryFilter.value === 'commencer_danse'),
+)
+
 watch(
   () => route.query.article,
   (value) => {
@@ -185,9 +216,13 @@ watch(
 )
 
 watch(selectedArticleId, (value) => {
-  const query = { ...route.query, onglet: 'infos' }
-  if (value) query.article = value
-  else delete query.article
+  const query = { ...route.query }
+  if (value) {
+    query.onglet = 'infos'
+    query.article = value
+  } else {
+    delete query.article
+  }
   router.replace({ query }).catch(() => {})
 })
 
@@ -196,7 +231,7 @@ function categoryMeta(category) {
 }
 
 function coverMedia(page) {
-  return (page.medias || []).find((media) => media.type === 'image') || null
+  return contentCoverMedia(page)
 }
 
 function mediaDisplayUrl(url) {
@@ -206,6 +241,13 @@ function mediaDisplayUrl(url) {
 function galleryMedias(page) {
   const cover = coverMedia(page)
   return (page.medias || []).filter((media) => !cover || media.url !== cover.url)
+}
+
+function onMediaError(event) {
+  const img = event.target
+  const fallbacks = driveImageFallbackUrls(img.getAttribute('src') || '')
+  const next = fallbacks.find((url) => url !== img.src)
+  if (next) img.src = next
 }
 
 function excerpt(corps, max = 180) {
@@ -263,6 +305,10 @@ function openArticle(id) {
 
 function closeArticle() {
   selectedArticleId.value = ''
+}
+
+function goToAgendaInscriptions() {
+  router.replace({ query: { onglet: 'agenda', inscriptions: '1' } }).catch(() => {})
 }
 </script>
 
@@ -323,7 +369,7 @@ function closeArticle() {
   overflow: hidden;
 }
 
-.member-blog-card__cover img {
+.member-blog-card__cover :deep(img) {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -379,15 +425,16 @@ function closeArticle() {
 
 .member-blog-article__hero {
   margin: 0;
+  aspect-ratio: 16 / 9;
   max-height: 360px;
   overflow: hidden;
   background: rgba(71, 91, 145, 0.06);
 }
 
-.member-blog-article__hero img {
+.member-blog-article__hero :deep(img) {
   display: block;
   width: 100%;
-  max-height: 360px;
+  height: 100%;
   object-fit: cover;
 }
 

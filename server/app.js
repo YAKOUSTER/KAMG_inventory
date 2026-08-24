@@ -41,6 +41,8 @@ import {
   createEvent,
   updateEvent,
   deleteEvent,
+  listEventPresences,
+  setEventPresence,
   listContentPages,
   getContentPage,
   createContentPage,
@@ -136,6 +138,15 @@ export function createApiApp() {
       keyFn: (req) => req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || 'public-member',
     }),
     handle(() => getPublicMemberSpace()),
+  )
+  app.post(
+    '/api/public/events/:id/presence',
+    createRateLimiter({
+      windowMs: 15 * 60 * 1000,
+      max: 60,
+      keyFn: (req) => req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || 'public-presence',
+    }),
+    handle((req) => setEventPresence(req.params.id, req.body || {})),
   )
   app.post(
     '/api/auth/login',
@@ -293,6 +304,16 @@ export function createApiApp() {
     '/api/events/:id',
     auth('agenda.write'),
     handle((req) => deleteEvent(req.params.id, { actor: req.user })),
+  )
+  app.get(
+    '/api/events/:id/presences',
+    auth('agenda.read'),
+    handle((req) => listEventPresences(req.params.id)),
+  )
+  app.put(
+    '/api/events/:id/presences',
+    auth('agenda.write'),
+    handle((req) => setEventPresence(req.params.id, req.body || {}, { actor: req.user })),
   )
 
   app.get('/api/pages', auth('content.read'), handle(() => listContentPages()))

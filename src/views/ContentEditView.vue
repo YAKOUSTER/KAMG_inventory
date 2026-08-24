@@ -14,6 +14,25 @@
         <FieldRow label="Titre" class="form-fields-grid__span-2">
           <v-text-field v-model="form.titre" hide-details="auto" :rules="[required]" />
         </FieldRow>
+        <FieldRow label="Image de couverture" align-top class="form-fields-grid__span-2">
+          <div class="content-cover">
+            <v-text-field
+              v-model="form.couvertureUrl"
+              label="URL (colonne Photo du CSV / Drive / Glide)"
+              hide-details="auto"
+              placeholder="https://drive.google.com/file/d/… ou https://…"
+            />
+            <v-text-field
+              v-model="form.couvertureLegende"
+              label="Légende"
+              hide-details
+              class="mt-2"
+            />
+            <figure v-if="form.couvertureUrl" class="content-cover__preview">
+              <CoverImage :src="form.couvertureUrl" :alt="form.couvertureLegende || form.titre" />
+            </figure>
+          </div>
+        </FieldRow>
         <FieldRow label="Contenu" align-top class="form-fields-grid__span-2">
           <v-textarea v-model="form.corps" hide-details rows="12" hint="Texte libre, sauts de ligne conservés" />
         </FieldRow>
@@ -80,6 +99,7 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import FieldRow from '@/components/FieldRow.vue'
+import CoverImage from '@/components/CoverImage.vue'
 import { api } from '@/services/api'
 import { useAuthStore } from '@/stores/auth'
 import { CONTENT_CATEGORIES } from '@/domain/content'
@@ -97,6 +117,7 @@ const categoryItems = CONTENT_CATEGORIES.map((cat) => ({ title: cat.label, value
 const mediaTypeItems = [
   { title: 'Image', value: 'image' },
   { title: 'Vidéo', value: 'video' },
+  { title: 'YouTube', value: 'youtube' },
 ]
 
 const form = reactive({
@@ -105,6 +126,8 @@ const form = reactive({
   corps: '',
   ordre: 0,
   publie: true,
+  couvertureUrl: '',
+  couvertureLegende: '',
   medias: [],
 })
 
@@ -127,8 +150,10 @@ onMounted(async () => {
       corps: page.corps || '',
       ordre: page.ordre || 0,
       publie: page.publie !== false,
+      couvertureUrl: page.couverture?.url || '',
+      couvertureLegende: page.couverture?.legende || '',
       medias: (page.medias || []).map((media) => ({
-        type: media.type === 'video' ? 'video' : 'image',
+        type: media.type === 'video' ? 'video' : media.type === 'youtube' ? 'youtube' : 'image',
         url: media.url || '',
         legende: media.legende || '',
       })),
@@ -147,10 +172,18 @@ async function submit() {
       corps: form.corps,
       ordre: form.ordre,
       publie: form.publie,
+      couverture: form.couvertureUrl.trim()
+        ? {
+            type: 'image',
+            url: form.couvertureUrl.trim(),
+            legende: form.couvertureLegende.trim(),
+            ordre: 0,
+          }
+        : null,
       medias: form.medias
         .filter((media) => String(media.url || '').trim())
         .map((media, index) => ({
-          type: media.type === 'video' ? 'video' : 'image',
+          type: media.type === 'video' ? 'video' : media.type === 'youtube' ? 'youtube' : 'image',
           url: String(media.url).trim(),
           legende: String(media.legende || '').trim(),
           ordre: index,
@@ -181,6 +214,15 @@ async function remove() {
 </script>
 
 <style scoped>
+.content-cover__preview {
+  margin: 12px 0 0;
+  max-width: 420px;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 12px;
+  background: rgba(71, 91, 145, 0.06);
+}
+
 .content-medias__row {
   display: grid;
   grid-template-columns: 120px 1fr 1fr auto;

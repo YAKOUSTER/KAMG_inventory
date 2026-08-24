@@ -11,8 +11,9 @@ import { applyReturnUpdate, countOpenTasks } from '../src/domain/itemTasks.js'
 import { ROLE_PRESETS, can, publicUser } from '../src/domain/auth.js'
 import { groupLoansByYear, normalizePerson, personDisplayName } from '../src/domain/person.js'
 import { todayLocal, formatDate } from '../src/domain/dates.js'
-import { normalizeEvent, filterPublishedEvents, upcomingEvents, pastEvents, sortEvents } from '../src/domain/events.js'
+import { normalizeEvent, filterPublishedEvents, upcomingEvents, pastEvents, sortEvents, applyEventOverlay, eventAcceptsInscriptions } from '../src/domain/events.js'
 import { normalizeContentPage, filterPublishedPages, sortContentPages } from '../src/domain/content.js'
+import { normalizePresenceRecord, publicPerson } from '../src/domain/presence.js'
 import { normalizeAgendaSettings, DEFAULT_AGENDA_SETTINGS } from '../src/domain/agendaSettings.js'
 import { mergeAgendaEvents } from '../src/domain/ics.js'
 import { fetchGoogleCalendarEvents, resetGoogleCalendarCache } from './googleCalendar.js'
@@ -72,6 +73,8 @@ function emptyDb() {
     people: [],
     loans: [],
     events: [],
+    eventOverlays: {},
+    presences: [],
     pages: [],
     settings: structuredClone({ agenda: DEFAULT_AGENDA_SETTINGS }),
     pushSubscriptions: [],
@@ -105,6 +108,11 @@ function ensureShape(raw) {
       return event
     }
   })
+  db.eventOverlays =
+    raw.eventOverlays && typeof raw.eventOverlays === 'object' && !Array.isArray(raw.eventOverlays)
+      ? raw.eventOverlays
+      : {}
+  db.presences = Array.isArray(raw.presences) ? raw.presences : []
   db.pages = (Array.isArray(raw.pages) ? raw.pages : []).map((page) => {
     if (!page?.id) return page
     try {
@@ -940,6 +948,8 @@ export async function getPublicMemberSpace(options = {}) {
       past: pastEvents(publishedEvents, now).slice(0, 30),
     },
     pages: filterPublishedPages(db.pages || []),
+    people: (db.people || []).map(publicPerson).filter(Boolean),
+    presences: Array.isArray(db.presences) ? db.presences : [],
     loans,
   }
 }
@@ -951,7 +961,10 @@ async function listMergedEvents(db, options = {}) {
   } catch {
     googleEvents = []
   }
-  return mergeAgendaEvents(db.events || [], googleEvents)
+  const overlays = db.eventOverlays || {}
+  return mergeAgendaEvents(db.events || [], googleEvents).map((event) =>
+    applyEventOverlay(event, overlays[event.id]),
+  )
 }
 
 export async function listEvents(options = {}) {
@@ -1010,7 +1023,7 @@ export async function syncGoogleCalendar(options = {}) {
 
 export async function getEvent(id, options = {}) {
   const db = await readDb(options)
-  const event = (db.events || []).find((entry) => entry.id === id)
+  const event = (await listMergedEvents(db, options)).find((entry) => entry.id === id)
   return event || null
 }
 
@@ -1043,15 +1056,39 @@ export async function createEvent(payload, options = {}) {
 }
 
 export async function updateEvent(id, payload, options = {}) {
-  return withDb((db) => {
+  return withDb(async (db) => {
     db.events = db.events || []
     const index = db.events.findIndex((entry) => entry.id === id)
-    if (index === -1) throw Object.assign(new Error('Événement introuvable'), { status: 404 })
-    if (db.events[index].source === 'google') {
-      throw Object.assign(new Error('Les événements Google Agenda se modifient dans Google'), { status: 400 })
+    if (index !== -1 && db.events[index].source !== 'google') {
+      const event = runDomain(normalizeEvent, { ...db.events[index], ...payload, id, source: 'local' }, { id })
+      db.events[index] = event
+      appendAudit(db, options.actor, {
+        action: 'event.update',
+        entityType: 'event',
+        entityId: event.id,
+        entityLabel: event.titre,
+        summary: `Modification de l’événement « ${event.titre} »`,
+      })
+      return event
     }
-    const event = runDomain(normalizeEvent, { ...db.events[index], ...payload, id }, { id })
-    db.events[index] = event
+
+    const current = (await listMergedEvents(db, options)).find((entry) => entry.id === id)
+    if (!current) throw Object.assign(new Error('Événement introuvable'), { status: 404 })
+
+    db.eventOverlays = db.eventOverlays || {}
+    const prev = db.eventOverlays[id] || {}
+    const overlay = {
+      ...prev,
+      type: payload.type ?? prev.type,
+      titre: payload.titre ?? prev.titre,
+      lieu: payload.lieu ?? prev.lieu,
+      description: payload.description ?? prev.description,
+      publie: payload.publie ?? prev.publie,
+      inscriptionsOuvertes: payload.inscriptionsOuvertes ?? prev.inscriptionsOuvertes,
+      updatedAt: new Date().toISOString(),
+    }
+    db.eventOverlays[id] = overlay
+    const event = applyEventOverlay(current, overlay)
     appendAudit(db, options.actor, {
       action: 'event.update',
       entityType: 'event',
@@ -1080,6 +1117,44 @@ export async function deleteEvent(id, options = {}) {
       summary: `Suppression de l’événement « ${removed.titre} »`,
     })
     return { id, deleted: true }
+  }, options)
+}
+
+export async function listEventPresences(eventId, options = {}) {
+  const db = await readDb(options)
+  return (db.presences || []).filter((entry) => entry.eventId === eventId)
+}
+
+export async function setEventPresence(eventId, payload, options = {}) {
+  return withDb(async (db) => {
+    const event = (await listMergedEvents(db, options)).find((entry) => entry.id === eventId)
+    if (!event) throw Object.assign(new Error('Événement introuvable'), { status: 404 })
+    if (!eventAcceptsInscriptions(event)) {
+      throw Object.assign(new Error('Les inscriptions ne sont pas ouvertes pour cet événement'), { status: 400 })
+    }
+    const person = (db.people || []).find((entry) => entry.id === payload.personId)
+    if (!person) throw Object.assign(new Error('Personne introuvable'), { status: 400 })
+    const record = runDomain(normalizePresenceRecord, {
+      eventId,
+      personId: payload.personId,
+      statut: payload.statut,
+    })
+    db.presences = db.presences || []
+    const index = db.presences.findIndex(
+      (entry) => entry.eventId === eventId && entry.personId === record.personId,
+    )
+    if (index === -1) db.presences.push(record)
+    else db.presences[index] = record
+    if (options.actor) {
+      appendAudit(db, options.actor, {
+        action: 'event.presence',
+        entityType: 'event',
+        entityId: eventId,
+        entityLabel: event.titre,
+        summary: `Présence ${record.statut} pour ${personLabel(person)}`,
+      })
+    }
+    return record
   }, options)
 }
 

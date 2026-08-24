@@ -1,7 +1,7 @@
 {
-  "name": "KAMG — Patrimoine textile",
-  "short_name": "KAMG",
-  "description": "Patrimoine textile et vie du cercle Korriganed Ar Meilhoù Glas",
+  "name": "Gestion KAMG",
+  "short_name": "Gestion KAMG",
+  "description": "Gestion du cercle Korriganed Ar Meilhoù Glas — agenda, infos et patrimoine textile",
   "lang": "fr",
   "start_url": "/",
   "display": "standalone",

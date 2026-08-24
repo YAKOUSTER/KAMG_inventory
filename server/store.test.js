@@ -27,6 +27,10 @@ import {
   adjustStock,
   getLoan,
   listAudit,
+  createEvent,
+  getEvent,
+  updateEvent,
+  setEventPresence,
 } from './store.js'
 
 async function tmpOptions() {
@@ -495,5 +499,26 @@ describe('json store', () => {
     assert.ok(actions.includes('loan.create'))
     assert.ok(actions.includes('loan.return_all'))
     assert.equal(audit.entries.find((entry) => entry.action === 'loan.create')?.actor.login, 'admin')
+  })
+
+  it('modifie un événement local et enregistre une présence', async () => {
+    const created = await createEvent(
+      {
+        type: 'sortie',
+        titre: 'Fest-noz test',
+        debut: '2026-09-01T18:00:00.000Z',
+        lieu: 'Quimper',
+      },
+      options,
+    )
+    const updated = await updateEvent(created.id, { titre: 'Fest-noz KAMG', lieu: 'Moulin Vert' }, options)
+    assert.equal(updated.titre, 'Fest-noz KAMG')
+    const loaded = await getEvent(created.id, options)
+    assert.equal(loaded.lieu, 'Moulin Vert')
+    assert.equal(loaded.inscriptionsOuvertes, true)
+
+    const person = await createPerson({ nom: 'Le Gall', prenom: 'Anna', roles: ['danseur_concours'] }, options)
+    const presence = await setEventPresence(created.id, { personId: person.id, statut: '1' }, options)
+    assert.equal(presence.statut, 'present')
   })
 })

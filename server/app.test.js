@@ -113,6 +113,40 @@ describe('API HTTP', () => {
     assert.ok(res.body.events)
     assert.ok(res.body.agenda?.googleCalendarId)
     assert.ok(Array.isArray(res.body.pages))
+    assert.ok(Array.isArray(res.body.people))
+    assert.ok(Array.isArray(res.body.presences))
+  })
+
+  it('permet d’indiquer une présence publique sur une sortie', async () => {
+    const app = createApiApp()
+    const login = await request(app, 'POST', '/api/auth/login', {
+      body: { login: 'admin', password: 'admin' },
+    })
+    const person = await request(app, 'POST', '/api/people', {
+      token: login.body.token,
+      body: { nom: 'Le Gall', prenom: 'Anna', roles: ['danseur_enfant'] },
+    })
+    assert.equal(person.status, 200)
+
+    const event = await request(app, 'POST', '/api/events', {
+      token: login.body.token,
+      body: {
+        type: 'sortie',
+        titre: 'Sortie test',
+        debut: '2026-09-10T17:00:00.000Z',
+        inscriptionsOuvertes: true,
+      },
+    })
+    assert.equal(event.status, 200)
+
+    const presence = await request(app, 'POST', `/api/public/events/${event.body.id}/presence`, {
+      body: { personId: person.body.id, statut: '?' },
+    })
+    assert.equal(presence.status, 200)
+    assert.equal(presence.body.statut, 'maybe')
+
+    const space = await request(app, 'GET', '/api/public/espace-membre')
+    assert.ok(space.body.presences.some((entry) => entry.personId === person.body.id))
   })
 
   it('applique les en-têtes de sécurité', async () => {

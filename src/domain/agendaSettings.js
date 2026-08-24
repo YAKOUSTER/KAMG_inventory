@@ -54,7 +54,7 @@ export function buildSingleEventIcs(event) {
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//KAMG//Patrimoine textile//FR',
+    'PRODID:-//KAMG//Gestion KAMG//FR',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
     'BEGIN:VEVENT',

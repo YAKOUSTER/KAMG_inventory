@@ -254,6 +254,7 @@ async function onDrawerLogout() {
 }
 
 onMounted(() => {
+  document.title = APP_TITLE
   if (auth.user) inventory.refresh().catch(() => {})
   if (canReceivePushNotifications(auth.user)) {
     registerPushServiceWorker().catch(() => {})

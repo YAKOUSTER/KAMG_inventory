@@ -7,6 +7,7 @@ import {
   normalizeMediaUrl,
   youtubeEmbedUrl,
   youtubeVideoId,
+  driveImageFallbackUrls,
 } from './mediaUrls.js'
 
 describe('normalizeMediaUrl', () => {
@@ -50,5 +51,14 @@ describe('isValidAbsoluteUrl', () => {
     assert.equal(isValidAbsoluteUrl('https://example.com/a.jpg'), true)
     assert.equal(isValidAbsoluteUrl('ftp://example.com'), false)
     assert.equal(isValidAbsoluteUrl('just-a-name.jpg'), false)
+  })
+})
+
+describe('driveImageFallbackUrls', () => {
+  it('propose plusieurs URLs Drive pour l’affichage', () => {
+    const urls = driveImageFallbackUrls('https://drive.google.com/file/d/ABC123/view')
+    assert.ok(urls[0].includes('lh3.googleusercontent.com/d/ABC123'))
+    assert.ok(urls.some((url) => url.includes('thumbnail')))
+    assert.ok(urls.some((url) => url.includes('uc?export=view')))
   })
 })

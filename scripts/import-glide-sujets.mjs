@@ -15,7 +15,7 @@ const pages = normalizeMemberPages(importGlideSujetsCsv(csv))
 
 const output = {
   meta: {
-    memberContentVersion: 6,
+    memberContentVersion: 7,
     source: 'Export Glide — App Sujets.csv',
     importedAt: new Date().toISOString(),
     pageCount: pages.length,
@@ -24,7 +24,18 @@ const output = {
 }
 
 await writeFile(outPath, `${JSON.stringify(output, null, 2)}\n`)
+
+const seedPath = path.join(root, 'data/seed.json')
+try {
+  const seed = JSON.parse(await readFile(seedPath, 'utf8'))
+  seed.pages = pages
+  await writeFile(seedPath, `${JSON.stringify(seed, null, 2)}\n`)
+  console.log(`Pages recopiées dans ${seedPath}`)
+} catch {
+  /* seed optionnel */
+}
+
 console.log(`Importé ${pages.length} sujets → ${outPath}`)
 for (const page of pages) {
-  console.log(`  • [${page.categorie}] ${page.titre} (${page.medias.length} médias)`)
+  console.log(`  • [${page.categorie}] ${page.titre} (couverture: ${page.couverture ? 'oui' : 'non'}, ${page.medias.length} médias)`)
 }

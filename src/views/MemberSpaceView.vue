@@ -68,6 +68,48 @@
             </div>
           </section>
 
+          <section
+            v-if="inscriptionEvents.length"
+            id="inscriptions-sorties"
+            class="member-section"
+          >
+            <h2 class="member-section__title">S’inscrire aux sorties</h2>
+            <p class="member-section__intro">
+              Indiquez si vous serez présent (1), absent (0) ou peut-être (?) — plus besoin du tableur Excel.
+              Un onglet « Groupe enfant » et « Groupe concours » permet de filtrer comme avant.
+            </p>
+            <div class="member-stack">
+              <article v-for="event in inscriptionEvents" :key="`insc-${event.id}`" class="member-card">
+                <div class="member-card__head">
+                  <div class="d-flex flex-wrap ga-1 align-center">
+                    <v-chip size="small" :color="eventTypeMeta(event.type).color" variant="tonal">
+                      {{ eventTypeLabel(event.type) }}
+                    </v-chip>
+                    <v-chip
+                      v-for="group in event.groupes || []"
+                      :key="`${event.id}-${group}`"
+                      size="x-small"
+                      variant="outlined"
+                    >
+                      {{ eventGroupLabel(group) }}
+                    </v-chip>
+                  </div>
+                  <time class="member-card__date">{{ displayDateTime(event.debut) }}</time>
+                </div>
+                <h3 class="member-card__title">{{ event.titre }}</h3>
+                <p v-if="event.lieu" class="member-card__meta">{{ event.lieu }}</p>
+                <EventPresencePanel
+                  class="mt-3"
+                  :event="event"
+                  :people="data.people || []"
+                  :presences="data.presences || []"
+                  public-mode
+                  @updated="onPresenceUpdated"
+                />
+              </article>
+            </div>
+          </section>
+
           <section class="member-section">
             <h2 class="member-section__title">À venir</h2>
             <div v-if="filteredUpcoming.length" class="member-stack">
@@ -157,12 +199,13 @@ import { useRoute, useRouter } from 'vue-router'
 import { api } from '@/services/api'
 import { GROUP_NAME, LOGO_SRC } from '@/domain/brand'
 import { displayDate, displayDateTime } from '@/domain/dates'
-import { eventTypeLabel, eventTypeMeta } from '@/domain/events'
+import { eventTypeLabel, eventTypeMeta, eventAcceptsInscriptions } from '@/domain/events'
 import { loanStatusColor, loanStatusLabel, openLoanLines } from '@/domain/loans'
 import { EVENT_GROUPS, eventGroupLabel, filterEventsByGroup } from '@/domain/eventGroups'
 import { googleCalendarSubscribeUrl, googleCalendarIcalSubscribeUrl } from '@/domain/agendaSettings'
 import AddToCalendarButton from '@/components/AddToCalendarButton.vue'
 import MemberBlogPanel from '@/components/MemberBlogPanel.vue'
+import EventPresencePanel from '@/components/EventPresencePanel.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -179,10 +222,35 @@ const filteredUpcoming = computed(() =>
   filterEventsByGroup(data.value?.events?.upcoming || [], groupFilter.value),
 )
 const filteredPast = computed(() => filterEventsByGroup(data.value?.events?.past || [], groupFilter.value))
+const inscriptionEvents = computed(() =>
+  (data.value?.events?.upcoming || []).filter((event) => eventAcceptsInscriptions(event)),
+)
 
 watch(tab, (value) => {
-  router.replace({ query: { ...route.query, onglet: value } }).catch(() => {})
+  const query = { ...route.query, onglet: value }
+  if (value !== 'agenda') delete query.inscriptions
+  router.replace({ query }).catch(() => {})
 })
+
+watch(
+  () => route.query.onglet,
+  (value) => {
+    if (value && value !== tab.value) tab.value = value
+  },
+)
+
+watch(
+  () => route.query.inscriptions,
+  (value) => {
+    if (value === '1') {
+      tab.value = 'agenda'
+      requestAnimationFrame(() => {
+        document.getElementById('inscriptions-sorties')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      })
+    }
+  },
+  { immediate: true },
+)
 
 onMounted(async () => {
   try {
@@ -193,6 +261,15 @@ onMounted(async () => {
     loading.value = false
   }
 })
+
+function onPresenceUpdated(record) {
+  if (!data.value) return
+  const list = Array.isArray(data.value.presences) ? [...data.value.presences] : []
+  const index = list.findIndex((entry) => entry.eventId === record.eventId && entry.personId === record.personId)
+  if (index === -1) list.push(record)
+  else list[index] = record
+  data.value = { ...data.value, presences: list }
+}
 </script>
 
 <style scoped>

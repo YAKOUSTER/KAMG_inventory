@@ -26,16 +26,10 @@ const PAGE_ID_BY_TITLE = {
 }
 
 const CATEGORY_BY_TYPE = {
-  'Commencer la danse': {
-    Bienvenue: 'presentation',
-    'Danseurs : fournitures': 'autre',
-    'Danseuses : fournitures': 'autre',
-    default: 'newsletter',
-  },
+  'Commencer la danse': 'commencer_danse',
   'Le vêtement et les coiffures': 'tuto_habillage',
   'Danses et chants': 'vocabulaire',
   'La saison 2023-2024': 'newsletter',
-  "S'inscrire aux sorties de l'année": 'newsletter',
   'Prendre des responsabilités': 'autre',
 }
 
@@ -53,6 +47,7 @@ export const SUPERSEDED_BY_GLIDE_IMPORT = new Set([
   'page-danses-corteges',
   'page-vocab-costume',
   'page-themes-dates',
+  'page-sorties-excel',
 ])
 
 export function slugify(value) {
@@ -75,12 +70,8 @@ export function pageIdForRow(row) {
 
 export function categoryForRow(row) {
   const type = trim(row['Types de sujets'])
-  const titre = trim(row.Titre)
   const mapping = CATEGORY_BY_TYPE[type]
   if (typeof mapping === 'string') return mapping
-  if (mapping && typeof mapping === 'object') {
-    return mapping[titre] || mapping.default || 'autre'
-  }
   return 'autre'
 }
 
@@ -137,11 +128,16 @@ export function buildCorpsFromRow(row) {
   return parts.join('\n\n').trim()
 }
 
+export function buildCouvertureFromRow(row) {
+  const medias = []
+  const seen = new Set()
+  pushMedia(medias, seen, row.Photo, trim(row.Titre))
+  return medias[0] || null
+}
+
 export function buildMediasFromRow(row) {
   const medias = []
   const seen = new Set()
-
-  pushMedia(medias, seen, row.Photo, trim(row.Titre))
 
   for (let zone = 1; zone <= 8; zone += 1) {
     const subtitle = trim(row[`Zone ${zone} : Sous-titre`])
@@ -156,9 +152,15 @@ export function buildMediasFromRow(row) {
   return medias
 }
 
+export function shouldSkipGlideRow(row) {
+  const type = trim(row['Types de sujets'])
+  const titre = trim(row.Titre)
+  return type === "S'inscrire aux sorties de l'année" || titre === 'Tableau excel'
+}
+
 export function rowToContentPage(row, { ordre = 0 } = {}) {
   const titre = trim(row.Titre)
-  if (!titre) return null
+  if (!titre || shouldSkipGlideRow(row)) return null
 
   return {
     id: pageIdForRow(row),
@@ -167,6 +169,7 @@ export function rowToContentPage(row, { ordre = 0 } = {}) {
     ordre,
     publie: true,
     corps: buildCorpsFromRow(row),
+    couverture: buildCouvertureFromRow(row),
     medias: buildMediasFromRow(row),
   }
 }

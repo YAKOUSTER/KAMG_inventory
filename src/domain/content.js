@@ -1,6 +1,7 @@
 import { normalizeMediaUrl } from './mediaUrls.js'
 
 export const CONTENT_CATEGORIES = [
+  { id: 'commencer_danse', label: 'Commencer la danse', icon: 'mdi-human-female-dance' },
   { id: 'presentation', label: 'Présentation', icon: 'mdi-information-outline' },
   { id: 'newsletter', label: 'Infos & newsletter', icon: 'mdi-bullhorn-outline' },
   { id: 'tuto_coiffure', label: 'Tuto coiffure', icon: 'mdi-face-woman-shimmer' },
@@ -46,6 +47,13 @@ function normalizeMedia(entry = {}, index = 0) {
   }
 }
 
+export function contentCoverMedia(page) {
+  if (!page) return null
+  const cover = normalizeMedia(page.couverture, 0)
+  if (cover) return cover
+  return (page.medias || []).find((media) => media.type === 'image') || null
+}
+
 export function normalizeContentPage(input = {}, { id } = {}) {
   const nextId = trim(id || input.id)
   if (!nextId) throw new Error('Identifiant de page requis')
@@ -64,6 +72,7 @@ export function normalizeContentPage(input = {}, { id } = {}) {
     categorie,
     titre,
     corps: String(input.corps ?? ''),
+    couverture: normalizeMedia(input.couverture, 0),
     medias,
     ordre: Number.isFinite(Number(input.ordre)) ? Number(input.ordre) : 0,
     publie: input.publie !== false,

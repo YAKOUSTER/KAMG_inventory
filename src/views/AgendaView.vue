@@ -48,8 +48,20 @@
           {{ item.publie ? 'Publié' : 'Brouillon' }}
         </v-chip>
       </template>
+      <template #item.inscriptions="{ item }">
+        <v-chip v-if="item.inscriptionsOuvertes" size="small" color="deep-orange" variant="tonal">
+          Inscriptions
+        </v-chip>
+      </template>
       <template #item.actions="{ item }">
-        <v-btn size="small" variant="text" :to="{ name: 'event-edit', params: { id: item.id } }">Modifier</v-btn>
+        <v-btn
+          size="small"
+          variant="text"
+          :to="{ name: 'event-edit', params: { id: item.id } }"
+          @click.stop
+        >
+          Modifier
+        </v-btn>
       </template>
     </v-data-table>
 
@@ -105,6 +117,7 @@ const headers = [
   { title: 'Titre', key: 'titre' },
   { title: 'Lieu', key: 'lieu' },
   { title: 'Statut', key: 'publie' },
+  { title: 'Inscriptions', key: 'inscriptions', sortable: false },
   { title: '', key: 'actions', sortable: false },
 ]
 
@@ -124,7 +137,6 @@ onMounted(async () => {
 })
 
 function openEvent(event) {
-  if (event.source === 'google') return
   if (auth.can('agenda.write')) {
     router.push({ name: 'event-edit', params: { id: event.id } })
   }

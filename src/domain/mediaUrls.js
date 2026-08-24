@@ -66,3 +66,23 @@ export function displayMediaUrl(raw) {
   if (isYoutubeUrl(raw)) return youtubeEmbedUrl(raw)
   return normalizeMediaUrl(raw)
 }
+
+function extractDriveIdFromLh3(raw) {
+  const match = String(raw || '').match(/lh3\.googleusercontent\.com\/d\/([^=/?#]+)/)
+  return match ? match[1] : ''
+}
+
+/** URLs d’affichage à essayer pour une image Drive (certains partages bloquent lh3). */
+export function driveImageFallbackUrls(raw, { width = 1200 } = {}) {
+  const id = extractDriveFileId(raw) || extractDriveIdFromLh3(raw)
+  if (!id) {
+    const url = normalizeMediaUrl(raw, { width })
+    return url ? [url] : []
+  }
+  return [
+    `https://lh3.googleusercontent.com/d/${id}=w${width}`,
+    `https://drive.google.com/thumbnail?id=${id}&sz=w${width}`,
+    `https://lh3.googleusercontent.com/d/${id}`,
+    `https://drive.google.com/uc?export=view&id=${id}`,
+  ]
+}

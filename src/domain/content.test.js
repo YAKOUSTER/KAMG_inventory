@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { filterPublishedPages, groupPagesByCategory, normalizeContentPage } from './content.js'
+import { filterPublishedPages, groupPagesByCategory, normalizeContentPage, contentCoverMedia } from './content.js'
 
 describe('normalizeContentPage', () => {
   it('normalise une page publiée', () => {
@@ -19,6 +19,20 @@ describe('normalizeContentPage', () => {
     assert.equal(page.ordre, 2)
     assert.equal(page.medias.length, 1)
     assert.equal(page.medias[0].url, 'https://example.com/a.jpg')
+    assert.equal(page.couverture, null)
+  })
+
+  it('conserve l’image de couverture', () => {
+    const page = normalizeContentPage(
+      {
+        categorie: 'commencer_danse',
+        titre: 'Bienvenue',
+        couverture: { type: 'image', url: 'https://example.com/cover.jpg', legende: 'Couverture' },
+      },
+      { id: 'page-bienvenue' },
+    )
+    assert.equal(page.categorie, 'commencer_danse')
+    assert.equal(contentCoverMedia(page).url, 'https://example.com/cover.jpg')
   })
 })
 

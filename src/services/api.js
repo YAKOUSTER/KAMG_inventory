@@ -37,8 +37,13 @@ async function request(path, options = {}) {
   return data
 }
 
-async function publicRequest(path) {
-  const response = await fetch(path)
+async function publicRequest(path, options = {}) {
+  const headers = { ...(options.body ? { 'Content-Type': 'application/json' } : {}), ...(options.headers || {}) }
+  const response = await fetch(path, {
+    method: options.method || 'GET',
+    headers,
+    body: options.body && typeof options.body !== 'string' ? JSON.stringify(options.body) : options.body,
+  })
   const data = await response.json().catch(() => ({}))
   if (!response.ok) {
     throw new Error(data.error || `Erreur ${response.status}`)
@@ -91,10 +96,15 @@ export const api = {
   clearAudit: () => request('/api/audit', { method: 'DELETE' }),
   publicMemberSpace: () => publicRequest('/api/public/espace-membre'),
   events: () => request('/api/events'),
-  event: (id) => request(`/api/events/${id}`),
+  event: (id) => request(`/api/events/${encodeURIComponent(id)}`),
   createEvent: (body) => request('/api/events', { method: 'POST', body }),
-  updateEvent: (id, body) => request(`/api/events/${id}`, { method: 'PUT', body }),
-  deleteEvent: (id) => request(`/api/events/${id}`, { method: 'DELETE' }),
+  updateEvent: (id, body) => request(`/api/events/${encodeURIComponent(id)}`, { method: 'PUT', body }),
+  deleteEvent: (id) => request(`/api/events/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+  eventPresences: (id) => request(`/api/events/${encodeURIComponent(id)}/presences`),
+  setEventPresence: (id, body) =>
+    request(`/api/events/${encodeURIComponent(id)}/presences`, { method: 'PUT', body }),
+  setPublicEventPresence: (id, body) =>
+    publicRequest(`/api/public/events/${encodeURIComponent(id)}/presence`, { method: 'POST', body }),
   agendaSettings: () => request('/api/settings/agenda'),
   updateAgendaSettings: (body) => request('/api/settings/agenda', { method: 'PUT', body }),
   syncAgenda: () => request('/api/agenda/sync', { method: 'POST', body: {} }),

@@ -44,6 +44,9 @@ export function normalizeEvent(input = {}, { id } = {}) {
     ? [...new Set(input.cible.map((value) => trim(value)).filter(Boolean))]
     : []
 
+  const inscriptionsOuvertes =
+    input.inscriptionsOuvertes == null ? type === 'sortie' : Boolean(input.inscriptionsOuvertes)
+
   return {
     id: nextId,
     source: trim(input.source) || 'local',
@@ -55,12 +58,49 @@ export function normalizeEvent(input = {}, { id } = {}) {
     lieu: trim(input.lieu),
     description: trim(input.description),
     publie: input.publie !== false,
+    inscriptionsOuvertes,
     cible,
     groupes: Array.isArray(input.groupes)
       ? [...new Set(input.groupes.map((value) => trim(value)).filter(Boolean))]
       : [],
     createdAt: normalizeIsoDate(input.createdAt) || new Date().toISOString(),
     updatedAt: new Date().toISOString(),
+  }
+}
+
+export function eventAcceptsInscriptions(event) {
+  if (!event) return false
+  if (event.inscriptionsOuvertes != null) return Boolean(event.inscriptionsOuvertes)
+  return event.type === 'sortie'
+}
+
+export function applyEventOverlay(event, overlay) {
+  if (!event) return event
+  if (!overlay || typeof overlay !== 'object') {
+    return {
+      ...event,
+      inscriptionsOuvertes: eventAcceptsInscriptions(event),
+    }
+  }
+
+  const titre = trim(overlay.titre) || event.titre
+  const type = EVENT_TYPE_IDS.has(overlay.type) ? overlay.type : event.type
+  const description = overlay.description == null ? event.description : trim(overlay.description)
+  const lieu = overlay.lieu == null ? event.lieu : trim(overlay.lieu)
+  const publie = overlay.publie == null ? event.publie !== false : overlay.publie !== false
+  const inscriptionsOuvertes =
+    overlay.inscriptionsOuvertes == null
+      ? eventAcceptsInscriptions({ ...event, type })
+      : Boolean(overlay.inscriptionsOuvertes)
+
+  return {
+    ...event,
+    type,
+    titre,
+    lieu,
+    description,
+    publie,
+    inscriptionsOuvertes,
   }
 }
 

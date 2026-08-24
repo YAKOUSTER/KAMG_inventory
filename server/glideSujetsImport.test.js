@@ -28,10 +28,17 @@ describe('importGlideSujetsCsv', () => {
     const pages = importGlideSujetsCsv(sample)
     assert.equal(pages.length, 2)
     assert.equal(pages[0].id, 'page-bienvenue')
-    assert.equal(pages[0].categorie, 'presentation')
-    assert.ok(pages[0].corps.includes('Kenleur'))
-    assert.ok(pages[0].medias.length >= 2)
+    assert.equal(pages[0].categorie, 'commencer_danse')
+    assert.equal(pages[0].couverture.url, 'https://lh3.googleusercontent.com/d/PHOTO1=w1200')
+    assert.ok(pages[0].medias.length >= 1)
     assert.equal(pages[1].categorie, 'vocabulaire')
+  })
+
+  it('ignore le tableur Excel des sorties', () => {
+    const csv = `"Types de sujets","Titre","Sous-titre","Photo","Description"
+"S'inscrire aux sorties de l'année","Tableau excel","","","Lien excel"
+`
+    assert.equal(importGlideSujetsCsv(csv).length, 0)
   })
 })
 
@@ -73,6 +80,10 @@ describe('pageIdForRow', () => {
 describe('categoryForRow', () => {
   it('mappe les types Glide vers les catégories app', () => {
     assert.equal(categoryForRow({ 'Types de sujets': 'Danses et chants', Titre: 'X' }), 'vocabulaire')
-    assert.equal(categoryForRow({ 'Types de sujets': 'Commencer la danse', Titre: 'Bienvenue' }), 'presentation')
+    assert.equal(categoryForRow({ 'Types de sujets': 'Commencer la danse', Titre: 'Bienvenue' }), 'commencer_danse')
+    assert.equal(
+      categoryForRow({ 'Types de sujets': 'Commencer la danse', Titre: 'Danseurs : fournitures' }),
+      'commencer_danse',
+    )
   })
 })

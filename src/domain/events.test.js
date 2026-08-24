@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { normalizeEvent, upcomingEvents, pastEvents } from './events.js'
+import { applyEventOverlay, normalizeEvent, upcomingEvents, pastEvents } from './events.js'
 
 describe('normalizeEvent', () => {
   it('normalise un événement publié', () => {
@@ -17,7 +17,16 @@ describe('normalizeEvent', () => {
     )
     assert.equal(event.type, 'sortie')
     assert.equal(event.publie, true)
+    assert.equal(event.inscriptionsOuvertes, true)
     assert.ok(event.debut.endsWith('Z') || event.debut.includes('T'))
+  })
+
+  it('ouvre les inscriptions par défaut seulement pour les sorties', () => {
+    const repetition = normalizeEvent(
+      { type: 'repetition', titre: 'Rep', debut: '2026-08-10T14:00:00' },
+      { id: 'evt-rep' },
+    )
+    assert.equal(repetition.inscriptionsOuvertes, false)
   })
 
   it('exige un titre', () => {
@@ -25,6 +34,30 @@ describe('normalizeEvent', () => {
       () => normalizeEvent({ debut: '2026-08-10T14:00:00' }, { id: 'evt-1' }),
       /titre/i,
     )
+  })
+})
+
+describe('applyEventOverlay', () => {
+  it('permet d’annoter un événement Google sans perdre la source', () => {
+    const event = normalizeEvent(
+      {
+        source: 'google',
+        type: 'autre',
+        titre: 'Fest-noz',
+        debut: '2026-08-10T14:00:00',
+        publie: true,
+      },
+      { id: 'google-1' },
+    )
+    const overlaid = applyEventOverlay(event, {
+      type: 'sortie',
+      titre: 'Fest-noz KAMG',
+      inscriptionsOuvertes: true,
+    })
+    assert.equal(overlaid.source, 'google')
+    assert.equal(overlaid.type, 'sortie')
+    assert.equal(overlaid.titre, 'Fest-noz KAMG')
+    assert.equal(overlaid.inscriptionsOuvertes, true)
   })
 })
 
