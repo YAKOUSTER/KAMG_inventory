@@ -28,6 +28,9 @@
         <v-select v-model="filters.etat" :items="withAll(referentiels.etats)" label="État" hide-details />
       </v-col>
       <v-col cols="12" md="2">
+        <v-select v-model="filters.local" :items="localItems" label="Local" hide-details />
+      </v-col>
+      <v-col cols="12" md="2">
         <v-checkbox v-model="filters.stockBas" label="Stock bas / rupture" hide-details density="compact" />
       </v-col>
     </v-row>
@@ -61,7 +64,8 @@
 </template>
 
 <script setup>
-import { MEASUREMENT_FIELDS } from '@/domain/taxonomy'
+import { computed } from 'vue'
+import { MEASUREMENT_FIELDS, STORAGE_LOCALS } from '@/domain/taxonomy'
 
 defineProps({
   filters: { type: Object, required: true },
@@ -76,4 +80,8 @@ defineEmits(['reset'])
 const showMeasures = defineModel('showMeasures', { type: Boolean, default: false })
 
 const withAll = (list) => ['Tout', ...list]
+const localItems = computed(() => [
+  { title: 'Tout', value: 'Tout' },
+  ...STORAGE_LOCALS.map((entry) => ({ title: entry.label, value: entry.id })),
+])
 </script>

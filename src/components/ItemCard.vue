@@ -29,6 +29,7 @@
             <v-icon v-if="reconstitutionGood" size="16" color="warning">mdi-sparkles</v-icon>
           </div>
           <div class="item-card__meta">{{ item.code }}</div>
+          <div v-if="item.local" class="item-card__meta">{{ storageLocalLabel(item.local) }}</div>
           <div v-if="hasStock(item)" class="item-card__stock">{{ formatStock(item) }}</div>
         </template>
         <template v-else>
@@ -38,6 +39,7 @@
             <v-icon v-if="reconstitutionGood" size="18" color="warning">mdi-sparkles</v-icon>
           </div>
           <div class="text-body-2 mt-1">{{ item.type }}</div>
+          <div v-if="item.local" class="text-body-2 mt-1">{{ storageLocalLabel(item.local) }}</div>
           <div v-if="hasStock(item)" class="text-body-2 mt-1 font-weight-medium">{{ formatStock(item) }}</div>
           <StatusChip class="mt-2" :status="item.disponibilite" />
         </template>
@@ -62,7 +64,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { categoryIcon, categoryLabel } from '@/domain/taxonomy'
+import { categoryIcon, categoryLabel, storageLocalLabel } from '@/domain/taxonomy'
 import { coverSrc } from '@/domain/images'
 import { isLoanable } from '@/domain/item'
 import { formatStock, hasStock } from '@/domain/stock'

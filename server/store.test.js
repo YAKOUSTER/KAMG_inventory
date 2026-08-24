@@ -69,6 +69,23 @@ describe('json store', () => {
     assert.equal(detail.nom, 'Jupe noire')
   })
 
+  it('enregistre du matériel dans un local', async () => {
+    const created = await createItem(
+      {
+        code: 'MAC-01',
+        nom: 'Machine à coudre Singer',
+        categorie: 'materiel',
+        type: 'Machine à coudre',
+        local: 'Moulin Vert',
+      },
+      options,
+    )
+    assert.equal(created.categorie, 'materiel')
+    assert.equal(created.local, 'moulin_vert')
+    const loaded = await getItem(created.id, options)
+    assert.equal(loaded.local, 'moulin_vert')
+  })
+
   it('refuse un code en doublon', async () => {
     await createItem({ code: 'ECH-01', nom: 'Toile', categorie: 'echantillon' }, options)
     await assert.rejects(

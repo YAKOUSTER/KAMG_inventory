@@ -4,6 +4,7 @@ export const CATEGORIES = [
   { id: 'piece_collection', label: 'Pièce de collection', icon: 'mdi-bank', plural: 'Pièces de collection' },
   { id: 'tissu', label: 'Tissu', icon: 'mdi-roller-shade', plural: 'Tissus' },
   { id: 'fourniture', label: 'Fourniture', icon: 'mdi-package-variant-closed', plural: 'Fournitures' },
+  { id: 'materiel', label: 'Matériel', icon: 'mdi-toolbox-outline', plural: 'Matériels' },
   { id: 'echantillon', label: 'Échantillon', icon: 'mdi-texture-box', plural: 'Échantillons' },
 ]
 
@@ -67,6 +68,17 @@ export const DEFAULT_REFERENTIELS = {
       'Fermeture',
       'Mercerie',
       'Outil',
+      'Autre',
+    ],
+    materiel: [
+      'Machine à coudre',
+      'Surjeteuse',
+      'Fer à repasser',
+      'Table à repasser',
+      'Centrale vapeur',
+      'Machine à laver',
+      'Aspirateur',
+      'Échelle',
       'Autre',
     ],
   },
@@ -141,6 +153,30 @@ export function categoryLabel(id, referentiels) {
     if (found) return found.label
   }
   return CATEGORIES.find((c) => c.id === id)?.label || id
+}
+
+export const STORAGE_LOCALS = [
+  { id: 'moulin_vert', label: 'Moulin Vert' },
+  { id: 'local_flg', label: 'Local FLG' },
+]
+
+const STORAGE_LOCAL_IDS = new Set(STORAGE_LOCALS.map((entry) => entry.id))
+
+export function isMateriel(item) {
+  return item?.categorie === 'materiel'
+}
+
+export function normalizeStorageLocal(value) {
+  const raw = String(value || '').trim()
+  if (!raw) return ''
+  if (STORAGE_LOCAL_IDS.has(raw)) return raw
+  const match = STORAGE_LOCALS.find((entry) => entry.label.toLowerCase() === raw.toLowerCase())
+  return match?.id || ''
+}
+
+export function storageLocalLabel(id) {
+  const normalized = normalizeStorageLocal(id)
+  return STORAGE_LOCALS.find((entry) => entry.id === normalized)?.label || ''
 }
 
 export function categoryIcon(id, referentiels) {

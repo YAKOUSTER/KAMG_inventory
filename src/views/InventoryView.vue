@@ -80,6 +80,16 @@
         >
           Stock bas
         </v-chip>
+        <v-chip
+          v-for="local in storageLocals"
+          :key="local.id"
+          class="filter-chip"
+          :color="filters.local === local.id ? 'primary' : undefined"
+          :variant="filters.local === local.id ? 'flat' : 'outlined'"
+          @click="filters.local = filters.local === local.id ? 'Tout' : local.id"
+        >
+          {{ local.label }}
+        </v-chip>
       </div>
 
       <div class="inventory-mobile-count">{{ filtered.length }} fiche(s)</div>
@@ -139,6 +149,7 @@
         <v-icon v-else size="20" color="primary">mdi-image-off-outline</v-icon>
       </template>
       <template #item.categorie="{ item }">{{ categoryLabel(item.categorie, referentiels) }}</template>
+      <template #item.local="{ item }">{{ storageLocalLabel(item.local) || '—' }}</template>
       <template #item.disponibilite="{ item }">
         <StatusChip :status="item.disponibilite" />
       </template>
@@ -180,7 +191,7 @@ import { useInventoryStore } from '@/stores/inventory'
 import { useAuthStore } from '@/stores/auth'
 import { useCartStore } from '@/stores/cart'
 import { useUiStore } from '@/stores/ui'
-import { MEASUREMENT_FIELDS, categoryLabel } from '@/domain/taxonomy'
+import { MEASUREMENT_FIELDS, STORAGE_LOCALS, categoryLabel, storageLocalLabel } from '@/domain/taxonomy'
 import { categoriesWithMeta } from '@/domain/referentiels'
 import { coverSrc } from '@/domain/images'
 import { formatStock, hasStock } from '@/domain/stock'
@@ -217,6 +228,7 @@ function defaultFilters() {
     couleur: 'Tout',
     taille: 'Tout',
     type: 'Tout',
+    local: 'Tout',
     stockBas: false,
     ...defaultMeasureRanges,
   }
@@ -252,6 +264,7 @@ const categoryItems = computed(() => [
 ])
 
 const categoryChips = computed(() => categoryItems.value.filter((item) => item.value !== 'Tout'))
+const storageLocals = STORAGE_LOCALS
 
 const itemById = (id) => inventory.itemById(id)
 const filtered = computed(() => filterItems(inventory.items, filters))
@@ -263,6 +276,7 @@ const activeFilterCount = computed(() => {
   if (filters.etat !== 'Tout') count++
   if (filters.stockBas) count++
   if (filters.categorie !== 'Tout') count++
+  if (filters.local !== 'Tout') count++
   for (const field of MEASUREMENT_FIELDS) {
     const range = filters[field.key]
     const max = field.max
@@ -278,6 +292,7 @@ const headers = computed(() => {
     { title: 'Nom', key: 'nom' },
     { title: 'Catégorie', key: 'categorie' },
     { title: 'Type', key: 'type' },
+    { title: 'Local', key: 'local' },
     { title: 'Époque', key: 'epoque' },
     { title: 'État', key: 'etat' },
     { title: 'Stock', key: 'stock', sortable: false },

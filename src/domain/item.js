@@ -1,4 +1,4 @@
-import { CATEGORY_IDS } from './taxonomy.js'
+import { CATEGORY_IDS, normalizeStorageLocal, storageLocalLabel } from './taxonomy.js'
 import { normalizeAttachments } from './attachments.js'
 import { normalizeImages } from './images.js'
 import { defaultStockUnit, hasStock, normalizeStockFields } from './stock.js'
@@ -62,6 +62,7 @@ export function emptyItem(categorie = 'piece_costume') {
     disponibilite: 'Disponible',
     proprietaire: '',
     localisation: '',
+    local: '',
     tags: [],
     erreurReconstitution: false,
     motif: '',
@@ -123,6 +124,7 @@ export function normalizeItem(input = {}, { id, now, categoryIds: allowedCategor
   migrateLegacyItemFields(item)
   item.code = String(item.code).trim()
   item.nom = String(item.nom).trim()
+  item.local = normalizeStorageLocal(item.local)
   item.images = normalizeImages(item.images)
   item.photoSourceId =
     item.photoSourceId && String(item.photoSourceId).trim() !== item.id
@@ -164,6 +166,7 @@ export function itemSearchText(item) {
     item.composition,
     item.proprietaire,
     item.localisation,
+    storageLocalLabel(item.local),
     item.motif,
     item.numeroInventaire,
     item.provenance,

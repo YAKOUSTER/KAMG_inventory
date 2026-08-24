@@ -168,11 +168,12 @@ import { api } from '@/services/api'
 import { useCartStore } from '@/stores/cart'
 import { useInventoryStore } from '@/stores/inventory'
 import { useAuthStore } from '@/stores/auth'
-import { MEASUREMENT_FIELDS, categoryIcon, categoryLabel, visibleMeasurements } from '@/domain/taxonomy'
+import { MEASUREMENT_FIELDS, categoryIcon, categoryLabel, storageLocalLabel, visibleMeasurements } from '@/domain/taxonomy'
 import { isLoanable } from '@/domain/item'
 import { isImageAttachment } from '@/domain/attachments'
 import { useUiStore } from '@/stores/ui'
 import { displayDate } from '@/domain/dates'
+import { personDisplayName } from '@/domain/person'
 import ItemCard from '@/components/ItemCard.vue'
 import DetailRow from '@/components/DetailRow.vue'
 import StatusChip from '@/components/StatusChip.vue'
@@ -234,6 +235,7 @@ const facts = computed(() => {
       value: item.value.propre == null ? '' : item.value.propre ? 'Propre' : 'Sale',
     },
     { label: 'Propriétaire', value: item.value.proprietaire },
+    { label: 'Local', value: storageLocalLabel(item.value.local) },
     { label: 'Localisation', value: item.value.localisation },
   ]
   if (item.value.propre === false && item.value.pressingPayePar) {

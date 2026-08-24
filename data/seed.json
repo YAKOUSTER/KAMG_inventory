@@ -28,6 +28,10 @@
         "label": "Fourniture"
       },
       {
+        "id": "materiel",
+        "label": "Matériel"
+      },
+      {
         "id": "echantillon",
         "label": "Échantillon"
       }

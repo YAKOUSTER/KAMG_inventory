@@ -42,6 +42,15 @@ describe('filterItems', () => {
     assert.equal(filterItems(items, { disponibilite: 'Disponible' }).length, 1)
   })
 
+  it('filtre par local Moulin Vert / Local FLG', () => {
+    const withLocals = [
+      { ...items[0], local: 'moulin_vert' },
+      { code: 'MAC-01', nom: 'Machine', categorie: 'materiel', local: 'local_flg' },
+    ]
+    assert.equal(filterItems(withLocals, { local: 'local_flg' }).length, 1)
+    assert.equal(filterItems(withLocals, { local: 'moulin_vert' })[0].code, 'JUP-01')
+  })
+
   it('filtre par plage de mesures en ignorant les valeurs vides', () => {
     const result = filterItems(items, { longueur: [80, 100] })
     assert.equal(result.length, 2)

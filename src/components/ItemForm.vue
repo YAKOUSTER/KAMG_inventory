@@ -29,10 +29,10 @@
         <FieldRow label="Nom">
           <v-text-field v-model="item.nom" hide-details="auto" :rules="[required]" />
         </FieldRow>
-        <FieldRow label="Époque">
+        <FieldRow v-if="!isFourniture && !isMateriel" label="Époque">
           <v-select v-model="item.epoque" :items="withBlank(referentiels.epoques)" hide-details />
         </FieldRow>
-        <FieldRow v-if="!isFourniture" label="Origine / pays / cercle" hint="ex. Pays Glazig — saisissez puis Entrée">
+        <FieldRow v-if="!isFourniture && !isMateriel" label="Origine / pays / cercle" hint="ex. Pays Glazig — saisissez puis Entrée">
           <TagCombobox v-model="item.origines" :suggestions="referentiels.origines" />
         </FieldRow>
         <FieldRow v-if="!isFourniture" label="État">
@@ -64,7 +64,19 @@
         >
           <v-text-field v-model="item.proprietaire" hide-details />
         </FieldRow>
-        <FieldRow label="Localisation" hint="armoire, tiroir…">
+        <FieldRow
+          v-if="isMateriel"
+          label="Local"
+          hint="Où se trouve ce matériel"
+        >
+          <v-select
+            v-model="item.local"
+            :items="localItems"
+            hide-details="auto"
+            :rules="[required]"
+          />
+        </FieldRow>
+        <FieldRow :label="isMateriel ? 'Emplacement dans le local' : 'Localisation'" :hint="isMateriel ? 'étagère, armoire…' : 'armoire, tiroir…'">
           <v-text-field v-model="item.localisation" hide-details />
         </FieldRow>
       </div>
@@ -88,10 +100,10 @@
           <TagCombobox v-model="item.couleurs" :suggestions="referentiels.couleurs" />
         </FieldRow>
       </div>
-      <FieldRow v-if="!isFourniture" label="Techniques" class="mt-2" hint="Perlé, brodé…">
+      <FieldRow v-if="!isFourniture && !isMateriel" label="Techniques" class="mt-2" hint="Perlé, brodé…">
         <TagCombobox v-model="item.techniques" :suggestions="referentiels.techniques" />
       </FieldRow>
-      <FieldRow v-if="!isFourniture && item.techniques.length" label="Motif" class="mt-2">
+      <FieldRow v-if="!isFourniture && !isMateriel && item.techniques.length" label="Motif" class="mt-2">
         <v-text-field v-model="item.motif" hide-details />
       </FieldRow>
       <FieldRow label="Autres tags" class="mt-2">
@@ -286,7 +298,7 @@
 
 <script setup>
 import { computed, reactive, ref, watch } from 'vue'
-import { MEASUREMENT_FIELDS, visibleMeasurements } from '@/domain/taxonomy'
+import { MEASUREMENT_FIELDS, STORAGE_LOCALS, isMateriel as checkMateriel, visibleMeasurements } from '@/domain/taxonomy'
 import { categoriesWithMeta } from '@/domain/referentiels'
 import { useInventoryStore } from '@/stores/inventory'
 import { emptyItem, normalizeStringList } from '@/domain/item'
@@ -376,6 +388,7 @@ watch(
 )
 
 const isFourniture = computed(() => checkFourniture(item))
+const isMateriel = computed(() => checkMateriel(item))
 const hasStockTracking = computed(() => hasStock(item))
 const showReconstitutionField = computed(() => showReconstitutionErrorField(item))
 const stockUnitItems = computed(() => {
@@ -389,6 +402,8 @@ const stockStatusPreview = computed(() => {
   syncStockDisponibilite(item)
   return item.disponibilite
 })
+
+const localItems = computed(() => STORAGE_LOCALS.map((entry) => ({ title: entry.label, value: entry.id })))
 
 const typesForCategory = computed(
   () => referentiels.value.typesParCategorie[item.categorie] || [],

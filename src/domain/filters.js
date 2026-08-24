@@ -19,6 +19,7 @@ export function filterItems(items, filters = {}) {
       return false
     }
     if (filters.etat && filters.etat !== 'Tout' && item.etat !== filters.etat) return false
+    if (filters.local && filters.local !== 'Tout' && item.local !== filters.local) return false
     if (filters.couleur && filters.couleur !== 'Tout') {
       const wanted = filters.couleur.toLowerCase()
       const colors = item.couleurs?.length
