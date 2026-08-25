@@ -34,6 +34,7 @@ import {
   adjustStock,
   getLoan,
   listAudit,
+  clearAudit,
   createEvent,
   getEvent,
   updateEvent,
@@ -532,6 +533,18 @@ describe('json store', () => {
     assert.ok(actions.includes('loan.create'))
     assert.ok(actions.includes('loan.return_all'))
     assert.equal(audit.entries.find((entry) => entry.action === 'loan.create')?.actor.login, 'admin')
+  })
+
+  it('vide le journal d’activité', async () => {
+    const session = await login('admin', 'admin', options)
+    await createPerson({ nom: 'Journal', prenom: 'Test' }, { ...options, actor: session.user })
+    const before = await listAudit({}, options)
+    assert.ok(before.total >= 1)
+    const result = await clearAudit({ ...options, actor: session.user })
+    assert.ok(result.cleared >= 1)
+    const after = await listAudit({}, options)
+    assert.equal(after.total, 1)
+    assert.equal(after.entries[0].action, 'audit.clear')
   })
 
   it('modifie un événement local et enregistre une présence', async () => {

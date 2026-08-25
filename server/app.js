@@ -475,7 +475,7 @@ export function createApiApp() {
       }),
     ),
   )
-  app.delete('/api/audit', auth('audit.manage'), handle(() => clearAudit({ actor: req.user })))
+  app.delete('/api/audit', auth('audit.manage'), handle((req) => clearAudit({ actor: req.user })))
 
   app.post('/api/uploads', authUpload, handle((req) => saveUpload(req.body)))
 

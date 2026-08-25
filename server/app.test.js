@@ -513,4 +513,28 @@ describe('API HTTP', () => {
     assert.equal(summary.corps, undefined)
     assert.match(summary.excerpt || '', /Texte/)
   })
+
+  it('vide le journal d’activité', async () => {
+    const app = createApiApp()
+    const login = await request(app, 'POST', '/api/auth/login', {
+      body: { login: 'admin', password: 'admin' },
+    })
+    assert.equal(login.status, 200)
+    await request(app, 'POST', '/api/people', {
+      token: login.body.token,
+      body: { nom: 'Journal', prenom: 'Test' },
+    })
+    const before = await request(app, 'GET', '/api/audit', { token: login.body.token })
+    assert.equal(before.status, 200)
+    assert.ok(before.body.total >= 1)
+
+    const cleared = await request(app, 'DELETE', '/api/audit', { token: login.body.token })
+    assert.equal(cleared.status, 200)
+    assert.ok(cleared.body.cleared >= 1)
+
+    const after = await request(app, 'GET', '/api/audit', { token: login.body.token })
+    assert.equal(after.status, 200)
+    assert.equal(after.body.total, 1)
+    assert.equal(after.body.entries[0].action, 'audit.clear')
+  })
 })
