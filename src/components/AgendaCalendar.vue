@@ -120,7 +120,6 @@
       >
         <button type="button" class="agenda-cal__cell-num" @click="openDay(cell.iso)">
           {{ dayNumber(cell.iso) }}
-          <span v-if="holidayShort(cell.iso)" class="agenda-cal__holiday-dot" :title="holidayLabel(cell.iso)" />
           <span v-if="eventsFor(cell.iso).length > 1" class="agenda-cal__day-count">
             {{ eventsFor(cell.iso).length }}
           </span>
@@ -361,7 +360,6 @@ function miniDayClass(cell) {
     'is-today': isToday(cell.iso),
     'has-events': count > 0 && cell.inMonth,
     'has-many': count > 1 && cell.inMonth,
-    'is-holiday': holidaysVisible.value && isSchoolHoliday(cell.iso),
   }
 }
 
@@ -521,14 +519,6 @@ function openMonth(entry) {
   color: #6b5310;
   font-size: 0.68rem;
   font-weight: 700;
-}
-
-.agenda-cal__holiday-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 999px;
-  background: #c9a227;
-  flex-shrink: 0;
 }
 
 .agenda-cal__holiday-note {
@@ -882,16 +872,6 @@ function openMonth(entry) {
 
 .agenda-cal__mini-day.has-many {
   background: rgba(184, 92, 56, 0.22);
-}
-
-.agenda-cal__mini-day.is-holiday {
-  background: rgba(201, 162, 39, 0.28);
-  border-radius: 999px;
-}
-
-.agenda-cal__mini-day.is-holiday.has-events,
-.agenda-cal__mini-day.is-holiday.has-many {
-  box-shadow: inset 0 -2px 0 rgba(201, 162, 39, 0.9);
 }
 
 .agenda-cal__mini-day.is-today {
