@@ -98,7 +98,7 @@
     <section class="member-home__section">
       <div class="member-home__head">
         <div>
-          <h2 class="member-home__title">🎉 Prochaines sorties</h2>
+          <h2 class="member-home__title">🎉 Prochains off — les moments hors cercle</h2>
           <p class="member-home__intro">Fest-noz et sorties libres, hors cercle.</p>
         </div>
         <v-btn variant="text" size="small" class="text-none" @click="emit('open-agenda')">
