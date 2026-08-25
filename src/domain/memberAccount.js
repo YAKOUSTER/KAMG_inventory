@@ -100,6 +100,15 @@ export function normalizeAccountRecord(user = {}) {
   }
 }
 
+export const PASSWORD_RESET_MESSAGE =
+  'Si un compte est associé à cette adresse, un lien a été envoyé. Il expire dans une heure.'
+
+export function passwordResetUrl(origin, token) {
+  const base = String(origin || '').replace(/\/$/, '')
+  const path = `/nouveau-mot-de-passe?token=${encodeURIComponent(token)}`
+  return base ? `${base}${path}` : path
+}
+
 export function findUserByIdentifiant(users = [], identifiant) {
   const ident = String(identifiant || '').trim().toLowerCase()
   if (!ident) return null

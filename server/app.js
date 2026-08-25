@@ -33,6 +33,9 @@ import {
   listPendingMembers,
   placeMember,
   getMemberSpace,
+  requestPasswordReset,
+  createPasswordResetLink,
+  resetPassword,
   adjustStock,
   getBootstrap,
   getReferentiels,
@@ -147,6 +150,15 @@ function authPlacedMember(req, res, next) {
   })
 }
 
+function requestOrigin(req) {
+  const forwarded = String(req.headers['x-forwarded-host'] || '').split(',')[0].trim()
+  const host = forwarded || req.headers.host || 'localhost:5173'
+  const proto = String(req.headers['x-forwarded-proto'] || '')
+    .split(',')[0]
+    .trim() || (req.secure ? 'https' : 'http')
+  return `${proto}://${host}`
+}
+
 export function createApiApp() {
   const app = express()
   app.disable('x-powered-by')
@@ -210,6 +222,26 @@ export function createApiApp() {
       keyFn: (req) => req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || 'register',
     }),
     handle((req) => registerMember(req.body || {})),
+  )
+  app.post(
+    '/api/auth/forgot-password',
+    createRateLimiter({
+      windowMs: 15 * 60 * 1000,
+      max: 8,
+      keyFn: (req) => req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || 'forgot',
+    }),
+    handle((req) =>
+      requestPasswordReset(req.body?.email || req.body?.login, { origin: requestOrigin(req) }),
+    ),
+  )
+  app.post(
+    '/api/auth/reset-password',
+    createRateLimiter({
+      windowMs: 15 * 60 * 1000,
+      max: 12,
+      keyFn: (req) => req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || 'reset',
+    }),
+    handle((req) => resetPassword(req.body?.token, req.body?.password)),
   )
   app.post(
     '/api/auth/logout',
@@ -461,6 +493,11 @@ export function createApiApp() {
     '/api/users/:id',
     auth('users.manage'),
     handle((req) => deleteUser(req.params.id, { actor: req.user })),
+  )
+  app.post(
+    '/api/users/:id/reset-link',
+    auth('users.manage'),
+    handle((req) => createPasswordResetLink(req.params.id, { actor: req.user, origin: requestOrigin(req) })),
   )
 
   app.use((error, _req, res, _next) => {

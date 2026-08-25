@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { hashPassword, verifyPassword, randomToken } from './password.js'
+import { hashPassword, verifyPassword, randomToken, hashToken } from './password.js'
 
 test('hashPassword et verifyPassword', async () => {
   const hash = await hashPassword('secret-test')
@@ -15,4 +15,11 @@ test('randomToken produit des valeurs uniques', () => {
   const b = randomToken()
   assert.notEqual(a, b)
   assert.equal(a.length, 64)
+})
+
+test('hashToken est déterministe et distinct du jeton brut', () => {
+  const token = 'reset-token-example'
+  assert.equal(hashToken(token), hashToken(token))
+  assert.notEqual(hashToken(token), token)
+  assert.equal(hashToken(token).length, 64)
 })

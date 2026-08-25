@@ -180,7 +180,9 @@ const snackOpen = ref(false)
 const moreOpen = ref(false)
 
 const mdAndUp = computed(() => display.mdAndUp.value)
-const isLogin = computed(() => route.name === 'login' || route.name === 'signup')
+const isLogin = computed(() =>
+  ['login', 'signup', 'forgot-password', 'reset-password'].includes(route.name),
+)
 const isMemberSpace = computed(() => route.meta.publicLayout === 'member')
 const isStandalonePublic = computed(() => isLogin.value || isMemberSpace.value)
 

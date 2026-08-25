@@ -230,6 +230,75 @@ describe('API HTTP', () => {
     assert.ok(space.body.presences.some((entry) => entry.personId === child.body.id))
   })
 
+  it('réinitialise un mot de passe sans divulguer l’existence du compte', async () => {
+    const app = createApiApp()
+    const unknown = await request(app, 'POST', '/api/auth/forgot-password', {
+      body: { email: 'inconnu@cercle.test' },
+    })
+    assert.equal(unknown.status, 200)
+    assert.match(unknown.body.message || '', /lien/)
+    assert.equal(unknown.body.url, undefined)
+    assert.equal(unknown.body.resetUrl, undefined)
+
+    const signup = await request(app, 'POST', '/api/auth/register', {
+      body: {
+        prenom: 'Anna',
+        nom: 'Le Berre',
+        email: 'anna.reset@cercle.test',
+        password: 'ancienmdp',
+        relation: 'danseur',
+      },
+    })
+    assert.equal(signup.status, 200)
+
+    const forgot = await request(app, 'POST', '/api/auth/forgot-password', {
+      body: { email: 'anna.reset@cercle.test' },
+    })
+    assert.equal(forgot.status, 200)
+    assert.equal(forgot.body.url, undefined)
+    assert.equal(forgot.body.resetUrl, undefined)
+
+    const unauthorized = await request(app, 'POST', `/api/users/${signup.body.user.id}/reset-link`)
+    assert.equal(unauthorized.status, 401)
+
+    const admin = await request(app, 'POST', '/api/auth/login', {
+      body: { login: 'admin', password: 'admin' },
+    })
+    const link = await request(app, 'POST', `/api/users/${signup.body.user.id}/reset-link`, {
+      token: admin.body.token,
+    })
+    assert.equal(link.status, 200)
+    assert.match(link.body.url, /\/nouveau-mot-de-passe\?token=/)
+    const token = new URL(link.body.url).searchParams.get('token')
+    assert.ok(token)
+
+    const weak = await request(app, 'POST', '/api/auth/reset-password', {
+      body: { token, password: 'court' },
+    })
+    assert.equal(weak.status, 400)
+
+    const reset = await request(app, 'POST', '/api/auth/reset-password', {
+      body: { token, password: 'nouveaumdp' },
+    })
+    assert.equal(reset.status, 200)
+
+    const oldLogin = await request(app, 'POST', '/api/auth/login', {
+      body: { login: 'anna.reset@cercle.test', password: 'ancienmdp' },
+    })
+    assert.equal(oldLogin.status, 401)
+
+    const newLogin = await request(app, 'POST', '/api/auth/login', {
+      body: { login: 'anna.reset@cercle.test', password: 'nouveaumdp' },
+    })
+    assert.equal(newLogin.status, 200)
+    assert.ok(newLogin.body.token)
+
+    const reuse = await request(app, 'POST', '/api/auth/reset-password', {
+      body: { token, password: 'autremdp12' },
+    })
+    assert.equal(reuse.status, 400)
+  })
+
   it('applique les en-têtes de sécurité', async () => {
     const app = createApiApp()
     const res = await request(app, 'GET', '/api/health')

@@ -6,6 +6,7 @@ import {
   homePath,
   isValidEmail,
   normalizeSignup,
+  passwordResetUrl,
   validatePassword,
 } from './memberAccount.js'
 
@@ -52,5 +53,13 @@ describe('accès après connexion', () => {
     ]
     assert.equal(findUserByIdentifiant(users, 'admin').login, 'admin')
     assert.equal(findUserByIdentifiant(users, 'Marie@Cercle.fr').login, 'marie@cercle.fr')
+  })
+
+  it('construit l’URL de réinitialisation depuis l’origine', () => {
+    assert.equal(
+      passwordResetUrl('https://kamg.example', 'tok-1'),
+      'https://kamg.example/nouveau-mot-de-passe?token=tok-1',
+    )
+    assert.equal(passwordResetUrl('', 'abc'), '/nouveau-mot-de-passe?token=abc')
   })
 })

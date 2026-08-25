@@ -40,6 +40,9 @@ async function request(path, options = {}) {
 export const api = {
   login: (login, password) => request('/api/auth/login', { method: 'POST', body: { login, password } }),
   register: (body) => request('/api/auth/register', { method: 'POST', body }),
+  forgotPassword: (email) => request('/api/auth/forgot-password', { method: 'POST', body: { email } }),
+  resetPassword: (token, password) =>
+    request('/api/auth/reset-password', { method: 'POST', body: { token, password } }),
   logout: () => request('/api/auth/logout', { method: 'POST', body: {} }),
   me: () => request('/api/auth/me'),
   bootstrap: () => request('/api/bootstrap'),
@@ -71,6 +74,8 @@ export const api = {
   createUser: (body) => request('/api/users', { method: 'POST', body }),
   updateUser: (id, body) => request(`/api/users/${id}`, { method: 'PUT', body }),
   deleteUser: (id) => request(`/api/users/${id}`, { method: 'DELETE' }),
+  createPasswordResetLink: (id) =>
+    request(`/api/users/${encodeURIComponent(id)}/reset-link`, { method: 'POST', body: {} }),
   audit: (query = {}) => {
     const params = new URLSearchParams()
     if (query.limit) params.set('limit', String(query.limit))

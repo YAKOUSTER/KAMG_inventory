@@ -6,7 +6,7 @@
       <v-btn color="primary" prepend-icon="mdi-plus" @click="openCreate">Nouveau compte</v-btn>
     </div>
     <p class="text-body-2 text-medium-emphasis mb-4">
-      Trois profils de gestion (Administrateur, Gestion, Lecteur) et les comptes membres. Les inscriptions en attente se rangent dans « À ranger ».
+      Trois profils de gestion (Administrateur, Gestion, Lecteur) et les comptes membres. Les inscriptions en attente se rangent dans « À ranger ». « Lien mot de passe » copie un lien valable une heure.
     </p>
 
     <div v-for="user in users" :key="user.id" class="stack-item">
@@ -19,8 +19,17 @@
         <span class="text-body-2 text-medium-emphasis">{{ user.login }}</span>
       </div>
       <div class="text-caption my-2">{{ permissionSummary(user) }}</div>
-      <div class="d-flex ga-2">
+      <div class="d-flex flex-wrap ga-2">
         <v-btn size="small" variant="text" color="primary" @click="openEdit(user)">Modifier les accès</v-btn>
+        <v-btn
+          size="small"
+          variant="text"
+          class="text-none"
+          :loading="resettingId === user.id"
+          @click="copyResetLink(user)"
+        >
+          Lien mot de passe
+        </v-btn>
         <v-btn size="small" variant="text" color="error" @click="remove(user)">Supprimer</v-btn>
       </div>
     </div>
@@ -71,11 +80,14 @@ import { onMounted, reactive, ref } from 'vue'
 import { useDisplay } from 'vuetify'
 import { api } from '@/services/api'
 import { PERMISSIONS, ROLE_PRESETS, ROLES } from '@/domain/auth'
+import { useUiStore } from '@/stores/ui'
 
 const display = useDisplay()
+const ui = useUiStore()
 const users = ref([])
 const dialog = ref(false)
 const saving = ref(false)
+const resettingId = ref('')
 const error = ref('')
 const editing = reactive(emptyForm())
 
@@ -160,6 +172,25 @@ async function save() {
     error.value = err.message
   } finally {
     saving.value = false
+  }
+}
+
+async function copyResetLink(user) {
+  resettingId.value = user.id
+  try {
+    const result = await api.createPasswordResetLink(user.id)
+    const url = result.url || result.resetUrl
+    if (!url) throw new Error('Lien introuvable')
+    try {
+      await navigator.clipboard.writeText(url)
+      ui.notify('Lien de réinitialisation copié. Il expire dans 1 heure.')
+    } catch {
+      ui.notify(`Lien (1 h) : ${url}`)
+    }
+  } catch (err) {
+    ui.notify(err.message, { color: 'error' })
+  } finally {
+    resettingId.value = ''
   }
 }
 

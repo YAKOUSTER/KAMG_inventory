@@ -51,6 +51,9 @@
         >
           Entrer
         </v-btn>
+        <v-btn variant="text" block class="text-none mt-2" to="/mot-de-passe-oublie">
+          Mot de passe oublié ?
+        </v-btn>
       </v-form>
 
       <div class="login-card__member">

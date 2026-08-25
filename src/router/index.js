@@ -13,6 +13,18 @@ const routes = [
   { path: '/connexion', name: 'login', component: LoginView, meta: { public: true } },
   { path: '/inscription', name: 'signup', component: () => import('@/views/SignupView.vue'), meta: { public: true } },
   {
+    path: '/mot-de-passe-oublie',
+    name: 'forgot-password',
+    component: () => import('@/views/ForgotPasswordView.vue'),
+    meta: { public: true },
+  },
+  {
+    path: '/nouveau-mot-de-passe',
+    name: 'reset-password',
+    component: () => import('@/views/ResetPasswordView.vue'),
+    meta: { public: true },
+  },
+  {
     path: '/espace-membre',
     name: 'member-space',
     component: () => import('@/views/MemberSpaceView.vue'),

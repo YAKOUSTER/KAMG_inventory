@@ -20,6 +20,8 @@ import {
   normalizeEmail,
   normalizePersonIds,
   normalizeSignup,
+  passwordResetUrl,
+  PASSWORD_RESET_MESSAGE,
   validatePassword,
 } from '../src/domain/memberAccount.js'
 import { groupLoansByYear, normalizePerson, personDisplayName } from '../src/domain/person.js'
@@ -42,7 +44,8 @@ import {
   normalizePushSubscription,
 } from './push.js'
 import { canReceivePushNotifications } from '../src/domain/auth.js'
-import { hashPassword, randomToken, verifyPassword } from './password.js'
+import { hashPassword, hashToken, randomToken, verifyPassword } from './password.js'
+import { passwordResetEmail, sendMail } from './mail.js'
 import {
   appendAudit,
   codesForItems,
@@ -93,6 +96,7 @@ function emptyDb() {
     pushSubscriptions: [],
     users: [],
     sessions: [],
+    passwordResets: [],
     auditLog: [],
   }
 }
@@ -140,6 +144,7 @@ function ensureShape(raw) {
   db.pushSubscriptions = Array.isArray(raw.pushSubscriptions) ? raw.pushSubscriptions : []
   db.users = (Array.isArray(raw.users) ? raw.users : []).map(normalizeAccountRecord)
   db.sessions = Array.isArray(raw.sessions) ? raw.sessions : []
+  db.passwordResets = Array.isArray(raw.passwordResets) ? raw.passwordResets : []
   db.auditLog = Array.isArray(raw.auditLog) ? raw.auditLog : []
   return db
 }
@@ -257,7 +262,7 @@ export function withDb(mutator, options = {}) {
 
 export async function exportDb(options = {}) {
   const db = await readDb(options)
-  return { ...db, sessions: [] }
+  return { ...db, sessions: [], passwordResets: [] }
 }
 
 export async function importDb(payload, options = {}) {
@@ -1558,6 +1563,106 @@ export async function logout(token, options = {}) {
   if (!token) return { ok: true }
   return withDb((db) => {
     db.sessions = (db.sessions || []).filter((session) => session.token !== token)
+    return { ok: true }
+  }, options)
+}
+
+const PASSWORD_RESET_MS = 60 * 60 * 1000
+
+function prunePasswordResets(db, now = Date.now()) {
+  db.passwordResets = (db.passwordResets || []).filter(
+    (entry) => new Date(entry.expiresAt).getTime() > now,
+  )
+}
+
+function issuePasswordReset(db, userId) {
+  prunePasswordResets(db)
+  const token = randomToken()
+  const now = Date.now()
+  db.passwordResets = db.passwordResets.filter((entry) => entry.userId !== userId)
+  db.passwordResets.push({
+    userId,
+    tokenHash: hashToken(token),
+    createdAt: new Date(now).toISOString(),
+    expiresAt: new Date(now + PASSWORD_RESET_MS).toISOString(),
+  })
+  return token
+}
+
+export async function requestPasswordReset(identifiant, options = {}) {
+  const generic = { ok: true, message: PASSWORD_RESET_MESSAGE }
+  const ident = String(identifiant || '').trim().toLowerCase()
+  if (!ident) return generic
+  return withDb(async (db) => {
+    const user = findUserByIdentifiant(db.users, ident)
+    if (!user || isDisabledUser(user)) return generic
+    const token = issuePasswordReset(db, user.id)
+    const resetUrl = passwordResetUrl(options.origin, token)
+    const to = user.email || (String(user.login || '').includes('@') ? user.login : '')
+    if (to) {
+      const mail = passwordResetEmail({ nom: user.nom, resetUrl })
+      await sendMail({ to, subject: mail.subject, text: mail.text })
+    }
+    await notifyManagers(db, {
+      title: 'Mot de passe oublié',
+      body: `${userLabel(user)} a demandé une réinitialisation.`,
+      url: '/utilisateurs',
+    }).catch(() => {})
+    appendAudit(db, { id: user.id, login: user.login, nom: user.nom }, {
+      action: 'user.password-reset-request',
+      entityType: 'user',
+      entityId: user.id,
+      entityLabel: userLabel(user),
+      summary: `Demande de mot de passe oublié : ${userLabel(user)}`,
+    })
+    if (options.includeUrl) return { ...generic, resetUrl }
+    return generic
+  }, options)
+}
+
+export async function createPasswordResetLink(userId, options = {}) {
+  return withDb((db) => {
+    const user = db.users.find((entry) => entry.id === userId)
+    if (!user) throw Object.assign(new Error('Compte introuvable'), { status: 404 })
+    const token = issuePasswordReset(db, user.id)
+    appendAudit(db, options.actor, {
+      action: 'user.password-reset-link',
+      entityType: 'user',
+      entityId: user.id,
+      entityLabel: userLabel(user),
+      summary: `Lien de réinitialisation créé pour ${userLabel(user)}`,
+    })
+    return {
+      ok: true,
+      url: passwordResetUrl(options.origin, token),
+      expiresAt: db.passwordResets.find((entry) => entry.userId === user.id)?.expiresAt,
+    }
+  }, options)
+}
+
+export async function resetPassword(token, password, options = {}) {
+  const raw = String(token || '').trim()
+  if (!raw) throw Object.assign(new Error('Lien invalide ou expiré'), { status: 400 })
+  const nextPassword = runDomain(validatePassword, password)
+  return withDb(async (db) => {
+    prunePasswordResets(db)
+    const tokenHash = hashToken(raw)
+    const reset = (db.passwordResets || []).find((entry) => entry.tokenHash === tokenHash)
+    if (!reset) throw Object.assign(new Error('Lien invalide ou expiré'), { status: 400 })
+    const user = db.users.find((entry) => entry.id === reset.userId)
+    if (!user || isDisabledUser(user)) {
+      throw Object.assign(new Error('Lien invalide ou expiré'), { status: 400 })
+    }
+    user.passwordHash = await hashPassword(nextPassword)
+    db.passwordResets = db.passwordResets.filter((entry) => entry.userId !== user.id)
+    db.sessions = (db.sessions || []).filter((session) => session.userId !== user.id)
+    appendAudit(db, { id: user.id, login: user.login, nom: user.nom }, {
+      action: 'user.password-reset',
+      entityType: 'user',
+      entityId: user.id,
+      entityLabel: userLabel(user),
+      summary: `Mot de passe réinitialisé : ${userLabel(user)}`,
+    })
     return { ok: true }
   }, options)
 }
