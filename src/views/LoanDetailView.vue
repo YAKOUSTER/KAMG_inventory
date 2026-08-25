@@ -21,21 +21,23 @@
     <div class="d-flex flex-wrap ga-2 mb-6">
       <v-btn
         v-if="auth.can('loans.manage')"
+        type="button"
         :variant="loanAction === 'edit' ? 'flat' : 'tonal'"
         :color="loanAction === 'edit' ? 'primary' : undefined"
         prepend-icon="mdi-pencil-outline"
         class="text-none"
-        @click="loanAction = loanAction === 'edit' ? '' : 'edit'"
+        @click="setLoanAction('edit')"
       >
         Modifier l’emprunt
       </v-btn>
       <v-btn
         v-if="auth.can('loans.write') && hasOpen"
+        type="button"
         :variant="loanAction === 'return' ? 'flat' : 'tonal'"
         :color="loanAction === 'return' ? 'primary' : undefined"
         prepend-icon="mdi-backup-restore"
         class="text-none"
-        @click="loanAction = loanAction === 'return' ? '' : 'return'"
+        @click="setLoanAction('return')"
       >
         Gérer le retour
       </v-btn>
@@ -43,42 +45,75 @@
 
     <section v-if="auth.can('loans.manage') && loanAction === 'edit'" class="page-block kamg-fiche">
       <h2 class="kamg-banner">Modifier l’emprunt</h2>
-          <FieldRow label="Titre">
-            <v-text-field v-model="editForm.titre" hide-details />
-          </FieldRow>
-          <FieldRow label="Emprunteur">
-            <v-autocomplete
-              v-model="editForm.personId"
-              :items="peopleItems"
-              item-title="title"
-              item-value="id"
-              hide-details
-              :custom-filter="filterPerson"
-            />
-          </FieldRow>
-          <FieldRow label="Date d’emprunt">
-            <v-text-field v-model="editForm.dateEmprunt" hide-details type="date" />
-          </FieldRow>
-          <FieldRow label="Retour prévu">
-            <v-text-field v-model="editForm.dateRetourPrevue" hide-details type="date" clearable />
-          </FieldRow>
-          <FieldRow label="Retour effectué" hint="Renseigner pour clôturer rétroactivement">
-            <v-text-field v-model="editForm.dateRetour" hide-details type="date" clearable />
-          </FieldRow>
-          <v-alert v-if="manageError" type="error" class="mb-3">{{ manageError }}</v-alert>
-          <div class="d-flex flex-wrap ga-2">
-            <v-btn color="primary" :loading="savingEdit" @click="saveLoanEdits">Enregistrer</v-btn>
-            <v-btn variant="text" @click="loanAction = ''">Fermer</v-btn>
-            <v-btn
-              v-if="canCancelLoan"
-              color="error"
-              variant="tonal"
-              :loading="cancelling"
-              @click="cancelLoan"
-            >
-              Annuler l’emprunt
-            </v-btn>
-          </div>
+      <FieldRow label="Titre">
+        <v-text-field v-model="editForm.titre" hide-details />
+      </FieldRow>
+      <FieldRow label="Emprunteur">
+        <v-autocomplete
+          v-model="editForm.personId"
+          :items="peopleItems"
+          item-title="title"
+          item-value="id"
+          hide-details
+          :custom-filter="filterPerson"
+        />
+      </FieldRow>
+      <FieldRow label="Date d’emprunt">
+        <v-text-field v-model="editForm.dateEmprunt" hide-details type="date" />
+      </FieldRow>
+      <FieldRow label="Retour prévu">
+        <v-text-field v-model="editForm.dateRetourPrevue" hide-details type="date" clearable />
+      </FieldRow>
+      <FieldRow label="Retour effectué" hint="Renseigner pour clôturer rétroactivement">
+        <v-text-field v-model="editForm.dateRetour" hide-details type="date" clearable />
+      </FieldRow>
+      <v-alert v-if="manageError" type="error" class="mb-3">{{ manageError }}</v-alert>
+      <div class="d-flex flex-wrap ga-2">
+        <v-btn color="primary" :loading="savingEdit" @click="saveLoanEdits">Enregistrer</v-btn>
+        <v-btn variant="text" @click="setLoanAction('')">Fermer</v-btn>
+        <v-btn
+          v-if="canCancelLoan"
+          color="error"
+          variant="tonal"
+          :loading="cancelling"
+          @click="cancelLoan"
+        >
+          Annuler l’emprunt
+        </v-btn>
+      </div>
+    </section>
+
+    <section v-if="auth.can('loans.write') && hasOpen && loanAction === 'return'" class="page-block kamg-fiche">
+      <h2 class="kamg-banner">Gérer le retour</h2>
+      <FieldRow label="Date de retour">
+        <v-text-field v-model="dateRetour" hide-details type="date" />
+      </FieldRow>
+
+      <div v-if="openLines.length" class="mt-4">
+        <div class="text-body-2 text-medium-emphasis mb-3">
+          Cochez les pièces ci-dessous, renseignez leur état, puis validez.
+        </div>
+        <ReturnItemForm
+          v-for="line in openLines"
+          :key="line.itemId"
+          :ref="(el) => setReturnFormRef(line.itemId, el)"
+          :line="enrichedLine(line)"
+          :etats="referentiels.etats"
+          :people="inventory.people"
+          :default-person-id="loan.personId"
+        />
+      </div>
+
+      <v-alert v-if="error" type="error" class="mb-3 mt-4">{{ error }}</v-alert>
+      <div class="d-flex flex-wrap ga-2 mt-4">
+        <v-btn color="warning" :disabled="!selectedIds.length" :loading="saving" @click="returnSelected">
+          Retourner la sélection
+        </v-btn>
+        <v-btn color="primary" :loading="saving" @click="returnAll">Tout retourner</v-btn>
+      </div>
+      <p class="text-caption text-medium-emphasis mt-3 mb-0">
+        Chaque pièce retournée est datée. Les actions à faire apparaissent sur l’accueil.
+      </p>
     </section>
 
     <section class="page-block">
@@ -111,39 +146,6 @@
           </div>
         </div>
       </div>
-    </section>
-
-    <section v-if="auth.can('loans.write') && hasOpen && loanAction === 'return'" class="page-block kamg-fiche">
-      <h2 class="kamg-banner">Gérer le retour</h2>
-      <FieldRow label="Date de retour">
-        <v-text-field v-model="dateRetour" hide-details type="date" />
-      </FieldRow>
-
-      <div v-if="openLines.length" class="mt-4">
-        <div class="text-body-2 text-medium-emphasis mb-3">
-          Renseignez l’état de chaque pièce (la fiche sera mise à jour au retour).
-        </div>
-        <ReturnItemForm
-          v-for="line in openLines"
-          :key="line.itemId"
-          :ref="(el) => setReturnFormRef(line.itemId, el)"
-          :line="enrichedLine(line)"
-          :etats="referentiels.etats"
-          :people="inventory.people"
-          :default-person-id="loan.personId"
-        />
-      </div>
-
-      <v-alert v-if="error" type="error" class="mb-3 mt-4">{{ error }}</v-alert>
-      <div class="d-flex flex-wrap ga-2 mt-4">
-        <v-btn color="warning" :disabled="!selectedIds.length" :loading="saving" @click="returnSelected">
-          Retourner la sélection
-        </v-btn>
-        <v-btn color="primary" :loading="saving" @click="returnAll">Tout retourner</v-btn>
-      </div>
-      <p class="text-caption text-medium-emphasis mt-3 mb-0">
-        Chaque pièce retournée est datée. Les actions à faire apparaissent sur l’accueil.
-      </p>
     </section>
   </div>
   <v-progress-linear v-else-if="loading" color="primary" indeterminate />
@@ -188,6 +190,10 @@ const editForm = ref({
   dateRetourPrevue: '',
   dateRetour: '',
 })
+
+function setLoanAction(mode) {
+  loanAction.value = loanAction.value === mode ? '' : mode
+}
 
 const loan = computed(() => inventory.loanById(props.id) || remoteLoan.value)
 
