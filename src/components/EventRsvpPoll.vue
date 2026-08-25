@@ -14,7 +14,7 @@
     />
 
     <p v-if="publicMode && !personId && hideIdentity" class="rsvp-poll__hint">
-      Choisissez votre nom en haut de page pour répondre.
+      Votre compte n’est lié à aucune fiche pour le moment.
     </p>
 
     <div class="rsvp-poll__actions">

@@ -6,13 +6,14 @@
       <v-btn color="primary" prepend-icon="mdi-plus" @click="openCreate">Nouveau compte</v-btn>
     </div>
     <p class="text-body-2 text-medium-emphasis mb-4">
-      Trois profils de base (Administrateur, Gestion, Lecteur), puis vous pouvez cocher les droits un par un pour chaque personne.
+      Trois profils de gestion (Administrateur, Gestion, Lecteur) et les comptes membres. Les inscriptions en attente se rangent dans « À ranger ».
     </p>
 
     <div v-for="user in users" :key="user.id" class="stack-item">
       <div class="d-flex flex-wrap align-center ga-2">
         <span class="text-subtitle-1 font-weight-bold">{{ user.nom }}</span>
         <v-chip size="small" variant="tonal">{{ roleLabel(user.role) }}</v-chip>
+        <v-chip v-if="user.status === 'pending'" size="small" color="warning" variant="tonal">À ranger</v-chip>
         <v-chip v-if="user.custom" size="small" color="warning" variant="tonal">Accès personnalisés</v-chip>
         <v-spacer />
         <span class="text-body-2 text-medium-emphasis">{{ user.login }}</span>

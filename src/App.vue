@@ -180,7 +180,7 @@ const snackOpen = ref(false)
 const moreOpen = ref(false)
 
 const mdAndUp = computed(() => display.mdAndUp.value)
-const isLogin = computed(() => route.name === 'login')
+const isLogin = computed(() => route.name === 'login' || route.name === 'signup')
 const isMemberSpace = computed(() => route.meta.publicLayout === 'member')
 const isStandalonePublic = computed(() => isLogin.value || isMemberSpace.value)
 
@@ -190,6 +190,7 @@ const links = [
   { to: '/agenda', title: 'Agenda', icon: 'mdi-calendar-month-outline', activeIcon: 'mdi-calendar-month', permission: 'agenda.read', tab: 'agenda', match: ['/agenda'] },
   { to: '/emprunts', title: 'Emprunts', icon: 'mdi-swap-horizontal', permission: 'loans.read', tab: 'loans', match: ['/emprunts'] },
   { to: '/personnes', title: 'Personnes', icon: 'mdi-account-group-outline', permission: 'people.read' },
+  { to: '/a-ranger', title: 'À ranger', icon: 'mdi-account-clock-outline', permission: 'people.write' },
   { to: '/contenus', title: 'Contenus', icon: 'mdi-book-open-page-variant-outline', permission: 'content.read' },
 ]
 

@@ -22,6 +22,7 @@ export const ROLES = [
   { id: 'admin', label: 'Administrateur' },
   { id: 'gestion', label: 'Gestion' },
   { id: 'lecteur', label: 'Lecteur' },
+  { id: 'membre', label: 'Membre' },
 ]
 
 export const ROLE_PRESETS = {
@@ -39,6 +40,7 @@ export const ROLE_PRESETS = {
     'content.write',
   ],
   lecteur: ['items.read', 'loans.read', 'people.read', 'agenda.read', 'content.read'],
+  membre: [],
 }
 
 export function effectivePermissions(user) {
@@ -61,10 +63,14 @@ export function publicUser(user) {
   return {
     id: user.id,
     login: user.login,
+    email: user.email || '',
     nom: user.nom || user.login,
     role: user.role,
     custom: Boolean(user.custom),
     permissions: effectivePermissions(user),
+    status: user.status || 'active',
+    personIds: Array.isArray(user.personIds) ? [...user.personIds] : [],
+    signup: user.signup && typeof user.signup === 'object' ? { ...user.signup } : null,
   }
 }
 

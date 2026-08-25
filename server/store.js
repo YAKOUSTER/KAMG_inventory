@@ -9,6 +9,19 @@ import { isLoanable, normalizeItem } from '../src/domain/item.js'
 import { appendStockMovement, countLowStock } from '../src/domain/stock.js'
 import { applyReturnUpdate, countOpenTasks } from '../src/domain/itemTasks.js'
 import { ROLE_PRESETS, can, publicUser } from '../src/domain/auth.js'
+import {
+  canRsvpAsPerson,
+  displayNameFromSignup,
+  findUserByIdentifiant,
+  isDisabledUser,
+  isPendingPlacement,
+  isValidEmail,
+  normalizeAccountRecord,
+  normalizeEmail,
+  normalizePersonIds,
+  normalizeSignup,
+  validatePassword,
+} from '../src/domain/memberAccount.js'
 import { groupLoansByYear, normalizePerson, personDisplayName } from '../src/domain/person.js'
 import { todayLocal, formatDate } from '../src/domain/dates.js'
 import { normalizeEvent, filterPublishedEvents, upcomingEvents, pastEvents, sortEvents, applyEventOverlay, eventAcceptsInscriptions, publicEventSummary, eventLocalDay } from '../src/domain/events.js'
@@ -125,7 +138,7 @@ function ensureShape(raw) {
     agenda: normalizeAgendaSettings({ ...DEFAULT_AGENDA_SETTINGS, ...(raw.settings?.agenda || {}) }),
   }
   db.pushSubscriptions = Array.isArray(raw.pushSubscriptions) ? raw.pushSubscriptions : []
-  db.users = Array.isArray(raw.users) ? raw.users : []
+  db.users = (Array.isArray(raw.users) ? raw.users : []).map(normalizeAccountRecord)
   db.sessions = Array.isArray(raw.sessions) ? raw.sessions : []
   db.auditLog = Array.isArray(raw.auditLog) ? raw.auditLog : []
   return db
@@ -886,6 +899,7 @@ function statsFrom(db) {
     openTasks: countOpenTasks(db.items),
     people: db.people.length,
     activeLoans: db.loans.filter((l) => l.statut !== 'retourne').length,
+    pendingMembers: (db.users || []).filter((user) => user.status === 'pending').length,
   }
 }
 
@@ -962,6 +976,21 @@ export async function getPublicMemberSpace(options = {}) {
       inscriptionIds.has(entry.eventId),
     ),
     loans,
+  }
+}
+
+export async function getMemberSpace(user, options = {}) {
+  if (!user) throw Object.assign(new Error('Connexion requise'), { status: 401 })
+  if (isDisabledUser(user)) throw Object.assign(new Error('Compte désactivé'), { status: 403 })
+  if (isPendingPlacement(user)) {
+    return { pending: true, user: publicUser(user) }
+  }
+  const space = await getPublicMemberSpace(options)
+  const allowed = new Set(normalizePersonIds(user.personIds))
+  return {
+    ...space,
+    pending: false,
+    profiles: (space.people || []).filter((person) => allowed.has(person.id)),
   }
 }
 
@@ -1197,6 +1226,9 @@ export async function setEventPresence(eventId, payload, options = {}) {
     }
     const person = (db.people || []).find((entry) => entry.id === personId)
     if (!person) throw Object.assign(new Error('Personne introuvable'), { status: 400 })
+    if (options.linkedOnly && !canRsvpAsPerson(options.actor, personId)) {
+      throw Object.assign(new Error('Vous ne pouvez répondre que pour vos fiches'), { status: 403 })
+    }
 
     db.presences = db.presences || []
     const index = db.presences.findIndex(
@@ -1367,8 +1399,11 @@ async function defaultUsers() {
     specs.map(async (spec) => ({
       id: randomUUID(),
       login: spec.login,
+      email: '',
       nom: spec.nom,
       role: spec.role,
+      status: 'active',
+      personIds: [],
       custom: false,
       permissions: [...ROLE_PRESETS[spec.role]],
       passwordHash: await hashPassword(spec.password),
@@ -1377,26 +1412,145 @@ async function defaultUsers() {
   )
 }
 
+function issueSession(db, user) {
+  const token = randomToken()
+  const now = Date.now()
+  db.sessions = (db.sessions || []).filter((session) => new Date(session.expiresAt).getTime() > now)
+  db.sessions.push({
+    token,
+    userId: user.id,
+    createdAt: new Date(now).toISOString(),
+    expiresAt: new Date(now + SESSION_MS).toISOString(),
+  })
+  const safe = publicUser(user)
+  return { token, user: safe, ...publicSnapshot(db, safe) }
+}
+
 export async function login(loginName, password, options = {}) {
   const identifiant = String(loginName || '').trim().toLowerCase()
   if (!identifiant || !password) {
     throw Object.assign(new Error('Identifiant et mot de passe requis'), { status: 400 })
   }
   return withDb(async (db) => {
-    const user = db.users.find((u) => u.login.toLowerCase() === identifiant)
+    const user = findUserByIdentifiant(db.users, identifiant)
     if (!user || !(await verifyPassword(password, user.passwordHash))) {
       throw Object.assign(new Error('Identifiant ou mot de passe incorrect'), { status: 401 })
     }
-    const token = randomToken()
-    const now = Date.now()
-    db.sessions = (db.sessions || []).filter((session) => new Date(session.expiresAt).getTime() > now)
-    db.sessions.push({
-      token,
-      userId: user.id,
-      createdAt: new Date(now).toISOString(),
-      expiresAt: new Date(now + SESSION_MS).toISOString(),
+    if (isDisabledUser(user)) {
+      throw Object.assign(new Error('Ce compte a été refusé ou désactivé'), { status: 403 })
+    }
+    return issueSession(db, user)
+  }, options)
+}
+
+export async function registerMember(payload, options = {}) {
+  const email = normalizeEmail(payload?.email)
+  if (!isValidEmail(email)) throw Object.assign(new Error('Adresse e-mail invalide'), { status: 400 })
+  const password = (() => {
+    try {
+      return validatePassword(payload?.password)
+    } catch (error) {
+      throw Object.assign(error, { status: 400 })
+    }
+  })()
+  const signup = runDomain(normalizeSignup, payload || {})
+  return withDb(async (db) => {
+    if (findUserByIdentifiant(db.users, email)) {
+      throw Object.assign(new Error('Un compte existe déjà avec cet e-mail'), { status: 409 })
+    }
+    const now = new Date().toISOString()
+    const user = {
+      id: randomUUID(),
+      login: email,
+      email,
+      nom: displayNameFromSignup(signup, email),
+      role: 'membre',
+      status: 'pending',
+      personIds: [],
+      custom: false,
+      permissions: [],
+      signup,
+      passwordHash: await hashPassword(password),
+      createdAt: now,
+    }
+    db.users.push(user)
+    appendAudit(db, publicUser(user), {
+      action: 'user.register',
+      entityType: 'user',
+      entityId: user.id,
+      entityLabel: userLabel(user),
+      summary: `Inscription en attente : ${userLabel(user)}`,
     })
-    return { token, user: publicUser(user), ...publicSnapshot(db, publicUser(user)) }
+    return { ...issueSession(db, user), pending: true }
+  }, options)
+}
+
+export async function listPendingMembers(options = {}) {
+  const db = await readDb(options)
+  return db.users.filter((user) => user.status === 'pending').map(publicUser)
+}
+
+export async function placeMember(id, payload = {}, options = {}) {
+  return withDb(async (db) => {
+    const user = db.users.find((entry) => entry.id === id)
+    if (!user) throw Object.assign(new Error('Compte introuvable'), { status: 404 })
+
+    if (payload.refuse) {
+      user.status = 'disabled'
+      user.personIds = []
+      db.sessions = (db.sessions || []).filter((session) => session.userId !== id)
+      appendAudit(db, options.actor, {
+        action: 'user.refuse',
+        entityType: 'user',
+        entityId: user.id,
+        entityLabel: userLabel(user),
+        summary: `Inscription refusée : ${userLabel(user)}`,
+      })
+      return publicUser(user)
+    }
+
+    const personIds = normalizePersonIds(payload.personIds)
+    if (payload.createPerson) {
+      const source = user.signup || {}
+      const person = runDomain(normalizePerson, {
+        prenom: source.prenom || user.nom,
+        nom: source.nom || '',
+        email: user.email,
+        telephone: source.telephone || '',
+        roles: Array.isArray(payload.roles) ? payload.roles : [],
+      }, { id: randomUUID() })
+      db.people.push(person)
+      personIds.push(person.id)
+      appendAudit(db, options.actor, {
+        action: 'person.create',
+        entityType: 'person',
+        entityId: person.id,
+        entityLabel: personLabel(person),
+        summary: `Fiche créée depuis l’inscription ${userLabel(user)}`,
+      })
+    }
+
+    const uniqueIds = normalizePersonIds(personIds)
+    if (!uniqueIds.length) {
+      throw Object.assign(new Error('Liez au moins une fiche personne (danseur ou enfant)'), { status: 400 })
+    }
+    const unknown = uniqueIds.filter((personId) => !(db.people || []).some((person) => person.id === personId))
+    if (unknown.length) {
+      throw Object.assign(new Error('Fiche personne introuvable'), { status: 400 })
+    }
+
+    user.status = 'active'
+    user.personIds = uniqueIds
+    user.role = user.role === 'admin' || user.role === 'gestion' ? user.role : 'membre'
+    if (!user.custom) user.permissions = [...(ROLE_PRESETS[user.role] || [])]
+    appendAudit(db, options.actor, {
+      action: 'user.place',
+      entityType: 'user',
+      entityId: user.id,
+      entityLabel: userLabel(user),
+      summary: `Compte rangé : ${userLabel(user)} (${uniqueIds.length} fiche(s))`,
+    })
+    return publicUser(user)
   }, options)
 }
 
@@ -1430,15 +1584,22 @@ export async function createUser(payload, options = {}) {
     if (db.users.some((u) => u.login.toLowerCase() === loginName)) {
       throw Object.assign(new Error('Cet identifiant existe déjà'), { status: 409 })
     }
-    const role = ROLE_PRESETS[payload.role] ? payload.role : 'lecteur'
+    const role = ROLE_PRESETS[payload.role] || payload.role === 'membre' ? payload.role : 'lecteur'
     const custom = Boolean(payload.custom)
+    const email = normalizeEmail(payload.email || (loginName.includes('@') ? loginName : ''))
+    if (email && db.users.some((entry) => normalizeEmail(entry.email) === email)) {
+      throw Object.assign(new Error('Cet e-mail existe déjà'), { status: 409 })
+    }
     const user = {
       id: randomUUID(),
       login: loginName,
+      email,
       nom: (payload.nom || loginName).trim(),
       role,
+      status: payload.status === 'pending' ? 'pending' : 'active',
+      personIds: normalizePersonIds(payload.personIds),
       custom,
-      permissions: custom && Array.isArray(payload.permissions) ? payload.permissions : [...ROLE_PRESETS[role]],
+      permissions: custom && Array.isArray(payload.permissions) ? payload.permissions : [...(ROLE_PRESETS[role] || [])],
       passwordHash: await hashPassword(payload.password),
       createdAt: new Date().toISOString(),
     }
@@ -1465,10 +1626,21 @@ export async function updateUser(id, payload, options = {}) {
       user.login = loginName
     }
     if (payload.nom != null) user.nom = String(payload.nom).trim() || user.nom
-    if (payload.role && ROLE_PRESETS[payload.role]) user.role = payload.role
+    if (payload.email != null) {
+      const email = normalizeEmail(payload.email)
+      if (email && db.users.some((entry) => entry.id !== id && normalizeEmail(entry.email) === email)) {
+        throw Object.assign(new Error('Cet e-mail existe déjà'), { status: 409 })
+      }
+      user.email = email
+    }
+    if (payload.role && (ROLE_PRESETS[payload.role] || payload.role === 'membre')) user.role = payload.role
+    if (payload.status === 'pending' || payload.status === 'active' || payload.status === 'disabled') {
+      user.status = payload.status
+    }
+    if (Array.isArray(payload.personIds)) user.personIds = normalizePersonIds(payload.personIds)
     if (payload.custom != null) user.custom = Boolean(payload.custom)
     if (Array.isArray(payload.permissions)) user.permissions = payload.permissions
-    if (!user.custom) user.permissions = [...ROLE_PRESETS[user.role]]
+    if (!user.custom) user.permissions = [...(ROLE_PRESETS[user.role] || [])]
     if (payload.password) user.passwordHash = await hashPassword(payload.password)
     appendAudit(db, options.actor, {
       action: 'user.update',

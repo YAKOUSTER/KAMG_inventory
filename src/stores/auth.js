@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { api, getToken, setToken, setUnauthorizedHandler } from '@/services/api'
 import { can as canUser } from '@/domain/auth'
+import { homePath } from '@/domain/memberAccount'
 import { useInventoryStore } from '@/stores/inventory'
 
 export const useAuthStore = defineStore('auth', {
@@ -11,6 +12,8 @@ export const useAuthStore = defineStore('auth', {
   getters: {
     isLoggedIn: (state) => Boolean(state.user),
     can: (state) => (permission) => canUser(state.user, permission),
+    homePath: (state) => homePath(state.user),
+    isPending: (state) => state.user?.status === 'pending',
   },
   actions: {
     bindUnauthorized() {
@@ -45,6 +48,12 @@ export const useAuthStore = defineStore('auth', {
     },
     async login(login, password) {
       const result = await api.login(login, password)
+      setToken(result.token)
+      this.applySession(result)
+      return this.user
+    },
+    async register(payload) {
+      const result = await api.register(payload)
       setToken(result.token)
       this.applySession(result)
       return this.user

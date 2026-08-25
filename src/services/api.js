@@ -37,22 +37,9 @@ async function request(path, options = {}) {
   return data
 }
 
-async function publicRequest(path, options = {}) {
-  const headers = { ...(options.body ? { 'Content-Type': 'application/json' } : {}), ...(options.headers || {}) }
-  const response = await fetch(path, {
-    method: options.method || 'GET',
-    headers,
-    body: options.body && typeof options.body !== 'string' ? JSON.stringify(options.body) : options.body,
-  })
-  const data = await response.json().catch(() => ({}))
-  if (!response.ok) {
-    throw new Error(data.error || `Erreur ${response.status}`)
-  }
-  return data
-}
-
 export const api = {
   login: (login, password) => request('/api/auth/login', { method: 'POST', body: { login, password } }),
+  register: (body) => request('/api/auth/register', { method: 'POST', body }),
   logout: () => request('/api/auth/logout', { method: 'POST', body: {} }),
   me: () => request('/api/auth/me'),
   bootstrap: () => request('/api/bootstrap'),
@@ -94,7 +81,9 @@ export const api = {
     return request(`/api/audit${qs ? `?${qs}` : ''}`)
   },
   clearAudit: () => request('/api/audit', { method: 'DELETE' }),
-  publicMemberSpace: () => publicRequest('/api/public/espace-membre'),
+  publicMemberSpace: () => request('/api/public/espace-membre'),
+  pendingMembers: () => request('/api/members/pending'),
+  placeMember: (id, body) => request(`/api/members/${encodeURIComponent(id)}/place`, { method: 'POST', body }),
   events: () => request('/api/events'),
   event: (id) => request(`/api/events/${encodeURIComponent(id)}`),
   createEvent: (body) => request('/api/events', { method: 'POST', body }),
@@ -105,8 +94,8 @@ export const api = {
   setEventPresence: (id, body) =>
     request(`/api/events/${encodeURIComponent(id)}/presences`, { method: 'PUT', body }),
   setPublicEventPresence: (id, body) =>
-    publicRequest(`/api/public/events/${encodeURIComponent(id)}/presence`, { method: 'POST', body }),
-  publicPage: (id) => publicRequest(`/api/public/pages/${encodeURIComponent(id)}`),
+    request(`/api/public/events/${encodeURIComponent(id)}/presence`, { method: 'POST', body }),
+  publicPage: (id) => request(`/api/public/pages/${encodeURIComponent(id)}`),
   agendaSettings: () => request('/api/settings/agenda'),
   updateAgendaSettings: (body) => request('/api/settings/agenda', { method: 'PUT', body }),
   syncAgenda: () => request('/api/agenda/sync', { method: 'POST', body: {} }),

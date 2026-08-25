@@ -29,13 +29,16 @@ import {
   createUser,
   updateUser,
   deleteUser,
+  registerMember,
+  listPendingMembers,
+  placeMember,
+  getMemberSpace,
   adjustStock,
   getBootstrap,
   getReferentiels,
   updateReferentiels,
   listAudit,
   clearAudit,
-  getPublicMemberSpace,
   listEvents,
   getEvent,
   createEvent,
@@ -60,6 +63,7 @@ import {
   dataPaths,
 } from './store.js'
 import { can, canReceivePushNotifications } from '../src/domain/auth.js'
+import { isDisabledUser, isPendingPlacement } from '../src/domain/memberAccount.js'
 import { securityHeaders } from './security.js'
 import { createRateLimiter, loginRateLimitKey, resetRateLimits } from './rateLimit.js'
 
@@ -123,6 +127,26 @@ function authUpload(req, res, next) {
   })
 }
 
+function authMember(req, res, next) {
+  return auth()(req, res, () => {
+    if (isDisabledUser(req.user)) {
+      res.status(403).json({ error: 'Compte désactivé' })
+      return
+    }
+    next()
+  })
+}
+
+function authPlacedMember(req, res, next) {
+  return authMember(req, res, () => {
+    if (isPendingPlacement(req.user)) {
+      res.status(403).json({ error: 'Votre inscription est en attente de rangement' })
+      return
+    }
+    next()
+  })
+}
+
 export function createApiApp() {
   const app = express()
   app.disable('x-powered-by')
@@ -135,30 +159,23 @@ export function createApiApp() {
   app.get('/api/health', (_req, res) => res.json({ ok: true, storage: 'json' }))
   app.get(
     '/api/public/espace-membre',
-    createRateLimiter({
-      windowMs: 15 * 60 * 1000,
-      max: 120,
-      keyFn: (req) => req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || 'public-member',
-    }),
-    handle(() => getPublicMemberSpace()),
+    authMember,
+    handle((req) => getMemberSpace(req.user)),
   )
   app.get(
     '/api/public/pages/:id',
-    createRateLimiter({
-      windowMs: 15 * 60 * 1000,
-      max: 120,
-      keyFn: (req) => req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || 'public-page',
-    }),
+    authPlacedMember,
     handle((req) => getPublicContentPage(req.params.id)),
   )
   app.post(
     '/api/public/events/:id/presence',
+    authPlacedMember,
     createRateLimiter({
       windowMs: 15 * 60 * 1000,
       max: 240,
-      keyFn: (req) => req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || 'public-presence',
+      keyFn: (req) => req.user?.id || req.ip || 'member-presence',
     }),
-    handle((req) => setEventPresence(req.params.id, req.body || {})),
+    handle((req) => setEventPresence(req.params.id, req.body || {}, { actor: req.user, linkedOnly: true })),
   )
   app.get(
     '/api/public/calendar.ics',
@@ -184,6 +201,15 @@ export function createApiApp() {
     '/api/auth/login',
     createRateLimiter({ windowMs: 15 * 60 * 1000, max: 20, keyFn: loginRateLimitKey }),
     handle((req) => login(req.body?.login, req.body?.password)),
+  )
+  app.post(
+    '/api/auth/register',
+    createRateLimiter({
+      windowMs: 15 * 60 * 1000,
+      max: 10,
+      keyFn: (req) => req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || 'register',
+    }),
+    handle((req) => registerMember(req.body || {})),
   )
   app.post(
     '/api/auth/logout',
@@ -412,6 +438,13 @@ export function createApiApp() {
   app.delete('/api/audit', auth('audit.manage'), handle(() => clearAudit({ actor: req.user })))
 
   app.post('/api/uploads', authUpload, handle((req) => saveUpload(req.body)))
+
+  app.get('/api/members/pending', auth('people.read'), handle(() => listPendingMembers()))
+  app.post(
+    '/api/members/:id/place',
+    auth('people.write'),
+    handle((req) => placeMember(req.params.id, req.body || {}, { actor: req.user })),
+  )
 
   app.get('/api/users', auth('users.manage'), handle(() => listUsers()))
   app.post(

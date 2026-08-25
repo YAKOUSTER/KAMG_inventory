@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { canUseMemberSpace, homePath } from '@/domain/memberAccount'
 import DashboardView from '@/views/DashboardView.vue'
 import InventoryView from '@/views/InventoryView.vue'
 import LoansView from '@/views/LoansView.vue'
@@ -10,11 +11,12 @@ import LoginView from '@/views/LoginView.vue'
 
 const routes = [
   { path: '/connexion', name: 'login', component: LoginView, meta: { public: true } },
+  { path: '/inscription', name: 'signup', component: () => import('@/views/SignupView.vue'), meta: { public: true } },
   {
     path: '/espace-membre',
     name: 'member-space',
     component: () => import('@/views/MemberSpaceView.vue'),
-    meta: { public: true, publicLayout: 'member' },
+    meta: { member: true, publicLayout: 'member' },
   },
   { path: '/', name: 'dashboard', component: DashboardView, meta: { permission: 'items.read' } },
   { path: '/inventaire', name: 'inventory', component: InventoryView, meta: { permission: 'items.read' } },
@@ -25,6 +27,12 @@ const routes = [
   { path: '/emprunts/:id', name: 'loan-detail', component: LoanDetailView, props: true, meta: { permission: 'loans.read' } },
   { path: '/panier', name: 'cart', component: CartView, meta: { permission: 'loans.write' } },
   { path: '/personnes', name: 'people', component: PeopleView, meta: { permission: 'people.read' } },
+  {
+    path: '/a-ranger',
+    name: 'member-placement',
+    component: () => import('@/views/MemberPlacementView.vue'),
+    meta: { permission: 'people.write' },
+  },
   { path: '/personnes/nouvelle', name: 'person-create', component: () => import('@/views/PersonEditView.vue'), meta: { permission: 'people.write' } },
   { path: '/personnes/:id', name: 'person-detail', component: () => import('@/views/PersonDetailView.vue'), props: true, meta: { permission: 'people.read' } },
   { path: '/personnes/:id/modifier', name: 'person-edit', component: () => import('@/views/PersonEditView.vue'), props: true, meta: { permission: 'people.write' } },
@@ -50,18 +58,21 @@ const router = createRouter({
 router.beforeEach(async (to) => {
   const auth = useAuthStore()
   if (to.meta.public) {
-    if (to.name === 'login') {
+    if (to.name === 'login' || to.name === 'signup') {
       await auth.hydrate()
-      if (auth.user) return { path: to.query.redirect || '/' }
+      if (auth.user && canUseMemberSpace(auth.user)) {
+        return { path: to.query.redirect || homePath(auth.user) }
+      }
     }
     return true
   }
   await auth.hydrate()
-  if (!auth.user) {
+  if (!auth.user || !canUseMemberSpace(auth.user)) {
     return { name: 'login', query: { redirect: to.fullPath } }
   }
+  if (to.meta.member) return true
   if (to.meta.permission && !auth.can(to.meta.permission)) {
-    return { name: 'dashboard' }
+    return { path: homePath(auth.user) }
   }
   return true
 })

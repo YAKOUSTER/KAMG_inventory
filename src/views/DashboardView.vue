@@ -105,6 +105,13 @@ const cards = computed(() => {
       to: { path: '/inventaire', query: { stockBas: '1' } },
     })
   }
+  if (stats.pendingMembers) {
+    list.unshift({
+      label: stats.pendingMembers === 1 ? 'Inscription à ranger' : 'Inscriptions à ranger',
+      value: stats.pendingMembers,
+      to: '/a-ranger',
+    })
+  }
   if (stats.openTasks) {
     list.push({
       label: 'Actions à faire',

@@ -8,25 +8,37 @@
           <h1 class="member-space__title">Espace membres</h1>
         </div>
       </router-link>
-      <v-btn
-        variant="text"
-        size="small"
-        class="text-none member-space__login"
-        icon
-        to="/connexion"
-        aria-label="Accès gestion"
-      >
-        <v-icon>mdi-login-variant</v-icon>
-      </v-btn>
-      <v-btn variant="text" size="small" class="text-none d-none d-md-inline-flex" to="/connexion">
-        Accès gestion
-      </v-btn>
+      <div class="member-space__actions">
+        <v-btn
+          v-if="auth.can('items.read')"
+          variant="text"
+          size="small"
+          class="text-none d-none d-md-inline-flex"
+          to="/"
+        >
+          Gestion
+        </v-btn>
+        <v-btn variant="text" size="small" class="text-none" @click="logout">
+          Déconnexion
+        </v-btn>
+      </div>
     </header>
 
     <v-progress-linear v-if="loading" indeterminate color="primary" class="mb-3" />
     <v-alert v-if="error" type="error" variant="tonal" class="mb-3">{{ error }}</v-alert>
 
-    <template v-if="data">
+    <section v-if="pending" class="member-waiting">
+      <h2>Inscription reçue</h2>
+      <p>
+        Votre compte est en attente de rangement par le bureau : groupe de danse, fiche, ou lien avec les
+        enfants. Vous pourrez répondre aux sondages ensuite.
+      </p>
+      <p v-if="auth.user?.signup?.childrenNames" class="text-body-2">
+        Enfant(s) indiqué(s) : {{ auth.user.signup.childrenNames }}
+      </p>
+    </section>
+
+    <template v-else-if="data">
       <v-tabs v-if="mdAndUp" v-model="tab" color="primary" class="member-space__tabs" density="compact">
         <v-tab value="agenda" class="text-none">Agenda</v-tab>
         <v-tab value="infos" class="text-none">Infos & tutos</v-tab>
@@ -39,16 +51,18 @@
             <v-btn value="events" class="text-none" size="small">À venir</v-btn>
             <v-btn value="calendar" class="text-none" size="small">Calendrier</v-btn>
           </v-btn-toggle>
-          <v-autocomplete
+          <v-select
+            v-if="personItems.length > 1"
             v-model="selectedPersonId"
             :items="personItems"
-            label="Votre nom"
+            label="Répondre pour"
             hide-details
             density="compact"
-            auto-select-first
-            clearable
             class="member-space__who"
           />
+          <p v-else-if="personItems.length === 1" class="member-space__who-label">
+            {{ personItems[0].title }}
+          </p>
         </div>
 
         <details class="member-space__subscribe">
@@ -102,6 +116,7 @@
               :presences="data.presences || []"
               :person-id="selectedPersonId"
               public-mode
+              :readonly="!selectedPersonId"
               @select="openMemberEvent"
               @updated="onPresenceUpdated"
             />
@@ -154,7 +169,7 @@
     </template>
 
     <BottomTabBar
-      v-if="!mdAndUp"
+      v-if="!mdAndUp && !pending"
       :items="memberTabs"
       :active-id="tab"
       label="Espace membres"
@@ -196,6 +211,7 @@
             public-mode
             hide-identity
             show-attendees
+            :readonly="!selectedPersonId"
             @updated="onPresenceUpdated"
           />
           <SortieFiche
@@ -211,7 +227,7 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="text" class="text-none" @click="eventDialog = false">Fermer</v-btn>
+          <v-btn variant="text" class="text-none" @click="closeMemberEvent">Fermer</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -231,7 +247,6 @@ import { loanStatusColor, loanStatusLabel, openLoanLines } from '@/domain/loans'
 import { EVENT_GROUPS, eventGroupLabel, filterEventsByGroup } from '@/domain/eventGroups'
 import {
   applyPresenceUpdate,
-  filterPeopleForPresence,
   readStoredPresencePersonId,
   storePresencePersonId,
   summarizePresences,
@@ -250,13 +265,16 @@ import EventPollCard from '@/components/EventPollCard.vue'
 import EventRsvpPoll from '@/components/EventRsvpPoll.vue'
 import SortieFiche from '@/components/SortieFiche.vue'
 import BottomTabBar from '@/components/BottomTabBar.vue'
+import { useAuthStore } from '@/stores/auth'
 
 const route = useRoute()
 const router = useRouter()
+const auth = useAuthStore()
 const display = useDisplay()
 const mdAndUp = computed(() => display.mdAndUp.value)
 const loading = ref(true)
 const error = ref('')
+const pending = ref(false)
 const data = ref(null)
 const tab = ref(route.query.onglet || 'agenda')
 const agendaMode = ref('events')
@@ -286,7 +304,7 @@ const upcomingCards = computed(() =>
   filterEventsByGroup(data.value?.events?.upcoming || [], groupFilter.value),
 )
 const personItems = computed(() =>
-  filterPeopleForPresence(data.value?.people || [], 'tous').map((person) => ({
+  (data.value?.profiles || []).map((person) => ({
     title: personDisplayName(person),
     value: person.id,
   })),
@@ -332,14 +350,26 @@ watch(selectedPersonId, (value) => storePresencePersonId(value))
 
 onMounted(async () => {
   try {
-    data.value = await api.publicMemberSpace()
-    selectedPersonId.value = readStoredPresencePersonId(data.value.people || [])
+    const payload = await api.publicMemberSpace()
+    pending.value = Boolean(payload.pending)
+    if (payload.pending) {
+      data.value = null
+      return
+    }
+    data.value = payload
+    const stored = readStoredPresencePersonId(payload.profiles || [])
+    selectedPersonId.value = stored || payload.profiles?.[0]?.id || ''
   } catch (err) {
     error.value = err.message || 'Impossible de charger l’espace membres.'
   } finally {
     loading.value = false
   }
 })
+
+async function logout() {
+  await auth.logout()
+  router.push({ name: 'login' })
+}
 
 function onPresenceUpdated(record) {
   if (!data.value) return
@@ -538,5 +568,37 @@ function closeMemberEvent() {
   .member-space__login {
     display: none;
   }
+}
+
+.member-space__actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.member-space__who-label {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.member-waiting {
+  background: #fff;
+  border: 1px solid var(--kamg-border);
+  border-radius: 16px;
+  padding: 20px 18px;
+  max-width: 560px;
+}
+
+.member-waiting h2 {
+  margin: 0 0 8px;
+  font-size: 1.15rem;
+}
+
+.member-waiting p {
+  margin: 0 0 8px;
+  color: rgba(44, 51, 44, 0.72);
+  line-height: 1.45;
 }
 </style>

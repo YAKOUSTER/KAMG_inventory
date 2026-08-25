@@ -59,6 +59,8 @@ describe('presets', () => {
     assert.ok(!ROLE_PRESETS.gestion.includes('items.create'))
     assert.ok(ROLE_PRESETS.gestion.includes('items.update'))
     assert.ok(ROLE_PRESETS.gestion.includes('agenda.write'))
+    assert.ok(ROLE_PRESETS.membre)
+    assert.equal(can({ role: 'membre' }, 'items.read'), false)
     assert.deepEqual(ROLE_PRESETS.lecteur, [
       'items.read',
       'loans.read',

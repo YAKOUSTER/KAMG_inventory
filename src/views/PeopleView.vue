@@ -12,6 +12,16 @@
       </v-btn>
     </div>
 
+    <v-alert
+      v-if="auth.can('people.write') && inventory.stats?.pendingMembers"
+      type="info"
+      variant="tonal"
+      class="mb-4"
+    >
+      {{ inventory.stats.pendingMembers }} inscription(s) en attente de rangement.
+      <router-link to="/a-ranger">Ouvrir la file</router-link>
+    </v-alert>
+
     <v-row class="mb-4">
       <v-col cols="12" md="4">
         <v-text-field
