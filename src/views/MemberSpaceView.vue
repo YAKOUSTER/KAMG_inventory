@@ -181,7 +181,8 @@
     />
 
     <v-bottom-sheet v-model="accountOpen" class="kamg-account-sheet">
-      <v-list class="kamg-sheet-list pa-2 bg-surface">
+      <v-sheet class="kamg-sheet-panel">
+        <v-list class="kamg-sheet-list pa-2 bg-surface">
         <v-list-item :title="memberDisplayName || 'Compte'" :subtitle="GROUP_NAME" />
         <v-list-item
           v-if="canOpenGestion"
@@ -191,7 +192,8 @@
           @click="accountOpen = false"
         />
         <v-list-item title="Déconnexion" prepend-icon="mdi-logout" @click="onAccountLogout" />
-      </v-list>
+        </v-list>
+      </v-sheet>
     </v-bottom-sheet>
 
     <v-dialog v-model="eventDialog" :fullscreen="!mdAndUp" max-width="760" scrollable>

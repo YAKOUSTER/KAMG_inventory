@@ -142,7 +142,8 @@
       />
 
       <v-bottom-sheet v-model="moreOpen" class="kamg-more-sheet">
-        <v-list class="kamg-sheet-list pa-2 bg-surface">
+        <v-sheet class="kamg-sheet-panel">
+          <v-list class="kamg-sheet-list pa-2 bg-surface">
           <v-list-item
             title="Espace membres"
             prepend-icon="mdi-account-heart-outline"
@@ -188,7 +189,8 @@
           />
           <v-list-item title="Déconnexion" prepend-icon="mdi-logout" @click="onMoreLogout" />
           <PushNotificationsToggle @click="moreOpen = false" />
-        </v-list>
+          </v-list>
+        </v-sheet>
       </v-bottom-sheet>
 
       <v-snackbar v-model="snackOpen" :color="ui.color" timeout="3200" location="top">

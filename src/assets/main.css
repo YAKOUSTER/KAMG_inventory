@@ -100,6 +100,12 @@ body,
   border-radius: 20px 20px 0 0 !important;
 }
 
+.kamg-sheet-panel {
+  background: #fff !important;
+  border-radius: 20px 20px 0 0;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
 a {
   color: inherit;
 }
@@ -466,11 +472,22 @@ a {
 }
 
 .app-shell--mobile .v-main {
+  padding-top: 0 !important;
   padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)) !important;
 }
 
 .app-shell--mobile .page-container {
   padding-top: 0.75rem;
+}
+
+@media (max-width: 959px) {
+  .v-application > .v-app-bar.app-bar {
+    display: none !important;
+  }
+
+  .v-application .v-main {
+    padding-top: 0 !important;
+  }
 }
 
 .kamg-sheet-list .v-list-item {
