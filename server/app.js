@@ -69,8 +69,9 @@ import { can, canReceivePushNotifications } from '../src/domain/auth.js'
 import { isDisabledUser, isPendingPlacement } from '../src/domain/memberAccount.js'
 import { securityHeaders } from './security.js'
 import { createRateLimiter, loginRateLimitKey, resetRateLimits } from './rateLimit.js'
+import { clientIp, requestOrigin } from './requestMeta.js'
 
-export { resetRateLimits }
+export { resetRateLimits, requestOrigin }
 
 function handle(fn) {
   return async (req, res) => {
@@ -106,6 +107,10 @@ function auth(permission) {
       const user = await userFromToken(bearer(req))
       if (!user) {
         res.status(401).json({ error: 'Connexion requise' })
+        return
+      }
+      if (isDisabledUser(user)) {
+        res.status(403).json({ error: 'Compte désactivé' })
         return
       }
       req.user = user
@@ -150,15 +155,6 @@ function authPlacedMember(req, res, next) {
   })
 }
 
-function requestOrigin(req) {
-  const forwarded = String(req.headers['x-forwarded-host'] || '').split(',')[0].trim()
-  const host = forwarded || req.headers.host || 'localhost:5173'
-  const proto = String(req.headers['x-forwarded-proto'] || '')
-    .split(',')[0]
-    .trim() || (req.secure ? 'https' : 'http')
-  return `${proto}://${host}`
-}
-
 export function createApiApp() {
   const app = express()
   app.disable('x-powered-by')
@@ -194,7 +190,7 @@ export function createApiApp() {
     createRateLimiter({
       windowMs: 15 * 60 * 1000,
       max: 120,
-      keyFn: (req) => req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || 'public-ics',
+      keyFn: (req) => clientIp(req) || 'public-ics',
     }),
     async (_req, res) => {
       try {
@@ -219,7 +215,7 @@ export function createApiApp() {
     createRateLimiter({
       windowMs: 15 * 60 * 1000,
       max: 10,
-      keyFn: (req) => req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || 'register',
+      keyFn: (req) => clientIp(req) || 'register',
     }),
     handle((req) => registerMember(req.body || {})),
   )
@@ -228,7 +224,7 @@ export function createApiApp() {
     createRateLimiter({
       windowMs: 15 * 60 * 1000,
       max: 8,
-      keyFn: (req) => req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || 'forgot',
+      keyFn: (req) => clientIp(req) || 'forgot',
     }),
     handle((req) =>
       requestPasswordReset(req.body?.email || req.body?.login, { origin: requestOrigin(req) }),
@@ -239,7 +235,7 @@ export function createApiApp() {
     createRateLimiter({
       windowMs: 15 * 60 * 1000,
       max: 12,
-      keyFn: (req) => req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || 'reset',
+      keyFn: (req) => clientIp(req) || 'reset',
     }),
     handle((req) => resetPassword(req.body?.token, req.body?.password)),
   )

@@ -7,6 +7,7 @@ Type=simple
 WorkingDirectory=/var/www/kamg
 Environment=NODE_ENV=production
 Environment=PORT=4173
+Environment=KAMG_PUBLIC_URL=https://kamg.sterennfonseca.fr
 # Notifications push (gestionnaires) : npm run vapid:generate puis ajouter :
 # Environment=KAMG_VAPID_PUBLIC_KEY=...
 # Environment=KAMG_VAPID_PRIVATE_KEY=...

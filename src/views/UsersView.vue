@@ -34,7 +34,7 @@
       </div>
     </div>
 
-    <v-dialog v-model="dialog" :fullscreen="Boolean(smAndDown)" max-width="640">
+    <v-dialog v-model="dialog" :fullscreen="smAndDown" max-width="640">
       <v-card>
         <v-card-title class="d-flex align-center">
           <span>{{ editing.id ? 'Modifier le compte' : 'Nouveau compte' }}</span>

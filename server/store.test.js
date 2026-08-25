@@ -21,6 +21,13 @@ import {
   saveUpload,
   login,
   createUser,
+  updateUser,
+  userFromToken,
+  requestPasswordReset,
+  createPasswordResetLink,
+  resetPassword,
+  readDb,
+  writeDb,
   getBootstrap,
   getReferentiels,
   updateReferentiels,
@@ -414,16 +421,18 @@ describe('json store', () => {
     )
   })
 
-  it('exporte sans sessions et conserve les comptes à l’import', async () => {
+  it('exporte sans sessions ni jetons de reset et conserve les comptes à l’import', async () => {
     await login('admin', 'admin', options)
     const dump = await exportDb(options)
     assert.deepEqual(dump.sessions, [])
+    assert.deepEqual(dump.passwordResets, [])
     assert.ok(dump.users.length)
     const beforeUsers = dump.users.length
     await importDb({ items: [], people: [], loans: [] }, options)
     const after = await exportDb(options)
     assert.equal(after.users.length, beforeUsers)
     assert.deepEqual(after.sessions, [])
+    assert.deepEqual(after.passwordResets, [])
   })
 
   it('expose et met à jour les listes de paramétrage', async () => {
@@ -599,5 +608,53 @@ END:VCALENDAR`
     assert.equal(removed.deleted, true)
     assert.equal((await listEvents(options)).length, 0)
     assert.doesNotMatch(await getPublicCalendarIcs(options), /Répétition KAMG/)
+  })
+
+  it('hash le jeton de reset, coupe les sessions, et refuse un lien expiré', async () => {
+    const { hashToken } = await import('./password.js')
+    const session = await login('admin', 'admin', options)
+    const asked = await requestPasswordReset('admin', {
+      origin: 'http://kamg.test',
+      includeUrl: true,
+      ...options,
+    })
+    const token = new URL(asked.resetUrl).searchParams.get('token')
+    const stored = (await readDb(options)).passwordResets
+    assert.equal(stored.length, 1)
+    assert.equal(stored[0].token, undefined)
+    assert.equal(stored[0].tokenHash, hashToken(token))
+
+    await resetPassword(token, 'nouveaumdp', options)
+    assert.equal(await userFromToken(session.token, options), null)
+    await assert.rejects(() => login('admin', 'admin', options), /incorrect/)
+    assert.ok((await login('admin', 'nouveaumdp', options)).token)
+  })
+
+  it('désactive un compte : plus de session, plus de lien de reset', async () => {
+    const created = await createUser(
+      { login: 'lea', password: 'motdepasse', nom: 'Léa', role: 'lecteur' },
+      options,
+    )
+    const session = await login('lea', 'motdepasse', options)
+    await updateUser(created.id, { status: 'disabled' }, options)
+    assert.equal(await userFromToken(session.token, options), null)
+    await assert.rejects(() => login('lea', 'motdepasse', options), /désactivé/)
+    await assert.rejects(
+      () => createPasswordResetLink(created.id, { origin: 'http://kamg.test', ...options }),
+      /désactivé/,
+    )
+  })
+
+  it('refuse un jeton de reset expiré', async () => {
+    const created = await createUser(
+      { login: 'yan', password: 'motdepasse', nom: 'Yan', role: 'lecteur' },
+      options,
+    )
+    const link = await createPasswordResetLink(created.id, { origin: 'http://kamg.test', ...options })
+    const token = new URL(link.url).searchParams.get('token')
+    const db = await readDb(options)
+    db.passwordResets[0].expiresAt = new Date(Date.now() - 1000).toISOString()
+    await writeDb(db, options)
+    await assert.rejects(() => resetPassword(token, 'nouveaumdp', options), /invalide/)
   })
 })

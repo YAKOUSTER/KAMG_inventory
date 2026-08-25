@@ -23,7 +23,7 @@ async function setupTempData() {
   return dir
 }
 
-async function request(app, method, url, { body, token } = {}) {
+async function request(app, method, url, { body, token, headers } = {}) {
   const server = createServer(app)
   await new Promise((resolve) => server.listen(0, resolve))
   const { port } = server.address()
@@ -33,6 +33,7 @@ async function request(app, method, url, { body, token } = {}) {
       headers: {
         ...(body ? { 'Content-Type': 'application/json' } : {}),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(headers || {}),
       },
       body: body ? JSON.stringify(body) : undefined,
     })
@@ -297,6 +298,88 @@ describe('API HTTP', () => {
       body: { token, password: 'autremdp12' },
     })
     assert.equal(reuse.status, 400)
+  })
+
+  it('coupe la session après reset et refuse un compte désactivé', async () => {
+    const app = createApiApp()
+    const signup = await request(app, 'POST', '/api/auth/register', {
+      body: {
+        prenom: 'Loeiza',
+        nom: 'Le Roux',
+        email: 'loeiza.secure@cercle.test',
+        password: 'motdepasse',
+        relation: 'danseur',
+      },
+    })
+    assert.equal(signup.status, 200)
+    const oldToken = signup.body.token
+
+    const admin = await request(app, 'POST', '/api/auth/login', {
+      body: { login: 'admin', password: 'admin' },
+    })
+    const link = await request(app, 'POST', `/api/users/${signup.body.user.id}/reset-link`, {
+      token: admin.body.token,
+    })
+    const token = new URL(link.body.url).searchParams.get('token')
+    assert.equal((await request(app, 'POST', '/api/auth/reset-password', {
+      body: { token, password: 'nouveaumdp' },
+    })).status, 200)
+
+    const stale = await request(app, 'GET', '/api/auth/me', { token: oldToken })
+    assert.equal(stale.status, 401)
+
+    const again = await request(app, 'POST', '/api/auth/login', {
+      body: { login: 'loeiza.secure@cercle.test', password: 'nouveaumdp' },
+    })
+    assert.equal(again.status, 200)
+    await request(app, 'PUT', `/api/users/${signup.body.user.id}`, {
+      token: admin.body.token,
+      body: { status: 'disabled' },
+    })
+    const disabledMe = await request(app, 'GET', '/api/auth/me', { token: again.body.token })
+    assert.equal(disabledMe.status, 401)
+    const disabledLogin = await request(app, 'POST', '/api/auth/login', {
+      body: { login: 'loeiza.secure@cercle.test', password: 'nouveaumdp' },
+    })
+    assert.equal(disabledLogin.status, 403)
+    const disabledLink = await request(app, 'POST', `/api/users/${signup.body.user.id}/reset-link`, {
+      token: admin.body.token,
+    })
+    assert.equal(disabledLink.status, 400)
+  })
+
+  it('construit le lien de reset depuis KAMG_PUBLIC_URL, pas depuis un Host forgé', async () => {
+    const previous = process.env.KAMG_PUBLIC_URL
+    process.env.KAMG_PUBLIC_URL = 'https://kamg.example'
+    try {
+      const app = createApiApp()
+      const admin = await request(app, 'POST', '/api/auth/login', {
+        body: { login: 'admin', password: 'admin' },
+      })
+      const users = await request(app, 'GET', '/api/users', { token: admin.body.token })
+      const adminUser = users.body.find((user) => user.login === 'admin')
+      const link = await request(app, 'POST', `/api/users/${adminUser.id}/reset-link`, {
+        token: admin.body.token,
+        headers: { 'X-Forwarded-Host': 'phishing.test', Host: 'phishing.test' },
+      })
+      assert.equal(link.status, 200)
+      assert.match(link.body.url, /^https:\/\/kamg\.example\/nouveau-mot-de-passe\?token=/)
+      assert.doesNotMatch(link.body.url, /phishing/)
+    } finally {
+      if (previous == null) delete process.env.KAMG_PUBLIC_URL
+      else process.env.KAMG_PUBLIC_URL = previous
+    }
+  })
+
+  it('limite les tentatives de connexion', async () => {
+    const app = createApiApp()
+    let last
+    for (let i = 0; i < 21; i += 1) {
+      last = await request(app, 'POST', '/api/auth/login', {
+        body: { login: 'inconnu-rate', password: 'mauvais-mot' },
+      })
+    }
+    assert.equal(last.status, 429)
   })
 
   it('applique les en-têtes de sécurité', async () => {

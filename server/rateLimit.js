@@ -1,3 +1,5 @@
+import { clientIp } from './requestMeta.js'
+
 const buckets = new Map()
 const MAX_BUCKETS = 2000
 
@@ -36,8 +38,7 @@ export function createRateLimiter({ windowMs = 15 * 60 * 1000, max = 20, keyFn }
 
 export function loginRateLimitKey(req) {
   const login = String(req.body?.login || '').trim().toLowerCase()
-  const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress || ''
-  return `${ip}:${login || 'unknown'}`
+  return `${clientIp(req)}:${login || 'unknown'}`
 }
 
 export function resetRateLimits() {

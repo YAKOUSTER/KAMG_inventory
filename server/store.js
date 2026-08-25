@@ -1431,6 +1431,20 @@ function issueSession(db, user) {
   return { token, user: safe, ...publicSnapshot(db, safe) }
 }
 
+function revokeUserSessions(db, userId) {
+  db.sessions = (db.sessions || []).filter((session) => session.userId !== userId)
+}
+
+function revokePasswordResets(db, userId) {
+  db.passwordResets = (db.passwordResets || []).filter((entry) => entry.userId !== userId)
+}
+
+let dummyPasswordHashPromise
+function dummyPasswordHash() {
+  dummyPasswordHashPromise ||= hashPassword(randomToken())
+  return dummyPasswordHashPromise
+}
+
 export async function login(loginName, password, options = {}) {
   const identifiant = String(loginName || '').trim().toLowerCase()
   if (!identifiant || !password) {
@@ -1438,7 +1452,8 @@ export async function login(loginName, password, options = {}) {
   }
   return withDb(async (db) => {
     const user = findUserByIdentifiant(db.users, identifiant)
-    if (!user || !(await verifyPassword(password, user.passwordHash))) {
+    const matches = await verifyPassword(password, user?.passwordHash || (await dummyPasswordHash()))
+    if (!user || !matches) {
       throw Object.assign(new Error('Identifiant ou mot de passe incorrect'), { status: 401 })
     }
     if (isDisabledUser(user)) {
@@ -1503,7 +1518,8 @@ export async function placeMember(id, payload = {}, options = {}) {
     if (payload.refuse) {
       user.status = 'disabled'
       user.personIds = []
-      db.sessions = (db.sessions || []).filter((session) => session.userId !== id)
+      revokeUserSessions(db, id)
+      revokePasswordResets(db, id)
       appendAudit(db, options.actor, {
         action: 'user.refuse',
         entityType: 'user',
@@ -1624,6 +1640,7 @@ export async function createPasswordResetLink(userId, options = {}) {
   return withDb((db) => {
     const user = db.users.find((entry) => entry.id === userId)
     if (!user) throw Object.assign(new Error('Compte introuvable'), { status: 404 })
+    if (isDisabledUser(user)) throw Object.assign(new Error('Ce compte est désactivé'), { status: 400 })
     const token = issuePasswordReset(db, user.id)
     appendAudit(db, options.actor, {
       action: 'user.password-reset-link',
@@ -1654,8 +1671,8 @@ export async function resetPassword(token, password, options = {}) {
       throw Object.assign(new Error('Lien invalide ou expiré'), { status: 400 })
     }
     user.passwordHash = await hashPassword(nextPassword)
-    db.passwordResets = db.passwordResets.filter((entry) => entry.userId !== user.id)
-    db.sessions = (db.sessions || []).filter((session) => session.userId !== user.id)
+    revokePasswordResets(db, user.id)
+    revokeUserSessions(db, user.id)
     appendAudit(db, { id: user.id, login: user.login, nom: user.nom }, {
       action: 'user.password-reset',
       entityType: 'user',
@@ -1673,7 +1690,8 @@ export async function userFromToken(token, options = {}) {
   const session = (db.sessions || []).find((s) => s.token === token)
   if (!session || new Date(session.expiresAt).getTime() < Date.now()) return null
   const user = db.users.find((u) => u.id === session.userId)
-  return user ? publicUser(user) : null
+  if (!user || isDisabledUser(user)) return null
+  return publicUser(user)
 }
 
 export async function listUsers(options = {}) {
@@ -1747,6 +1765,10 @@ export async function updateUser(id, payload, options = {}) {
     if (Array.isArray(payload.permissions)) user.permissions = payload.permissions
     if (!user.custom) user.permissions = [...(ROLE_PRESETS[user.role] || [])]
     if (payload.password) user.passwordHash = await hashPassword(payload.password)
+    if (user.status === 'disabled' || payload.password) {
+      revokeUserSessions(db, user.id)
+    }
+    if (user.status === 'disabled') revokePasswordResets(db, user.id)
     appendAudit(db, options.actor, {
       action: 'user.update',
       entityType: 'user',
@@ -1768,7 +1790,8 @@ export async function deleteUser(id, options = {}) {
       throw Object.assign(new Error('Impossible de supprimer le dernier administrateur'), { status: 409 })
     }
     db.users.splice(index, 1)
-    db.sessions = (db.sessions || []).filter((session) => session.userId !== id)
+    revokeUserSessions(db, id)
+    revokePasswordResets(db, id)
     appendAudit(db, options.actor, {
       action: 'user.delete',
       entityType: 'user',

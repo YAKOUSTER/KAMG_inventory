@@ -2,6 +2,7 @@ import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import {
   createRateLimiter,
+  loginRateLimitKey,
   pruneRateLimitBuckets,
   rateLimitBucketCount,
   resetRateLimits,
@@ -48,5 +49,20 @@ describe('rate limiter', () => {
     assert.ok(rateLimitBucketCount() >= 30)
     pruneRateLimitBuckets(Date.now() + 50)
     assert.equal(rateLimitBucketCount(), 0)
+  })
+
+  it('ne laisse pas X-Forwarded-For inventer une autre clé hors proxy local', () => {
+    const spoofed = {
+      body: { login: 'admin' },
+      socket: { remoteAddress: '203.0.113.9' },
+      headers: { 'x-forwarded-for': '198.51.100.1' },
+    }
+    const other = {
+      body: { login: 'admin' },
+      socket: { remoteAddress: '203.0.113.9' },
+      headers: { 'x-forwarded-for': '192.0.2.8' },
+    }
+    assert.equal(loginRateLimitKey(spoofed), loginRateLimitKey(other))
+    assert.match(loginRateLimitKey(spoofed), /^203\.0\.113\.9:/)
   })
 })

@@ -16,6 +16,12 @@ import {
   setEventPresence,
   listPresences,
   getPublicMemberSpace,
+  login,
+  registerMember,
+  placeMember,
+  resetPassword,
+  createPasswordResetLink,
+  userFromToken,
 } from './store.js'
 import { countOpenTasks } from '../src/domain/itemTasks.js'
 import { inscriptionEventsForGrid } from '../src/domain/presenceGrid.js'
@@ -188,5 +194,38 @@ describe('workflows métier', () => {
     assert.equal(published.titre, '[SORTIE] Festival de Lorient')
     assert.equal(published.sortie.format, 'defile_animation_spectacle')
     assert.equal(published.sortie.responsable, 'Anna Le Gall')
+  })
+
+  it('un membre pending réinitialise son mot de passe puis le bureau le range', async () => {
+    const admin = await login('admin', 'admin', options)
+    const signup = await registerMember(
+      {
+        prenom: 'Marie',
+        nom: 'Le Gall',
+        email: 'marie.workflow@cercle.test',
+        password: 'ancienmdp',
+        relation: 'parent',
+        childrenNames: 'Léa',
+      },
+      options,
+    )
+    assert.equal(signup.user.status, 'pending')
+    const child = await createPerson(
+      { nom: 'Le Gall', prenom: 'Léa', roles: ['danseur_enfant'] },
+      options,
+    )
+    const link = await createPasswordResetLink(signup.user.id, {
+      origin: 'http://kamg.test',
+      actor: admin.user,
+      ...options,
+    })
+    const token = new URL(link.url).searchParams.get('token')
+    await resetPassword(token, 'nouveaumdp', options)
+    assert.equal(await userFromToken(signup.token, options), null)
+    const again = await login('marie.workflow@cercle.test', 'nouveaumdp', options)
+    assert.equal(again.user.status, 'pending')
+    const placed = await placeMember(signup.user.id, { personIds: [child.id] }, { actor: admin.user, ...options })
+    assert.equal(placed.status, 'active')
+    assert.deepEqual(placed.personIds, [child.id])
   })
 })
