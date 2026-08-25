@@ -37,6 +37,15 @@
         <strong>{{ summary[statut.id] || 0 }}</strong>
       </button>
     </div>
+    <button
+      v-if="!publicMode && currentStatut"
+      type="button"
+      class="rsvp-poll__clear"
+      :disabled="!canRespond || saving"
+      @click="choose('')"
+    >
+      Effacer la réponse
+    </button>
     <p v-if="error" class="rsvp-poll__error">{{ error }}</p>
 
     <div v-if="showAttendees" class="rsvp-poll__people">
@@ -61,6 +70,7 @@ import {
   PRESENCE_STATUTS,
   filterPeopleForPresence,
   groupPeopleByPresence,
+  nextPresenceStatut,
   presenceForPerson,
   summarizePresences,
 } from '@/domain/presence'
@@ -116,7 +126,8 @@ const canRespond = computed(() => {
 async function choose(statut) {
   if (!canRespond.value || saving.value) return
   const previous = currentStatut.value
-  const next = previous === statut ? '' : statut
+  const next = nextPresenceStatut(previous, statut, { toggleClears: props.publicMode })
+  if (next === previous) return
   saving.value = true
   pendingStatut.value = statut
   error.value = ''
@@ -213,6 +224,22 @@ async function choose(statut) {
 
 .rsvp-poll__btn.is-pending {
   opacity: 0.65;
+}
+
+.rsvp-poll__clear {
+  margin-top: 8px;
+  border: 0;
+  background: transparent;
+  color: rgba(44, 51, 44, 0.62);
+  cursor: pointer;
+  font-size: 0.82rem;
+  text-decoration: underline;
+  padding: 0;
+}
+
+.rsvp-poll__clear:disabled {
+  cursor: default;
+  text-decoration: none;
 }
 
 .rsvp-poll__error {

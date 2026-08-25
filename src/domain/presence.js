@@ -20,6 +20,14 @@ export function presenceStatutMeta(statut) {
   return PRESENCE_STATUTS.find((entry) => entry.id === statut) || null
 }
 
+export function nextPresenceStatut(previous, clicked, { toggleClears = true } = {}) {
+  const current = String(previous || '')
+  const next = String(clicked || '')
+  if (!next) return ''
+  if (current === next) return toggleClears ? '' : current
+  return next
+}
+
 export function isClearedPresenceStatut(value) {
   if (value == null) return false
   const raw = String(value).trim().toLowerCase()

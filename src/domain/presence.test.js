@@ -5,6 +5,7 @@ import {
   filterPeopleForPresence,
   groupPeopleByPresence,
   isClearedPresenceStatut,
+  nextPresenceStatut,
   normalizePresenceStatut,
   summarizePresences,
 } from './presence.js'
@@ -63,6 +64,19 @@ describe('groupPeopleByPresence', () => {
     assert.deepEqual(groups.present.map((person) => person.id), ['a'])
     assert.deepEqual(groups.maybe.map((person) => person.id), ['b'])
     assert.deepEqual(groups.unanswered.map((person) => person.id), ['c'])
+  })
+})
+
+describe('nextPresenceStatut', () => {
+  it('en espace membres, re-taper la même réponse l’efface', () => {
+    assert.equal(nextPresenceStatut('present', 'present', { toggleClears: true }), '')
+    assert.equal(nextPresenceStatut('present', 'absent', { toggleClears: true }), 'absent')
+  })
+
+  it('en gestion, re-taper Je viens ne retire pas la personne', () => {
+    assert.equal(nextPresenceStatut('present', 'present', { toggleClears: false }), 'present')
+    assert.equal(nextPresenceStatut('present', 'absent', { toggleClears: false }), 'absent')
+    assert.equal(nextPresenceStatut('present', '', { toggleClears: false }), '')
   })
 })
 
