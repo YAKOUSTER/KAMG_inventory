@@ -33,6 +33,7 @@
       :person-id="personId"
       :public-mode="publicMode"
       hide-identity
+      compact
       :readonly="readonly"
       @update:person-id="emit('update:personId', $event)"
       @updated="emit('updated', $event)"
@@ -138,8 +139,8 @@ const timeLabel = computed(() => eventTimeLabel(props.event))
 }
 
 .event-poll-card__poll {
-  margin-top: 10px;
-  padding-top: 10px;
+  margin-top: 6px;
+  padding-top: 6px;
   border-top: 1px solid var(--kamg-border);
 }
 </style>

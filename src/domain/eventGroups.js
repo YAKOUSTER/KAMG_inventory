@@ -12,11 +12,28 @@ export const EVENT_GROUPS = [
   { id: 'commission', label: 'Commission', icon: 'mdi-clipboard-text-outline' },
 ]
 
+let runtimeGroups = null
+
+export function setRuntimeEventGroups(groups) {
+  runtimeGroups = Array.isArray(groups) && groups.length ? groups : null
+}
+
+export function activeEventGroups() {
+  return runtimeGroups || EVENT_GROUPS
+}
+
 export function eventGroupLabel(id) {
-  return EVENT_GROUPS.find((group) => group.id === id)?.label || id
+  const key = String(id || '').trim()
+  return activeEventGroups().find((group) => group.id === key)?.label || EVENT_GROUPS.find((group) => group.id === key)?.label || id
 }
 
 export function filterEventsByGroup(events = [], groupId = 'tous') {
   if (!groupId || groupId === 'tous') return events
   return events.filter((event) => (event.groupes || []).includes(groupId))
+}
+
+export function filterEventsByGroups(events = [], groupIds = []) {
+  const ids = [...new Set((groupIds || []).map((id) => String(id || '').trim()).filter((id) => id && id !== 'tous'))]
+  if (!ids.length) return events
+  return events.filter((event) => (event.groupes || []).some((group) => ids.includes(group)))
 }

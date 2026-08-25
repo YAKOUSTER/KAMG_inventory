@@ -1,10 +1,18 @@
 <template>
   <div>
-    <h1 class="text-h5 text-md-h4 page-title mb-6">{{ isEdit ? 'Modifier l’événement' : 'Nouvel événement' }}</h1>
     <v-alert v-if="error" type="error" class="mb-4">{{ error }}</v-alert>
     <v-progress-linear v-if="!ready && !error" indeterminate color="primary" class="mb-4" />
 
-    <v-form v-if="ready" @submit.prevent="submit">
+    <v-form v-if="ready" class="kamg-fiche event-edit-fiche" @submit.prevent="submit">
+      <header class="kamg-fiche__header">
+        <img :src="LOGO_SRC" :alt="GROUP_NAME" class="kamg-fiche__logo" />
+        <div class="kamg-title-box">
+          <h1 class="kamg-title-box__title">{{ fullTitle || (isEdit ? 'Modifier l’événement' : 'Nouvel événement') }}</h1>
+          <p class="kamg-title-box__meta">{{ isSortie ? 'Fiche sortie' : 'Événement du cercle' }}</p>
+        </div>
+      </header>
+
+      <h2 class="kamg-banner">Informations générales</h2>
       <div class="form-fields-grid form-fields-grid--2">
         <FieldRow label="Type" hint="Plusieurs choix possibles" class="form-fields-grid__span-2">
           <v-select
@@ -65,21 +73,20 @@
         </FieldRow>
       </div>
 
-      <section v-if="isSortie" class="mt-8">
-        <h2 class="text-subtitle-1 font-weight-bold mb-3">Fiche sortie</h2>
-        <SortieFiche
-          :titre="fullTitle"
-          :debut="fromLocalInput(form.debut)"
-          :lieu="form.lieu"
-          :sortie="form.sortie"
-          :dancer-count="dancerCount"
-          :people="people"
-          editable
-        />
-      </section>
+      <SortieFiche
+        v-if="isSortie"
+        embedded
+        :titre="fullTitle"
+        :debut="fromLocalInput(form.debut)"
+        :lieu="form.lieu"
+        :sortie="form.sortie"
+        :dancer-count="dancerCount"
+        :people="people"
+        editable
+      />
 
-      <div v-if="isEdit && form.inscriptionsOuvertes" class="mt-6">
-        <h2 class="text-subtitle-1 font-weight-bold mb-3">Présences</h2>
+      <div v-if="isEdit && form.inscriptionsOuvertes" class="mt-4">
+        <h2 class="kamg-banner">Présences</h2>
         <EventPresencePanel
           :event="{ id: props.id, ...form, titre: fullTitle }"
           :people="people"
@@ -114,6 +121,7 @@ import EventPresencePanel from '@/components/EventPresencePanel.vue'
 import SortieFiche from '@/components/SortieFiche.vue'
 import { api } from '@/services/api'
 import { useAuthStore } from '@/stores/auth'
+import { GROUP_NAME, LOGO_SRC } from '@/domain/brand'
 import { applyPresenceUpdate, summarizePresences } from '@/domain/presence'
 import {
   applyEventTitlePrefix,
@@ -136,7 +144,7 @@ const people = ref([])
 const presences = ref([])
 const originalType = ref('autre')
 const isEdit = computed(() => Boolean(props.id))
-const kindItems = eventKindSelectItems()
+const kindItems = computed(() => eventKindSelectItems())
 
 const form = reactive({
   kinds: [],

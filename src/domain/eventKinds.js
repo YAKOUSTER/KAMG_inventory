@@ -113,8 +113,6 @@ export const EVENT_KINDS = [
   },
 ]
 
-const KIND_IDS = new Set(EVENT_KINDS.map((entry) => entry.id))
-
 const COMBINED_PREFIXES = [
   'Répétition Loisirs - Tous',
   'Répétition Loisirs - Groupe A',
@@ -134,8 +132,21 @@ const COMBINED_PREFIXES = [
   'Atelier spécial',
 ]
 
+const BUILTIN_KIND_IDS = new Set(EVENT_KINDS.map((entry) => entry.id))
+
+let runtimeKinds = null
+
+export function setRuntimeEventKinds(kinds) {
+  runtimeKinds = Array.isArray(kinds) && kinds.length ? kinds : null
+}
+
+export function activeEventKinds() {
+  return runtimeKinds || EVENT_KINDS
+}
+
 export function eventKindMeta(id) {
-  return EVENT_KINDS.find((entry) => entry.id === id) || null
+  const key = String(id || '').trim()
+  return activeEventKinds().find((entry) => entry.id === key) || EVENT_KINDS.find((entry) => entry.id === key) || null
 }
 
 export function eventKindLabel(id) {
@@ -144,7 +155,8 @@ export function eventKindLabel(id) {
 
 export function normalizeEventKinds(value) {
   const list = Array.isArray(value) ? value : value ? [value] : []
-  return [...new Set(list.map((id) => String(id || '').trim()).filter((id) => KIND_IDS.has(id)))]
+  const ids = new Set([...EVENT_KINDS, ...activeEventKinds()].map((entry) => entry.id))
+  return [...new Set(list.map((id) => String(id || '').trim()).filter((id) => ids.has(id)))]
 }
 
 export function eventTitlePrefix(kinds = []) {
@@ -175,6 +187,12 @@ export function eventTitlePrefix(kinds = []) {
   if (set.has('atelier_broderie')) prefixes.push('Atelier broderie')
   if (set.has('atelier_couture')) prefixes.push('Atelier couture')
   if (set.has('atelier_special')) prefixes.push('Atelier spécial')
+
+  for (const id of set) {
+    if (BUILTIN_KIND_IDS.has(id)) continue
+    const prefix = eventKindMeta(id)?.prefix
+    if (prefix && !prefixes.includes(prefix)) prefixes.push(prefix)
+  }
 
   return prefixes.join(' ')
 }
@@ -237,7 +255,7 @@ export function eventKindsOf(event) {
 }
 
 export function eventKindSelectItems() {
-  return EVENT_KINDS.map((entry) => ({ title: entry.label, value: entry.id }))
+  return activeEventKinds().map((entry) => ({ title: entry.label, value: entry.id }))
 }
 
 export function eventKindFilterItems() {

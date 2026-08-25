@@ -25,6 +25,17 @@
           <v-icon>mdi-chevron-right</v-icon>
         </v-btn>
         <div class="agenda-cal__label">{{ label }}</div>
+        <button
+          type="button"
+          class="agenda-cal__holidays-toggle"
+          :class="{ 'is-active': holidaysVisible }"
+          :aria-pressed="holidaysVisible"
+          :title="RENNES_ACADEMY.legend"
+          @click="toggleHolidays"
+        >
+          <v-icon size="16">mdi-beach</v-icon>
+          <span>Vacances</span>
+        </button>
       </div>
     </div>
 
@@ -32,6 +43,7 @@
       <section v-for="group in listGroups" :key="group.day" class="agenda-cal__day-group">
         <h3 class="agenda-cal__day-heading">
           {{ weekdayLabel(group.day) }} {{ displayDate(group.day) }}
+          <span v-if="holidayShort(group.day)" class="agenda-cal__holiday-chip">{{ holidayShort(group.day) }}</span>
           <span v-if="group.events.length > 1" class="agenda-cal__day-count">
             {{ group.events.length }} événements
           </span>
@@ -68,6 +80,7 @@
         <button type="button" class="agenda-cal__week-head" @click="openDay(day)">
           <span>{{ weekdayLabel(day) }}</span>
           <strong>{{ dayNumber(day) }}</strong>
+          <span v-if="holidayShort(day)" class="agenda-cal__holiday-chip">{{ holidayShort(day) }}</span>
           <span v-if="eventsFor(day).length > 1" class="agenda-cal__day-count">
             {{ eventsFor(day).length }}
           </span>
@@ -104,6 +117,7 @@
       >
         <button type="button" class="agenda-cal__cell-num" @click="openDay(cell.iso)">
           {{ dayNumber(cell.iso) }}
+          <span v-if="holidayShort(cell.iso)" class="agenda-cal__holiday-dot" :title="holidayLabel(cell.iso)" />
           <span v-if="eventsFor(cell.iso).length > 1" class="agenda-cal__day-count">
             {{ eventsFor(cell.iso).length }}
           </span>
@@ -152,12 +166,20 @@
       </div>
     </div>
 
+    <p v-if="holidaysVisible" class="agenda-cal__legend">
+      <span class="agenda-cal__legend-swatch" aria-hidden="true" />
+      {{ RENNES_ACADEMY.legend }}
+    </p>
+
     <v-dialog v-model="dayOpen" max-width="480">
       <v-card v-if="selectedDay" class="pa-2">
         <v-card-title class="text-wrap">
           {{ weekdayLabel(selectedDay) }} {{ displayDate(selectedDay) }}
         </v-card-title>
         <v-card-text>
+          <p v-if="holidayLabel(selectedDay)" class="agenda-cal__holiday-note">
+            {{ holidayLabel(selectedDay) }} · {{ RENNES_ACADEMY.label }} (zone {{ RENNES_ACADEMY.zone }})
+          </p>
           <p v-if="dayEvents.length > 1" class="text-body-2 text-medium-emphasis mb-3">
             {{ dayEvents.length }} événements ce jour-là.
           </p>
@@ -215,6 +237,15 @@ import {
   yearMonths,
   parseLocalDay,
 } from '@/domain/calendarViews'
+import {
+  HOLIDAY_STORAGE_KEY,
+  RENNES_ACADEMY,
+  holidayLabel as holidayLabelForDay,
+  holidayShortLabel,
+  isSchoolHoliday,
+  readStoredHolidaysVisible,
+  writeStoredHolidaysVisible,
+} from '@/domain/schoolHolidays'
 
 const props = defineProps({
   events: { type: Array, default: () => [] },
@@ -228,6 +259,7 @@ const emit = defineEmits(['select', 'create'])
 const views = AGENDA_VIEWS
 const weekdayLabels = WEEKDAY_LABELS
 const view = ref(readStoredAgendaView(props.storageKey, props.initialView))
+const holidaysVisible = ref(readStoredHolidaysVisible(HOLIDAY_STORAGE_KEY, true))
 const cursor = ref(todayLocal())
 
 const byDay = computed(() => groupEventsByDay(props.events))
@@ -249,9 +281,22 @@ const selectedDay = ref('')
 const dayEvents = computed(() => (selectedDay.value ? eventsFor(selectedDay.value) : []))
 
 watch(view, (value) => writeStoredAgendaView(props.storageKey, value))
+watch(holidaysVisible, (value) => writeStoredHolidaysVisible(HOLIDAY_STORAGE_KEY, value))
 
 function setView(next) {
   view.value = next
+}
+
+function toggleHolidays() {
+  holidaysVisible.value = !holidaysVisible.value
+}
+
+function holidayShort(isoDay) {
+  return holidaysVisible.value ? holidayShortLabel(isoDay) : ''
+}
+
+function holidayLabel(isoDay) {
+  return holidaysVisible.value ? holidayLabelForDay(isoDay) : ''
 }
 
 function shift(delta) {
@@ -284,6 +329,7 @@ function dayClass(isoDay, inMonth = true) {
   return {
     'is-today': isToday(isoDay),
     'is-out': !inMonth,
+    'is-holiday': holidaysVisible.value && isSchoolHoliday(isoDay),
   }
 }
 
@@ -294,6 +340,7 @@ function miniDayClass(cell) {
     'is-today': isToday(cell.iso),
     'has-events': count > 0 && cell.inMonth,
     'has-many': count > 1 && cell.inMonth,
+    'is-holiday': holidaysVisible.value && isSchoolHoliday(cell.iso) && cell.inMonth,
   }
 }
 
@@ -301,6 +348,10 @@ function openDay(isoDay) {
   selectedDay.value = isoDay
   const list = eventsFor(isoDay)
   if (!list.length) {
+    if (holidaysVisible.value && isSchoolHoliday(isoDay) && !props.canWrite) {
+      dayOpen.value = true
+      return
+    }
     if (props.canWrite) emit('create', isoDay)
     return
   }
@@ -393,6 +444,78 @@ function openMonth(entry) {
 .agenda-cal__label {
   font-weight: 700;
   margin-left: 8px;
+}
+
+.agenda-cal__holidays-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid var(--kamg-border);
+  background: #fff;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-left: 6px;
+  color: inherit;
+}
+
+.agenda-cal__holidays-toggle.is-active {
+  background: rgba(201, 162, 39, 0.22);
+  border-color: rgba(168, 132, 24, 0.45);
+}
+
+.agenda-cal__legend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 4px 0;
+  font-size: 0.78rem;
+  color: rgba(44, 51, 44, 0.68);
+}
+
+.agenda-cal__legend-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(201, 162, 39, 0.45),
+    rgba(201, 162, 39, 0.45) 4px,
+    #fff8e6 4px,
+    #fff8e6 8px
+  );
+  border: 1px solid rgba(168, 132, 24, 0.35);
+  flex-shrink: 0;
+}
+
+.agenda-cal__holiday-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: rgba(201, 162, 39, 0.22);
+  color: #6b5310;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.agenda-cal__holiday-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #c9a227;
+  flex-shrink: 0;
+}
+
+.agenda-cal__holiday-note {
+  margin: 0 0 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(201, 162, 39, 0.16);
+  font-size: 0.86rem;
+  color: #6b5310;
 }
 
 .agenda-cal__empty {
@@ -490,6 +613,20 @@ function openMonth(entry) {
 .agenda-cal__week-col.is-today {
   border-color: rgb(var(--v-theme-primary));
   background: rgba(106, 140, 105, 0.08);
+}
+
+.agenda-cal__week-col.is-holiday {
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(201, 162, 39, 0.16),
+    rgba(201, 162, 39, 0.16) 6px,
+    #fffdf6 6px,
+    #fffdf6 12px
+  );
+}
+
+.agenda-cal__week-col.is-holiday.is-today {
+  background: rgba(106, 140, 105, 0.1);
 }
 
 .agenda-cal__week-head {
@@ -606,6 +743,20 @@ function openMonth(entry) {
   background: rgba(106, 140, 105, 0.08);
 }
 
+.agenda-cal__cell.is-holiday {
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(201, 162, 39, 0.16),
+    rgba(201, 162, 39, 0.16) 6px,
+    #fffdf6 6px,
+    #fffdf6 12px
+  );
+}
+
+.agenda-cal__cell.is-holiday.is-today {
+  background: rgba(106, 140, 105, 0.1);
+}
+
 .agenda-cal__chip--compact {
   margin-bottom: 2px;
 }
@@ -681,6 +832,16 @@ function openMonth(entry) {
   background: rgba(184, 92, 56, 0.22);
 }
 
+.agenda-cal__mini-day.is-holiday {
+  background: rgba(201, 162, 39, 0.28);
+  border-radius: 999px;
+}
+
+.agenda-cal__mini-day.is-holiday.has-events,
+.agenda-cal__mini-day.is-holiday.has-many {
+  box-shadow: inset 0 -2px 0 rgba(201, 162, 39, 0.9);
+}
+
 .agenda-cal__mini-day.is-today {
   outline: 1px solid rgb(var(--v-theme-primary));
   border-radius: 999px;
@@ -711,6 +872,24 @@ function openMonth(entry) {
 
   .agenda-cal__cell.has-events {
     background: rgba(106, 140, 105, 0.12);
+  }
+
+  .agenda-cal__cell.is-holiday {
+    background: repeating-linear-gradient(
+      -45deg,
+      rgba(201, 162, 39, 0.2),
+      rgba(201, 162, 39, 0.2) 5px,
+      #fffdf6 5px,
+      #fffdf6 10px
+    );
+  }
+
+  .agenda-cal__cell.is-holiday.has-events {
+    box-shadow: inset 0 -3px 0 rgba(106, 140, 105, 0.55);
+  }
+
+  .agenda-cal__holidays-toggle span {
+    display: none;
   }
 
   .agenda-cal__views span {

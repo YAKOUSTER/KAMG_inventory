@@ -317,6 +317,72 @@ a {
   }
 }
 
+/* Fiche (sortie, événement, paramètres) : bandeaux vert profond, titres serif, cartes 16px */
+.kamg-fiche {
+  background: #fff;
+  border: 1px solid var(--kamg-border);
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.kamg-fiche__header {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.kamg-fiche__logo {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.kamg-title-box {
+  flex: 1;
+  background: var(--kamg-deep);
+  color: #fff;
+  border-radius: 8px;
+  padding: 10px 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+
+.kamg-title-box__title {
+  margin: 0;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+.kamg-title-box__meta {
+  margin: 4px 0 0;
+  opacity: 0.9;
+  font-size: 0.92rem;
+}
+
+.kamg-banner {
+  background: var(--kamg-deep);
+  color: #fff;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  margin: 16px 0 10px;
+  padding: 6px 14px;
+  border-radius: 6px;
+}
+
+.kamg-fiche .kamg-banner:first-of-type {
+  margin-top: 0;
+}
+
 @media (max-width: 600px) {
   .detail-row,
   .field-row {

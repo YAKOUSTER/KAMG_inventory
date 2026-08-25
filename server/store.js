@@ -30,6 +30,7 @@ import { normalizeEvent, filterPublishedEvents, upcomingEvents, pastEvents, sort
 import { normalizeContentPage, filterPublishedPages, sortContentPages, publicContentSummary } from '../src/domain/content.js'
 import { normalizePresenceRecord, publicPerson, isClearedPresenceStatut } from '../src/domain/presence.js'
 import { normalizeAgendaSettings, DEFAULT_AGENDA_SETTINGS, publishedCalendarName } from '../src/domain/agendaSettings.js'
+import { applyEventCatalog, normalizeEventCatalog } from '../src/domain/eventCatalog.js'
 import { buildCalendarIcs } from '../src/domain/ics.js'
 import { fetchGoogleCalendarEvents, resetGoogleCalendarCache } from './googleCalendar.js'
 import {
@@ -92,7 +93,7 @@ function emptyDb() {
     eventOverlays: {},
     presences: [],
     pages: [],
-    settings: structuredClone({ agenda: DEFAULT_AGENDA_SETTINGS }),
+    settings: structuredClone({ agenda: DEFAULT_AGENDA_SETTINGS, eventCatalog: normalizeEventCatalog() }),
     pushSubscriptions: [],
     users: [],
     sessions: [],
@@ -140,7 +141,9 @@ function ensureShape(raw) {
   })
   db.settings = {
     agenda: normalizeAgendaSettings({ ...DEFAULT_AGENDA_SETTINGS, ...(raw.settings?.agenda || {}) }),
+    eventCatalog: normalizeEventCatalog(raw.settings?.eventCatalog),
   }
+  applyEventCatalog(db.settings.eventCatalog)
   db.pushSubscriptions = Array.isArray(raw.pushSubscriptions) ? raw.pushSubscriptions : []
   db.users = (Array.isArray(raw.users) ? raw.users : []).map(normalizeAccountRecord)
   db.sessions = Array.isArray(raw.sessions) ? raw.sessions : []
@@ -924,6 +927,7 @@ export function publicSnapshot(db, user) {
     loans,
     stats: can(user, 'items.read') ? statsFrom(db) : null,
     referentiels: normalizeReferentiels(db.referentiels),
+    eventCatalog: normalizeEventCatalog(db.settings?.eventCatalog),
   }
 }
 
@@ -971,6 +975,7 @@ export async function getPublicMemberSpace(options = {}) {
     .sort((a, b) => (b.dateEmprunt || '').localeCompare(a.dateEmprunt || ''))
   return {
     agenda: db.settings?.agenda || normalizeAgendaSettings({}),
+    eventCatalog: normalizeEventCatalog(db.settings?.eventCatalog),
     events: {
       upcoming,
       past,
@@ -1011,8 +1016,12 @@ export async function listEvents(options = {}) {
 
 export async function getPublicCalendarIcs(options = {}) {
   const db = await readDb(options)
+  const groupes = Array.isArray(options.groupes) ? options.groupes : []
+  const calName = publishedCalendarName(db.settings?.agenda || {})
+  const suffix = groupes.length ? ` — ${groupes.join(', ')}` : ''
   return buildCalendarIcs(filterPublishedEvents(listLocalEvents(db)), {
-    calName: publishedCalendarName(db.settings?.agenda || {}),
+    calName: `${calName}${suffix}`,
+    groupes,
   })
 }
 
@@ -1035,6 +1044,27 @@ export async function updateAgendaSettings(payload, options = {}) {
       summary: 'Mise à jour des paramètres d’agenda',
     })
     return db.settings.agenda
+  }, options)
+}
+
+export async function getEventCatalog(options = {}) {
+  const db = await readDb(options)
+  return normalizeEventCatalog(db.settings?.eventCatalog)
+}
+
+export async function updateEventCatalog(payload, options = {}) {
+  return withDb((db) => {
+    db.settings = db.settings || {}
+    db.settings.eventCatalog = normalizeEventCatalog(payload)
+    applyEventCatalog(db.settings.eventCatalog)
+    appendAudit(db, options.actor, {
+      action: 'eventCatalog.update',
+      entityType: 'settings',
+      entityId: 'event-catalog',
+      entityLabel: 'Types et groupes',
+      summary: 'Mise à jour des types d’événement et des noms de groupes',
+    })
+    return db.settings.eventCatalog
   }, options)
 }
 

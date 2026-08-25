@@ -25,13 +25,15 @@ export function normalizeAgendaSettings(input = {}) {
   }
 }
 
-export function appCalendarIcsUrl(origin = '') {
+export function appCalendarIcsUrl(origin = '', groupes = []) {
   const base = String(origin || '').replace(/\/$/, '')
-  return `${base}${APP_CALENDAR_ICS_PATH}`
+  const ids = [...new Set((Array.isArray(groupes) ? groupes : []).map((id) => String(id || '').trim()).filter(Boolean))]
+  const query = ids.length ? `?groupes=${encodeURIComponent(ids.join(','))}` : ''
+  return `${base}${APP_CALENDAR_ICS_PATH}${query}`
 }
 
-export function appCalendarWebcalUrl(origin = '') {
-  return appCalendarIcsUrl(origin).replace(/^https:\/\//i, 'webcal://').replace(/^http:\/\//i, 'webcal://')
+export function appCalendarWebcalUrl(origin = '', groupes = []) {
+  return appCalendarIcsUrl(origin, groupes).replace(/^https:\/\//i, 'webcal://').replace(/^http:\/\//i, 'webcal://')
 }
 
 export function googleCalendarSubscribeFromIcsUrl(icsUrl) {

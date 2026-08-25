@@ -17,7 +17,10 @@
       Votre compte n’est lié à aucune fiche pour le moment.
     </p>
 
-    <div class="rsvp-poll__actions">
+    <div
+      class="rsvp-poll__actions"
+      :class="{ 'rsvp-poll__actions--compact': compact }"
+    >
       <button
         v-for="statut in PRESENCE_STATUTS"
         :key="statut.id"
@@ -27,14 +30,15 @@
           [`is-${statut.id}`]: true,
           'is-selected': currentStatut === statut.id,
           'is-pending': saving && pendingStatut === statut.id,
+          'rsvp-poll__btn--compact': compact,
         }"
         :disabled="!canRespond || saving"
         :aria-pressed="currentStatut === statut.id"
         @click="choose(statut.id)"
       >
-        <v-icon size="18">{{ statut.icon }}</v-icon>
+        <v-icon :size="compact ? 16 : 18">{{ statut.icon }}</v-icon>
         <span class="rsvp-poll__btn-label">{{ statut.actionLabel }}</span>
-        <strong>{{ summary[statut.id] || 0 }}</strong>
+        <strong v-if="!compact">{{ summary[statut.id] || 0 }}</strong>
       </button>
     </div>
     <button
@@ -85,6 +89,7 @@ const props = defineProps({
   hideIdentity: { type: Boolean, default: false },
   showAttendees: { type: Boolean, default: false },
   readonly: { type: Boolean, default: false },
+  compact: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['updated', 'update:personId'])
@@ -175,18 +180,41 @@ async function choose(statut) {
   gap: 6px;
 }
 
+.rsvp-poll__actions--compact {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
 .rsvp-poll__btn {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  min-height: 56px;
+  min-height: 44px;
   border: 1px solid var(--kamg-border);
   border-radius: 12px;
   background: #fff;
   color: inherit;
   cursor: pointer;
   padding: 6px 4px;
+}
+
+.rsvp-poll__btn--compact {
+  flex: 0 0 auto;
+  flex-direction: row;
+  justify-content: center;
+  width: auto;
+  min-width: 0;
+  min-height: 28px;
+  padding: 2px 8px;
+  gap: 4px;
+  border-radius: 999px;
+}
+
+.rsvp-poll__btn--compact .rsvp-poll__btn-label {
+  font-size: 0.68rem;
 }
 
 .rsvp-poll__btn:disabled {

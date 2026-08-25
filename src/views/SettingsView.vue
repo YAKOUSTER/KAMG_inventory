@@ -10,6 +10,8 @@
       <AgendaSettingsEditor />
     </section>
 
+    <EventCatalogEditor />
+
     <ReferentielsEditor />
 
     <section class="page-block">
@@ -40,6 +42,7 @@ import { api } from '@/services/api'
 import { useInventoryStore } from '@/stores/inventory'
 import ReferentielsEditor from '@/components/ReferentielsEditor.vue'
 import AgendaSettingsEditor from '@/components/AgendaSettingsEditor.vue'
+import EventCatalogEditor from '@/components/EventCatalogEditor.vue'
 
 const inventory = useInventoryStore()
 const file = ref(null)

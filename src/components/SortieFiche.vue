@@ -1,6 +1,6 @@
 <template>
-  <article class="sortie-fiche">
-    <header class="sortie-fiche__header">
+  <article :class="embedded ? 'sortie-fiche sortie-fiche--embedded' : 'sortie-fiche'">
+    <header v-if="!embedded" class="sortie-fiche__header">
       <img :src="LOGO_SRC" :alt="GROUP_NAME" class="sortie-fiche__logo" />
       <div class="sortie-fiche__title-box">
         <h2 class="sortie-fiche__title">{{ titre || 'Nom de la sortie' }}</h2>
@@ -320,6 +320,7 @@ const props = defineProps({
   dancerCount: { type: Number, default: null },
   people: { type: Array, default: () => [] },
   editable: { type: Boolean, default: false },
+  embedded: { type: Boolean, default: false },
 })
 
 const season = computed(() => seasonLabel(props.debut))
@@ -337,6 +338,13 @@ const personItems = computed(() =>
   border-radius: 16px;
   padding: 16px;
   color: #2c332c;
+}
+
+.sortie-fiche--embedded {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
 }
 
 .sortie-fiche__header {

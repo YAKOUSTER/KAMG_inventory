@@ -19,6 +19,16 @@
         >
           Gestion
         </v-btn>
+        <v-btn
+          v-if="canSubscribe"
+          variant="tonal"
+          size="small"
+          class="text-none"
+          prepend-icon="mdi-calendar-sync"
+          @click="subscribeOpen = true"
+        >
+          S’abonner
+        </v-btn>
         <v-btn variant="text" size="small" class="text-none" @click="logout">
           Déconnexion
         </v-btn>
@@ -81,33 +91,6 @@
             {{ personItems[0].title }}
           </p>
         </div>
-
-        <details class="member-space__subscribe">
-          <summary>S’abonner au calendrier</summary>
-          <div class="d-flex flex-wrap ga-2 mt-2">
-            <v-btn
-              color="primary"
-              variant="tonal"
-              size="small"
-              class="text-none"
-              :href="googleSubscribeUrl"
-              target="_blank"
-              rel="noopener noreferrer"
-              prepend-icon="mdi-google"
-            >
-              Google Agenda
-            </v-btn>
-            <v-btn
-              variant="outlined"
-              size="small"
-              class="text-none"
-              :href="icalSubscribeUrl"
-              prepend-icon="mdi-calendar-sync"
-            >
-              Apple / Outlook
-            </v-btn>
-          </div>
-        </details>
 
         <div class="member-group-filters">
           <v-chip
@@ -240,12 +223,25 @@
             :sortie="selectedEvent.sortie || emptySortie()"
             :dancer-count="selectedDancerCount"
           />
-          <AddToCalendarButton :event="selectedEvent" />
         </v-card-text>
         <v-card-actions>
           <v-spacer />
           <v-btn variant="text" class="text-none" @click="closeMemberEvent">Fermer</v-btn>
         </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <v-dialog v-model="subscribeOpen" max-width="560" scrollable>
+      <v-card>
+        <v-card-title class="d-flex align-center">
+          S’abonner au calendrier
+          <v-spacer />
+          <v-btn icon variant="text" aria-label="Fermer" @click="subscribeOpen = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+        <v-card-text>
+          <CalendarSubscribePanel :catalog="data?.eventCatalog" />
+        </v-card-text>
       </v-card>
     </v-dialog>
   </div>
@@ -261,7 +257,8 @@ import { displayDate, displayDateTime } from '@/domain/dates'
 import { eventAcceptsInscriptions, eventIsSortie } from '@/domain/events'
 import { emptySortie, sortieHasContent } from '@/domain/sortie'
 import { loanStatusColor, loanStatusLabel, openLoanLines } from '@/domain/loans'
-import { EVENT_GROUPS, eventGroupLabel, filterEventsByGroup } from '@/domain/eventGroups'
+import { eventGroupLabel, filterEventsByGroup, activeEventGroups } from '@/domain/eventGroups'
+import { applyEventCatalog } from '@/domain/eventCatalog'
 import {
   applyPresenceUpdate,
   readStoredPresencePersonId,
@@ -269,12 +266,7 @@ import {
   summarizePresences,
 } from '@/domain/presence'
 import { personDisplayName } from '@/domain/person'
-import {
-  appCalendarIcsUrl,
-  appCalendarWebcalUrl,
-  googleCalendarSubscribeFromIcsUrl,
-} from '@/domain/agendaSettings'
-import AddToCalendarButton from '@/components/AddToCalendarButton.vue'
+import CalendarSubscribePanel from '@/components/CalendarSubscribePanel.vue'
 import MemberBlogPanel from '@/components/MemberBlogPanel.vue'
 import MemberHomePanel from '@/components/MemberHomePanel.vue'
 import AgendaCalendar from '@/components/AgendaCalendar.vue'
@@ -304,11 +296,10 @@ const infosVisited = ref(route.query.onglet === 'infos')
 const empruntsVisited = ref(route.query.onglet === 'emprunts')
 const selectedEvent = ref(null)
 const eventDialog = ref(false)
+const subscribeOpen = ref(false)
 
-const eventGroups = EVENT_GROUPS
-const origin = typeof window === 'undefined' ? '' : window.location.origin
-const googleSubscribeUrl = computed(() => googleCalendarSubscribeFromIcsUrl(appCalendarIcsUrl(origin)))
-const icalSubscribeUrl = computed(() => appCalendarWebcalUrl(origin))
+const eventGroups = computed(() => activeEventGroups())
+const canSubscribe = computed(() => Boolean(data.value))
 const memberTabs = [
   { id: 'accueil', label: 'Accueil', icon: 'mdi-home-outline', activeIcon: 'mdi-home' },
   { id: 'agenda', label: 'Agenda', icon: 'mdi-calendar-month-outline', activeIcon: 'mdi-calendar-month' },
@@ -382,6 +373,7 @@ onMounted(async () => {
       return
     }
     data.value = payload
+    applyEventCatalog(payload.eventCatalog)
     const stored = readStoredPresencePersonId(payload.profiles || [])
     selectedPersonId.value = stored || payload.profiles?.[0]?.id || ''
   } catch (err) {
@@ -471,9 +463,11 @@ function closeMemberEvent() {
 }
 
 .member-space__title {
+  font-family: Georgia, 'Times New Roman', serif;
   font-size: 1.05rem;
   line-height: 1.2;
   margin: 0;
+  letter-spacing: 0.02em;
 }
 
 .member-space--mobile .member-space__eyebrow {
@@ -495,17 +489,6 @@ function closeMemberEvent() {
 .member-space__who {
   flex: 1;
   min-width: min(100%, 220px);
-}
-
-.member-space__subscribe {
-  margin-bottom: 10px;
-  font-size: 0.88rem;
-}
-
-.member-space__subscribe summary {
-  cursor: pointer;
-  font-weight: 600;
-  color: var(--kamg-deep);
 }
 
 .member-group-filters {
@@ -541,9 +524,15 @@ function closeMemberEvent() {
 }
 
 .member-section__title {
-  font-size: 1rem;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 0.95rem;
   font-weight: 700;
+  letter-spacing: 0.03em;
   margin: 0 0 8px;
+  background: var(--kamg-deep);
+  color: #fff;
+  padding: 6px 14px;
+  border-radius: 6px;
 }
 
 .member-section__intro {
@@ -558,10 +547,10 @@ function closeMemberEvent() {
 }
 
 .member-card {
-  background: rgba(255, 255, 255, 0.88);
-  border: 1px solid rgba(83, 115, 106, 0.16);
-  border-radius: 14px;
-  padding: 14px 16px;
+  background: #fff;
+  border: 1px solid var(--kamg-border);
+  border-radius: 16px;
+  padding: 16px;
 }
 
 .member-card__head {

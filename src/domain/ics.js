@@ -1,4 +1,5 @@
 import { normalizeEvent } from './events.js'
+import { filterEventsByGroups } from './eventGroups.js'
 
 function unfoldIcs(text) {
   return String(text || '')
@@ -215,8 +216,8 @@ export function buildSingleEventIcs(event) {
   return `${lines.map(foldIcsLine).join('\r\n')}\r\n`
 }
 
-export function buildCalendarIcs(events = [], { calName = 'Korriganed Ar Meilhoù Glas' } = {}) {
-  const published = events.filter(isPublishableEvent)
+export function buildCalendarIcs(events = [], { calName = 'Korriganed Ar Meilhoù Glas', groupes = [] } = {}) {
+  const published = filterEventsByGroups(events.filter(isPublishableEvent), groupes)
   const sorted = [...published].sort((a, b) => String(a.debut).localeCompare(String(b.debut)))
   const lines = [
     'BEGIN:VCALENDAR',

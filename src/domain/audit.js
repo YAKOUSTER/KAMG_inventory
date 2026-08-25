@@ -16,6 +16,7 @@ export const AUDIT_ACTIONS = [
   { id: 'db.import', label: 'Import JSON', entityType: 'db' },
   { id: 'referentiels.update', label: 'Listes de paramétrage', entityType: 'settings' },
   { id: 'audit.clear', label: 'Journal vidé', entityType: 'settings' },
+  { id: 'eventCatalog.update', label: 'Types et groupes d’événements', entityType: 'settings' },
   { id: 'stock.adjust', label: 'Mouvement de stock', entityType: 'item' },
 ]
 

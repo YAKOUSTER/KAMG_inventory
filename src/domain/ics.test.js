@@ -108,6 +108,35 @@ describe('buildCalendarIcs', () => {
     assert.equal(eventIcsUid({ id: 'abc', googleUid: '' }), 'kamg-abc@kamg.sterennfonseca.fr')
   })
 
+  it('filtre le flux ICS par groupes', () => {
+    const events = [
+      {
+        id: 'ado-1',
+        titre: 'Répétition ado',
+        debut: '2026-09-10T17:30:00.000Z',
+        publie: true,
+        groupes: ['ado'],
+      },
+      {
+        id: 'tremplin-1',
+        titre: 'Répétition tremplin',
+        debut: '2026-09-11T17:30:00.000Z',
+        publie: true,
+        groupes: ['tremplin'],
+      },
+    ]
+    const all = buildCalendarIcs(events, { calName: 'KAMG' })
+    assert.match(all, /Répétition ado/)
+    assert.match(all, /Répétition tremplin/)
+    const adoOnly = buildCalendarIcs(events, { calName: 'KAMG', groupes: ['ado'] })
+    assert.match(adoOnly, /Répétition ado/)
+    assert.doesNotMatch(adoOnly, /Répétition tremplin/)
+    assert.equal(
+      appCalendarIcsUrl('https://kamg.sterennfonseca.fr', ['ado', 'tremplin']),
+      'https://kamg.sterennfonseca.fr/api/public/calendar.ics?groupes=ado%2Ctremplin',
+    )
+  })
+
   it('plie les lignes trop longues', () => {
     const folded = foldIcsLine(`SUMMARY:${'A'.repeat(90)}`)
     assert.ok(folded.includes('\r\n '))

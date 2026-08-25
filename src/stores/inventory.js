@@ -4,6 +4,7 @@ import { countByCategory, filterItems } from '@/domain/filters'
 import { normalizeReferentiels } from '@/domain/referentiels'
 import { countLowStock } from '@/domain/stock'
 import { countOpenTasks } from '@/domain/itemTasks'
+import { applyEventCatalog, normalizeEventCatalog } from '@/domain/eventCatalog'
 
 function isDenied(error) {
   return /Accès refusé/.test(error?.message || '')
@@ -18,6 +19,7 @@ export const useInventoryStore = defineStore('inventory', {
     loans: [],
     stats: null,
     referentiels: null,
+    eventCatalog: null,
     loading: false,
     loaded: false,
     error: '',
@@ -37,6 +39,8 @@ export const useInventoryStore = defineStore('inventory', {
       this.loans = payload.loans || []
       this.stats = payload.stats || null
       this.referentiels = payload.referentiels || null
+      this.eventCatalog = normalizeEventCatalog(payload.eventCatalog)
+      applyEventCatalog(this.eventCatalog)
       this.loaded = true
       this.error = ''
     },
@@ -46,6 +50,7 @@ export const useInventoryStore = defineStore('inventory', {
       this.loans = []
       this.stats = null
       this.referentiels = null
+      this.eventCatalog = null
       this.loaded = false
       this.error = ''
     },
@@ -113,7 +118,7 @@ export const useInventoryStore = defineStore('inventory', {
       })()
         .catch((error) => {
           if (isDenied(error)) {
-            this.hydrate({ items: [], people: [], loans: [], stats: null })
+            this.hydrate({ items: [], people: [], loans: [], stats: null, eventCatalog: null })
             return
           }
           this.error = error.message

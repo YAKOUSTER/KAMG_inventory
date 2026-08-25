@@ -175,11 +175,19 @@ function coverOf(page) {
 
 .member-home__title {
   margin: 0;
-  font-size: 1.15rem;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  background: var(--kamg-deep);
+  color: #fff;
+  padding: 6px 14px;
+  border-radius: 6px;
+  display: inline-block;
 }
 
 .member-home__intro {
-  margin: 4px 0 0;
+  margin: 6px 0 0;
   font-size: 0.9rem;
   color: rgba(44, 51, 44, 0.68);
 }

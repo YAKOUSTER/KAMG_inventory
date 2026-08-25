@@ -150,6 +150,55 @@ describe('API HTTP', () => {
     assert.doesNotMatch(icsAfterDraft.body.raw || '', /Brouillon secret/)
   })
 
+  it('filtre le calendrier ICS par groupes et enregistre le catalogue', async () => {
+    const app = createApiApp()
+    const login = await request(app, 'POST', '/api/auth/login', {
+      body: { login: 'admin', password: 'admin' },
+    })
+    assert.equal(login.status, 200)
+
+    const ado = await request(app, 'POST', '/api/events', {
+      token: login.body.token,
+      body: {
+        kinds: ['repetition_ado'],
+        titre: 'Ado ICS',
+        debut: '2026-10-08T18:00:00.000Z',
+        publie: true,
+      },
+    })
+    assert.equal(ado.status, 200)
+    const tremplin = await request(app, 'POST', '/api/events', {
+      token: login.body.token,
+      body: {
+        kinds: ['repetition_tremplin_ado'],
+        titre: 'Tremplin ICS',
+        debut: '2026-10-09T18:00:00.000Z',
+        publie: true,
+      },
+    })
+    assert.equal(tremplin.status, 200)
+
+    const adoIcs = await request(app, 'GET', '/api/public/calendar.ics?groupes=ado')
+    assert.equal(adoIcs.status, 200)
+    assert.match(adoIcs.body.raw || '', /Ado ICS/)
+    assert.match(adoIcs.body.raw || '', /Tremplin ICS/)
+
+    const concoursIcs = await request(app, 'GET', '/api/public/calendar.ics?groupes=concours')
+    assert.doesNotMatch(concoursIcs.body.raw || '', /Ado ICS/)
+    assert.doesNotMatch(concoursIcs.body.raw || '', /Tremplin ICS/)
+
+    const catalog = await request(app, 'PUT', '/api/settings/event-catalog', {
+      token: login.body.token,
+      body: {
+        kinds: [{ id: 'sortie', label: 'Sortie du cercle' }],
+        groups: [{ id: 'ado', label: 'Groupe ado' }],
+      },
+    })
+    assert.equal(catalog.status, 200)
+    assert.equal(catalog.body.kinds.find((entry) => entry.id === 'sortie')?.label, 'Sortie du cercle')
+    assert.equal(catalog.body.groups.find((entry) => entry.id === 'ado')?.label, 'Groupe ado')
+  })
+
   it('inscrit un membre, le range, puis autorise le sondage sur sa fiche', async () => {
     const app = createApiApp()
     const login = await request(app, 'POST', '/api/auth/login', {

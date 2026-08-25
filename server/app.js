@@ -58,6 +58,8 @@ import {
   deleteContentPage,
   getAgendaSettings,
   updateAgendaSettings,
+  getEventCatalog,
+  updateEventCatalog,
   syncGoogleCalendar,
   getPublicCalendarIcs,
   getPushConfig,
@@ -192,9 +194,13 @@ export function createApiApp() {
       max: 120,
       keyFn: (req) => clientIp(req) || 'public-ics',
     }),
-    async (_req, res) => {
+    async (req, res) => {
       try {
-        const ics = await getPublicCalendarIcs()
+        const groupes = String(req.query.groupes || '')
+          .split(',')
+          .map((entry) => entry.trim())
+          .filter(Boolean)
+        const ics = await getPublicCalendarIcs({ groupes })
         res.setHeader('Content-Type', 'text/calendar; charset=utf-8')
         res.setHeader('Content-Disposition', 'inline; filename="kamg.ics"')
         res.setHeader('Cache-Control', 'public, max-age=300')
@@ -434,6 +440,12 @@ export function createApiApp() {
     '/api/settings/agenda',
     auth('settings.manage'),
     handle((req) => updateAgendaSettings(req.body, { actor: req.user })),
+  )
+  app.get('/api/settings/event-catalog', auth('settings.manage'), handle(() => getEventCatalog()))
+  app.put(
+    '/api/settings/event-catalog',
+    auth('settings.manage'),
+    handle((req) => updateEventCatalog(req.body, { actor: req.user })),
   )
   app.post('/api/agenda/sync', auth('agenda.write'), handle(() => syncGoogleCalendar()))
 

@@ -18,23 +18,31 @@
       <DetailRow v-if="loan.dateRetour" label="Retour complet" :value="displayDate(loan.dateRetour)" />
     </div>
 
-    <section v-if="auth.can('loans.manage')" class="page-block">
-      <div class="d-flex flex-wrap align-center ga-2 mb-3">
-        <h2 class="section-label mb-0">Gestion de l’emprunt</h2>
-        <v-spacer />
-        <v-btn
-          v-if="!showEditForm"
-          variant="tonal"
-          size="small"
-          prepend-icon="mdi-pencil"
-          @click="showEditForm = true"
-        >
-          Modifier l’emprunt
-        </v-btn>
-      </div>
+    <div class="d-flex flex-wrap ga-2 mb-6">
+      <v-btn
+        v-if="auth.can('loans.manage')"
+        :variant="loanAction === 'edit' ? 'flat' : 'tonal'"
+        :color="loanAction === 'edit' ? 'primary' : undefined"
+        prepend-icon="mdi-pencil-outline"
+        class="text-none"
+        @click="loanAction = loanAction === 'edit' ? '' : 'edit'"
+      >
+        Modifier l’emprunt
+      </v-btn>
+      <v-btn
+        v-if="auth.can('loans.write') && hasOpen"
+        :variant="loanAction === 'return' ? 'flat' : 'tonal'"
+        :color="loanAction === 'return' ? 'primary' : undefined"
+        prepend-icon="mdi-backup-restore"
+        class="text-none"
+        @click="loanAction = loanAction === 'return' ? '' : 'return'"
+      >
+        Gérer le retour
+      </v-btn>
+    </div>
 
-      <v-expand-transition>
-        <div v-if="showEditForm" class="form-fields">
+    <section v-if="auth.can('loans.manage') && loanAction === 'edit'" class="page-block kamg-fiche">
+      <h2 class="kamg-banner">Modifier l’emprunt</h2>
           <FieldRow label="Titre">
             <v-text-field v-model="editForm.titre" hide-details />
           </FieldRow>
@@ -60,7 +68,7 @@
           <v-alert v-if="manageError" type="error" class="mb-3">{{ manageError }}</v-alert>
           <div class="d-flex flex-wrap ga-2">
             <v-btn color="primary" :loading="savingEdit" @click="saveLoanEdits">Enregistrer</v-btn>
-            <v-btn variant="text" @click="showEditForm = false">Fermer</v-btn>
+            <v-btn variant="text" @click="loanAction = ''">Fermer</v-btn>
             <v-btn
               v-if="canCancelLoan"
               color="error"
@@ -71,8 +79,6 @@
               Annuler l’emprunt
             </v-btn>
           </div>
-        </div>
-      </v-expand-transition>
     </section>
 
     <section class="page-block">
@@ -81,10 +87,11 @@
         v-for="line in loan.items"
         :key="line.itemId"
         class="stack-item d-flex ga-2 align-start"
+        :class="{ 'stack-item--selectable': loanAction === 'return' && !line.returnedAt }"
         @click="toggle(line)"
       >
         <v-checkbox
-          v-if="auth.can('loans.write') && !line.returnedAt"
+          v-if="auth.can('loans.write') && loanAction === 'return' && !line.returnedAt"
           v-model="selectedIds"
           :value="line.itemId"
           hide-details
@@ -106,8 +113,8 @@
       </div>
     </section>
 
-    <section v-if="auth.can('loans.write') && hasOpen" class="page-block">
-      <h2 class="section-label">Enregistrer un retour</h2>
+    <section v-if="auth.can('loans.write') && hasOpen && loanAction === 'return'" class="page-block kamg-fiche">
+      <h2 class="kamg-banner">Gérer le retour</h2>
       <FieldRow label="Date de retour">
         <v-text-field v-model="dateRetour" hide-details type="date" />
       </FieldRow>
@@ -173,7 +180,7 @@ const cancelling = ref(false)
 const loading = ref(false)
 const error = ref('')
 const manageError = ref('')
-const showEditForm = ref(false)
+const loanAction = ref('')
 const editForm = ref({
   titre: '',
   personId: '',
@@ -224,7 +231,7 @@ const chipLabel = computed(() => (overdue.value ? 'En retard' : loanStatusLabel(
 const chipColor = computed(() => (overdue.value ? 'error' : loanStatusColor(loan.value?.statut)))
 
 function toggle(line) {
-  if (!auth.can('loans.write') || line.returnedAt) return
+  if (!auth.can('loans.write') || loanAction.value !== 'return' || line.returnedAt) return
   const id = line.itemId
   if (selectedIds.value.includes(id)) {
     selectedIds.value = selectedIds.value.filter((itemId) => itemId !== id)
@@ -342,7 +349,7 @@ watch(loan, syncEditForm, { immediate: true })
 </script>
 
 <style scoped>
-.stack-item {
+.stack-item--selectable {
   cursor: pointer;
 }
 a {
