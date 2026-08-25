@@ -95,7 +95,7 @@ Le certificat actuel ne couvre que `sterennfonseca.fr` et `www` : Certbot en cr�
 
 5. Changer tout de suite les mots de passe `admin` / `gestion` / `lecteur` via **Comptes et accès**.
 
-Mises à jour suivantes : `git pull && npm ci && npm run build && sudo systemctl restart kamg`. Le fichier `data/db.json` et `data/uploads/` restent sur le serveur (ils ne sont pas dans git).
+Mises à jour suivantes : `git pull && npm ci && npm run build && sudo systemctl restart kamg`. Le fichier `data/db.json` et `data/uploads/` restent sur le serveur (ils ne sont pas dans git). Le script `deploy/deploy-production.sh` en fait une copie dans `data/backups/` avant de changer le code.
 
 ### Déploiement automatique (Cloud Agent)
 
@@ -111,7 +111,7 @@ La clé SSH **privée** ne doit jamais être versionnée. Elle vit dans un **sec
 bash deploy/deploy-production.sh
 ```
 
-Branche déployée par défaut : `cursor/patrimoine-textile-json-5db7` (variable `KAMG_DEPLOY_BRANCH` pour changer).
+Branche déployée : la branche git courante, ou `KAMG_DEPLOY_BRANCH` pour en forcer une. `data/db.json` et les photos ne sont jamais écrasés.
 
 **À éviter :** copier le `dist/` dans le dossier web d’AppMEUR, ou pointer nginx de `sterennfonseca.fr` vers le port 4173. Un chemin du type `sterennfonseca.fr/kamg` est possible mais plus fragile (conflit `/api`) : le sous-domaine est le plus sûr.
 
