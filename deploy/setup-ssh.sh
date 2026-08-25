@@ -15,19 +15,36 @@ if [[ -z "${KAMG_SSH_PRIVATE_KEY:-}" ]]; then
 fi
 
 umask 077
-write_ssh_key() {
-  local raw="$1"
-  if [[ "$raw" == *$'\n'* ]]; then
-    printf '%s' "$raw"
-  elif [[ "$raw" == *'-----BEGIN OPENSSH PRIVATE KEY-----'* ]]; then
-    # Secret collé sur une ligne (espaces entre les blocs base64)
-    raw="${raw// /$'\n'}"
-    printf '%s' "$raw"
-  else
-    printf '%b' "$raw"
-  fi
-}
-write_ssh_key "$KAMG_SSH_PRIVATE_KEY" > "$KEY_PATH"
+# Cursor secrets are often injected on one line; do not replace spaces in
+# "BEGIN OPENSSH PRIVATE KEY" (that used to break ssh-keygen).
+python3 - "$KEY_PATH" <<'PY'
+import os, re, sys
+
+path = sys.argv[1]
+raw = os.environ.get("KAMG_SSH_PRIVATE_KEY", "")
+raw = raw.strip().strip('"').strip("'")
+raw = raw.replace("\r\n", "\n").replace("\r", "\n")
+if "\\n" in raw and "\n" not in raw:
+    raw = raw.replace("\\n", "\n")
+
+if "\n" not in raw:
+    match = re.match(
+        r"(-----BEGIN [^-]+-----)\s+(.*?)\s+(-----END [^-]+-----)\s*$",
+        raw,
+        re.S,
+    )
+    if match:
+        header, body, footer = match.group(1), match.group(2), match.group(3)
+        body = re.sub(r"\s+", "", body)
+        wrapped = "\n".join(body[i : i + 70] for i in range(0, len(body), 70))
+        raw = f"{header}\n{wrapped}\n{footer}"
+
+if not raw.endswith("\n"):
+    raw += "\n"
+
+with open(path, "w", encoding="utf-8") as fh:
+    fh.write(raw)
+PY
 chmod 600 "$KEY_PATH"
 
 if ! ssh-keygen -y -f "$KEY_PATH" >/dev/null 2>&1; then

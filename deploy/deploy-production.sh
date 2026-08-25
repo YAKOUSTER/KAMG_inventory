@@ -22,6 +22,18 @@ if [[ ! -f "$KEY_PATH" ]] || [[ ! -s "$KEY_PATH" ]]; then
   exit 1
 fi
 
+if ! ssh -i "$KEY_PATH" -o IdentitiesOnly=yes -o BatchMode=yes -o PreferredAuthentications=publickey \
+    -o PasswordAuthentication=no -o ConnectTimeout=15 -o StrictHostKeyChecking=accept-new \
+    "$SSH_TARGET" true; then
+  echo
+  echo "Le VPS refuse la clé de l’agent (authorized_keys)."
+  echo "Une seule fois, depuis votre Mac déjà connecté en root :"
+  echo "  ssh root@${KAMG_DEPLOY_HOST:-2.28.17.156} 'mkdir -p /root/.ssh && chmod 700 /root/.ssh'"
+  echo "  cat deploy/cursor-agent.pub | ssh root@${KAMG_DEPLOY_HOST:-2.28.17.156} 'cat >> /root/.ssh/authorized_keys && chmod 600 /root/.ssh/authorized_keys'"
+  echo "Puis relancer : bash deploy/deploy-production.sh"
+  exit 1
+fi
+
 ssh -i "$KEY_PATH" -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new "$SSH_TARGET" bash -s "$BRANCH" <<'REMOTE'
 set -euo pipefail
 BRANCH="$1"

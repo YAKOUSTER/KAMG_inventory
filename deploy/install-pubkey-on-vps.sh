@@ -3,12 +3,14 @@
 # Usage : bash deploy/install-pubkey-on-vps.sh ~/Desktop/kamg-deploy.pub
 set -euo pipefail
 
-PUBKEY_FILE="${1:-}"
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+PUBKEY_FILE="${1:-$ROOT/deploy/cursor-agent.pub}"
 HOST="${KAMG_DEPLOY_HOST:-2.28.17.156}"
 USER="${KAMG_DEPLOY_USER:-root}"
 
-if [[ -z "$PUBKEY_FILE" || ! -f "$PUBKEY_FILE" ]]; then
-  echo "Usage: bash deploy/install-pubkey-on-vps.sh /chemin/vers/kamg-deploy.pub"
+if [[ ! -f "$PUBKEY_FILE" ]]; then
+  echo "Usage: bash deploy/install-pubkey-on-vps.sh [chemin/vers/kamg-deploy.pub]"
+  echo "Par défaut : deploy/cursor-agent.pub"
   exit 1
 fi
 
