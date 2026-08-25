@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import {
   applyPresenceUpdate,
   filterPeopleForPresence,
+  groupPeopleByPresence,
   isClearedPresenceStatut,
   normalizePresenceStatut,
   summarizePresences,
@@ -41,6 +42,27 @@ describe('summarizePresences', () => {
     assert.equal(summary.present, 1)
     assert.equal(summary.absent, 1)
     assert.equal(summary.total, 2)
+  })
+})
+
+describe('groupPeopleByPresence', () => {
+  it('classe les réponses d’un sondage par sortie', () => {
+    const people = [
+      { id: 'a', prenom: 'Anna', nom: 'A' },
+      { id: 'b', prenom: 'Yann', nom: 'B' },
+      { id: 'c', prenom: 'Zoé', nom: 'C' },
+    ]
+    const groups = groupPeopleByPresence(
+      people,
+      [
+        { eventId: 'e1', personId: 'a', statut: 'present' },
+        { eventId: 'e1', personId: 'b', statut: 'maybe' },
+      ],
+      'e1',
+    )
+    assert.deepEqual(groups.present.map((person) => person.id), ['a'])
+    assert.deepEqual(groups.maybe.map((person) => person.id), ['b'])
+    assert.deepEqual(groups.unanswered.map((person) => person.id), ['c'])
   })
 })
 

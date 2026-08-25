@@ -1,6 +1,7 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import {
+  eventDateBadge,
   eventsInMonth,
   eventsOnDay,
   groupEventsByDay,
@@ -15,6 +16,15 @@ import {
   weekDays,
   yearMonths,
 } from './calendarViews.js'
+
+describe('eventDateBadge', () => {
+  it('expose le jour façon Spond', () => {
+    const badge = eventDateBadge({ debut: '2026-10-08T12:00:00.000Z' })
+    assert.ok(badge.day)
+    assert.ok(badge.weekday)
+    assert.ok(badge.month)
+  })
+})
 
 describe('toLocalDay', () => {
   it('garde une date calendaire et lit un ISO', () => {

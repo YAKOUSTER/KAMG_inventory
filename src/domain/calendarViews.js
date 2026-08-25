@@ -178,6 +178,18 @@ export function eventTimeLabel(event) {
   return `${pad2(date.getHours())}:${pad2(date.getMinutes())}`
 }
 
+export function eventDateBadge(value) {
+  const day = toLocalDay(value?.debut || value)
+  const parsed = parseLocalDay(day)
+  if (!parsed) return { weekday: '', day: '', month: '' }
+  const weekday = WEEKDAY_LABELS[(parsed.date.getDay() + 6) % 7]
+  return {
+    weekday,
+    day: String(parsed.day),
+    month: MONTH_LABELS[parsed.month - 1].slice(0, 3).toUpperCase(),
+  }
+}
+
 export function eventsInMonth(events = [], isoDay) {
   const key = monthKey(isoDay)
   if (!key) return []

@@ -1,9 +1,11 @@
 import { personDisplayName } from './person.js'
 
+export const PRESENCE_PERSON_STORAGE_KEY = 'kamg-presence-person-id'
+
 export const PRESENCE_STATUTS = [
-  { id: 'present', label: 'Présent', short: '1', color: 'success' },
-  { id: 'absent', label: 'Absent', short: '0', color: 'error' },
-  { id: 'maybe', label: 'Peut-être', short: '?', color: 'warning' },
+  { id: 'present', label: 'Présent', actionLabel: 'Je viens', short: '1', color: 'success', icon: 'mdi-check' },
+  { id: 'absent', label: 'Absent', actionLabel: 'Absent', short: '0', color: 'error', icon: 'mdi-close' },
+  { id: 'maybe', label: 'Peut-être', actionLabel: 'Peut-être', short: '?', color: 'warning', icon: 'mdi-help' },
 ]
 
 const PRESENCE_IDS = new Set(PRESENCE_STATUTS.map((entry) => entry.id))
@@ -86,6 +88,37 @@ export function summarizePresences(presences = [], eventId) {
     counts.total += 1
   }
   return counts
+}
+
+export function groupPeopleByPresence(people = [], presences = [], eventId) {
+  const groups = { present: [], absent: [], maybe: [], unanswered: [] }
+  for (const person of people) {
+    const statut = presenceForPerson(presences, eventId, person.id)?.statut
+    if (statut && groups[statut]) groups[statut].push(person)
+    else groups.unanswered.push(person)
+  }
+  return groups
+}
+
+export function readStoredPresencePersonId(people = []) {
+  if (typeof sessionStorage === 'undefined') return ''
+  try {
+    const stored = sessionStorage.getItem(PRESENCE_PERSON_STORAGE_KEY)
+    if (stored && people.some((person) => person.id === stored)) return stored
+  } catch {
+    /* ignore */
+  }
+  return ''
+}
+
+export function storePresencePersonId(personId) {
+  if (typeof sessionStorage === 'undefined') return
+  try {
+    if (personId) sessionStorage.setItem(PRESENCE_PERSON_STORAGE_KEY, personId)
+    else sessionStorage.removeItem(PRESENCE_PERSON_STORAGE_KEY)
+  } catch {
+    /* ignore */
+  }
 }
 
 export function normalizePresenceRecord(input = {}) {

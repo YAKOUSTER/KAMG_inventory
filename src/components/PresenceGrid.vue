@@ -97,6 +97,7 @@ import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
 import { personDisplayName } from '@/domain/person'
 import {
   PRESENCE_GROUP_FILTERS,
+  PRESENCE_PERSON_STORAGE_KEY,
   filterPeopleForPresence,
   presenceStatutMeta,
   summarizePresences,
@@ -113,7 +114,7 @@ import {
 } from '@/domain/presenceGrid'
 import { api } from '@/services/api'
 
-const PERSON_KEY = 'kamg-presence-person-id'
+const PERSON_KEY = PRESENCE_PERSON_STORAGE_KEY
 
 const props = defineProps({
   events: { type: Array, default: () => [] },

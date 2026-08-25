@@ -62,8 +62,8 @@ a {
   width: 100%;
   max-width: 1320px;
   margin-inline: auto;
-  padding-inline: clamp(1.15rem, 4vw, 2.75rem);
-  padding-block: clamp(1.75rem, 3vw, 3rem);
+  padding-inline: clamp(0.85rem, 4vw, 2.75rem);
+  padding-block: clamp(0.9rem, 3vw, 3rem);
 }
 
 .page-title {
@@ -72,7 +72,7 @@ a {
 }
 
 .page-header {
-  margin-bottom: 2rem;
+  margin-bottom: 1.25rem;
 }
 
 .section-label {
@@ -335,7 +335,24 @@ a {
   border: none !important;
 }
 
+.app-shell--mobile .v-main {
+  padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)) !important;
+}
+
+.kamg-sheet-list .v-list-item {
+  padding-inline: 12px !important;
+}
+
 @media (max-width: 959px) {
+  .page-title {
+    font-size: 1.2rem !important;
+    line-height: 1.25;
+  }
+
+  .page-header {
+    margin-bottom: 0.75rem;
+  }
+
   .page-header .v-btn-group,
   .page-header .v-btn-toggle {
     width: 100%;

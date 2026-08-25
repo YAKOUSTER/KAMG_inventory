@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-alert type="info" variant="tonal" class="mb-4">
+    <v-alert type="info" variant="tonal" class="mb-4 d-none d-md-flex">
       Créez, modifiez et supprimez les dates ici. Google Agenda et l’iPhone se mettent à jour
       en s’abonnant au calendrier publié (Paramètres, ou boutons d’abonnement dans l’espace membres).
     </v-alert>
