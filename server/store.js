@@ -27,6 +27,9 @@ import {
 import { groupLoansByYear, normalizePerson, personDisplayName } from '../src/domain/person.js'
 import { todayLocal, formatDate } from '../src/domain/dates.js'
 import { normalizeEvent, filterPublishedEvents, upcomingEvents, pastEvents, sortEvents, applyEventOverlay, eventAcceptsInscriptions, publicEventSummary, eventLocalDay } from '../src/domain/events.js'
+import { kindsAreRepetition } from '../src/domain/eventKinds.js'
+import { personCanRsvpToEvent, loansVisibleToMember } from '../src/domain/eventGroups.js'
+import { expandRecurringDates, shiftEventTimes } from '../src/domain/recurrence.js'
 import { normalizeContentPage, filterPublishedPages, sortContentPages, publicContentSummary } from '../src/domain/content.js'
 import { normalizePresenceRecord, publicPerson, isClearedPresenceStatut } from '../src/domain/presence.js'
 import { normalizeAgendaSettings, DEFAULT_AGENDA_SETTINGS, publishedCalendarName } from '../src/domain/agendaSettings.js'
@@ -1001,6 +1004,7 @@ export async function getMemberSpace(user, options = {}) {
     ...space,
     pending: false,
     profiles: (space.people || []).filter((person) => allowed.has(person.id)),
+    loans: loansVisibleToMember(space.loans || [], space.people || [], [...allowed]),
   }
 }
 
@@ -1168,23 +1172,45 @@ export async function getEvent(id, options = {}) {
 }
 
 export async function createEvent(payload, options = {}) {
+  const { recurrence, ...rest } = payload && typeof payload === 'object' ? payload : {}
+  const shouldExpand =
+    kindsAreRepetition(rest.kinds) &&
+    recurrence &&
+    (recurrence.freq === 'weekly' || recurrence.freq === 'biweekly')
+  const dates = shouldExpand ? expandRecurringDates(rest.debut, recurrence) : [rest.debut]
+  const starts = dates.length ? dates : [rest.debut]
+
   return withDb((db) => {
-    const event = runDomain(normalizeEvent, { ...payload, source: 'local' }, { id: randomUUID() })
     db.events = db.events || []
-    db.events.push(event)
+    const created = []
+    for (const nextStart of starts) {
+      const times =
+        starts.length > 1 ? shiftEventTimes(rest.debut, rest.fin || rest.debut, nextStart) : {}
+      const event = runDomain(
+        normalizeEvent,
+        { ...rest, ...times, source: 'local' },
+        { id: randomUUID() },
+      )
+      db.events.push(event)
+      created.push(event)
+    }
+    const first = created[0]
     appendAudit(db, options.actor, {
       action: 'event.create',
       entityType: 'event',
-      entityId: event.id,
-      entityLabel: event.titre,
-      summary: `Création de l’événement « ${event.titre} »`,
+      entityId: first.id,
+      entityLabel: first.titre,
+      summary:
+        created.length > 1
+          ? `Création de ${created.length} répétitions « ${first.titre} »`
+          : `Création de l’événement « ${first.titre} »`,
     })
-    return event
+    return { ...first, createdCount: created.length, createdIds: created.map((event) => event.id) }
   }, options).then(async (event) => {
     if (event.publie !== false) {
       deliverManagerNotification(
         {
-          title: 'Nouvelle date au calendrier',
+          title: event.createdCount > 1 ? 'Nouvelles dates au calendrier' : 'Nouvelle date au calendrier',
           body: `${event.titre}${event.lieu ? ` — ${event.lieu}` : ''}`,
           url: '/agenda',
         },
@@ -1263,6 +1289,12 @@ export async function setEventPresence(eventId, payload, options = {}) {
     if (!person) throw Object.assign(new Error('Personne introuvable'), { status: 400 })
     if (options.linkedOnly && !canRsvpAsPerson(options.actor, personId)) {
       throw Object.assign(new Error('Vous ne pouvez répondre que pour vos fiches'), { status: 403 })
+    }
+    if (options.linkedOnly && !personCanRsvpToEvent(person, event)) {
+      throw Object.assign(
+        new Error("Vous n'êtes pas concerné par cet événement ou vous n'avez pas de compte"),
+        { status: 403 },
+      )
     }
 
     db.presences = db.presences || []

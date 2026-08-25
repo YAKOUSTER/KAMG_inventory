@@ -40,6 +40,19 @@ describe('normalizeEvent', () => {
     assert.equal(event.sortie.transport, 'car')
   })
 
+  it('conserve les groupes concernés explicites sur une sortie', () => {
+    const event = normalizeEvent(
+      {
+        kinds: ['sortie'],
+        groupes: ['ado', 'tremplin'],
+        titre: 'Festival',
+        debut: '2026-08-10T14:00:00',
+      },
+      { id: 'evt-groupes' },
+    )
+    assert.deepEqual(event.groupes, ['ado', 'tremplin'])
+  })
+
   it('ne réécrit pas un titre Google inféré', () => {
     const event = normalizeEvent(
       {
@@ -91,6 +104,8 @@ describe('applyEventOverlay', () => {
     assert.equal(overlaid.type, 'sortie')
     assert.equal(overlaid.titre, 'Fest-noz KAMG')
     assert.equal(overlaid.inscriptionsOuvertes, true)
+    const withGroups = applyEventOverlay(event, { groupes: ['ado'] })
+    assert.deepEqual(withGroups.groupes, ['ado'])
   })
 })
 

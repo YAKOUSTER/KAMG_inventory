@@ -19,7 +19,6 @@
           :presences="presences"
           :person-id="personId"
           public-mode
-          :readonly="!personId"
           @select="emit('select-event', $event)"
           @updated="emit('updated', $event)"
         />
@@ -92,7 +91,7 @@
         </div>
       </div>
       <v-alert v-else type="info" variant="tonal">
-        Pas encore de nouveaux danseurs pour la saison {{ newcomers.season }}.
+        Pas encore de nouveaux membres pour la saison {{ newcomers.season }}.
       </v-alert>
     </section>
 
@@ -115,7 +114,6 @@
           :presences="presences"
           :person-id="personId"
           public-mode
-          :readonly="!personId"
           @select="emit('select-event', $event)"
           @updated="emit('updated', $event)"
         />

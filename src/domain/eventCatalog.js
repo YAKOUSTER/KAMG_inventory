@@ -80,12 +80,14 @@ export function normalizeEventCatalog(input = {}) {
 
   return {
     kinds: [...kindsById.values()].filter((entry) => entry.id && entry.label),
-    groups: [...groupsById.values()].filter((entry) => entry.id && entry.label),
+    groups: [...groupsById.values()].filter(
+      (entry) => entry.id && entry.label && entry.id !== 'monitorat',
+    ),
   }
 }
 
 export function selectableEventGroups(catalog = normalizeEventCatalog()) {
-  return (catalog.groups || []).filter((group) => group.id !== 'tous')
+  return (catalog.groups || []).filter((group) => group.id !== 'tous' && group.id !== 'monitorat')
 }
 
 export function parseCalendarGroupesQuery(value) {

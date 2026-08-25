@@ -19,6 +19,7 @@ describe('eventCatalog', () => {
     assert.equal(catalog.kinds.find((entry) => entry.id === 'sortie')?.label, 'Sortie du cercle')
     assert.equal(catalog.groups.find((entry) => entry.id === 'ado')?.label, 'Groupe ado')
     assert.ok(catalog.groups.some((entry) => entry.id === 'tremplin'))
+    assert.ok(!catalog.groups.some((entry) => entry.id === 'monitorat'))
   })
 
   it('ajoute un type ou un groupe personnalisé', () => {
@@ -33,7 +34,15 @@ describe('eventCatalog', () => {
   it('exclut « tous » des abonnements filtrés', () => {
     const groups = selectableEventGroups()
     assert.ok(!groups.some((group) => group.id === 'tous'))
+    assert.ok(!groups.some((group) => group.id === 'monitorat'))
     assert.deepEqual(parseCalendarGroupesQuery('ado, tremplin,,ado'), ['ado', 'tremplin'])
+  })
+
+  it('ignore un Monitorat encore présent dans la base', () => {
+    const catalog = normalizeEventCatalog({
+      groups: [{ id: 'monitorat', label: 'Monitorat' }],
+    })
+    assert.ok(!catalog.groups.some((group) => group.id === 'monitorat'))
   })
 
   it('applique le catalogue au runtime', () => {

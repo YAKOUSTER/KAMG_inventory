@@ -65,9 +65,6 @@
               <v-chip v-if="event.publie === false" size="x-small" color="warning" variant="tonal">
                 Brouillon
               </v-chip>
-              <v-chip v-if="event.inscriptionsOuvertes" size="x-small" color="deep-orange" variant="tonal">
-                Inscriptions
-              </v-chip>
             </div>
             <div class="agenda-cal__list-title">{{ event.titre }}</div>
             <div v-if="event.lieu" class="agenda-cal__list-meta">{{ event.lieu }}</div>
@@ -485,10 +482,10 @@ function openMonth(entry) {
   border-radius: 4px;
   background: repeating-linear-gradient(
     -45deg,
-    rgba(201, 162, 39, 0.45),
-    rgba(201, 162, 39, 0.45) 4px,
-    #fff8e6 4px,
-    #fff8e6 8px
+    rgba(201, 162, 39, 0.18),
+    rgba(201, 162, 39, 0.18) 4px,
+    #fff 4px,
+    #fff 8px
   );
   border: 1px solid rgba(168, 132, 24, 0.35);
   flex-shrink: 0;
@@ -622,20 +619,20 @@ function openMonth(entry) {
 .agenda-cal__week-col.is-holiday {
   background: repeating-linear-gradient(
     -45deg,
-    rgba(201, 162, 39, 0.16),
-    rgba(201, 162, 39, 0.16) 6px,
-    #fffdf6 6px,
-    #fffdf6 12px
+    rgba(201, 162, 39, 0.07),
+    rgba(201, 162, 39, 0.07) 6px,
+    #fff 6px,
+    #fff 12px
   );
 }
 
 .agenda-cal__week-col.is-holiday.is-today {
   background: repeating-linear-gradient(
     -45deg,
-    rgba(201, 162, 39, 0.22),
-    rgba(201, 162, 39, 0.22) 6px,
-    rgba(106, 140, 105, 0.12) 6px,
-    rgba(106, 140, 105, 0.12) 12px
+    rgba(201, 162, 39, 0.1),
+    rgba(201, 162, 39, 0.1) 6px,
+    rgba(106, 140, 105, 0.1) 6px,
+    rgba(106, 140, 105, 0.1) 12px
   );
 }
 
@@ -760,20 +757,20 @@ function openMonth(entry) {
 .agenda-cal__cell.is-holiday {
   background: repeating-linear-gradient(
     -45deg,
-    rgba(201, 162, 39, 0.16),
-    rgba(201, 162, 39, 0.16) 6px,
-    #fffdf6 6px,
-    #fffdf6 12px
+    rgba(201, 162, 39, 0.07),
+    rgba(201, 162, 39, 0.07) 6px,
+    #fff 6px,
+    #fff 12px
   );
 }
 
 .agenda-cal__cell.is-holiday.is-today {
   background: repeating-linear-gradient(
     -45deg,
-    rgba(201, 162, 39, 0.22),
-    rgba(201, 162, 39, 0.22) 6px,
-    rgba(106, 140, 105, 0.12) 6px,
-    rgba(106, 140, 105, 0.12) 12px
+    rgba(201, 162, 39, 0.1),
+    rgba(201, 162, 39, 0.1) 6px,
+    rgba(106, 140, 105, 0.1) 6px,
+    rgba(106, 140, 105, 0.1) 12px
   );
 }
 
@@ -897,10 +894,10 @@ function openMonth(entry) {
   .agenda-cal__cell.is-holiday {
     background: repeating-linear-gradient(
       -45deg,
-      rgba(201, 162, 39, 0.2),
-      rgba(201, 162, 39, 0.2) 5px,
-      #fffdf6 5px,
-      #fffdf6 10px
+      rgba(201, 162, 39, 0.08),
+      rgba(201, 162, 39, 0.08) 5px,
+      #fff 5px,
+      #fff 10px
     );
   }
 

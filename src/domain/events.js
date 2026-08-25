@@ -85,12 +85,10 @@ export function normalizeEvent(input = {}, { id } = {}) {
     : []
 
   const derivedGroupes = groupesFromKinds(explicitKinds)
-  const groupes =
-    explicitKinds.length && derivedGroupes.length
-      ? derivedGroupes
-      : Array.isArray(input.groupes)
-        ? [...new Set(input.groupes.map((value) => trim(value)).filter(Boolean))]
-        : derivedGroupes
+  const explicitGroupes = Array.isArray(input.groupes)
+    ? [...new Set(input.groupes.map((value) => trim(value)).filter(Boolean))]
+    : null
+  const groupes = explicitGroupes != null ? explicitGroupes : derivedGroupes
 
   const isSortie = explicitKinds.includes('sortie') || explicitKinds.includes('fest_noz') || type === 'sortie'
   const inferredLibre =
@@ -162,6 +160,9 @@ export function applyEventOverlay(event, overlay) {
     : isSortie
       ? event.sortie || emptySortie()
       : event.sortie || null
+  const groupes = Array.isArray(overlay.groupes)
+    ? [...new Set(overlay.groupes.map((value) => trim(value)).filter(Boolean))]
+    : event.groupes
 
   return {
     ...event,
@@ -173,6 +174,7 @@ export function applyEventOverlay(event, overlay) {
     publie,
     inscriptionsOuvertes,
     horsCercle,
+    groupes,
     sortie,
   }
 }

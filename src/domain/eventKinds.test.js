@@ -7,6 +7,7 @@ import {
   eventKindsOf,
   eventMatchesKindFilter,
   inferEventKinds,
+  kindsAreRepetition,
 } from './eventKinds.js'
 
 describe('eventTitlePrefix', () => {
@@ -87,5 +88,10 @@ describe('eventKindsOf / filtre', () => {
     assert.deepEqual(eventKindsOf(event), ['repetition_tremplin_ado'])
     assert.equal(eventMatchesKindFilter(event, 'repetition_tremplin_ado'), true)
     assert.equal(eventMatchesKindFilter(event, 'sortie'), false)
+  })
+
+  it('reconnaît une répétition', () => {
+    assert.equal(kindsAreRepetition(['repetition_ado']), true)
+    assert.equal(kindsAreRepetition(['sortie']), false)
   })
 })

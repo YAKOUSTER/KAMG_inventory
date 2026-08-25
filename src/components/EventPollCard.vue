@@ -9,9 +9,6 @@
       <div class="event-poll-card__body">
         <div class="event-poll-card__chips">
           <EventKindChips :event="event" />
-          <v-chip v-if="event.inscriptionsOuvertes" size="x-small" color="deep-orange" variant="tonal">
-            Sondage
-          </v-chip>
           <v-chip v-if="event.horsCercle" size="x-small" color="secondary" variant="tonal">
             Libre · hors cercle
           </v-chip>

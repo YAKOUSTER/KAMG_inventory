@@ -60,7 +60,6 @@ const GROUP_PATTERNS = [
   { id: 'loisir', pattern: /loisir/i },
   { id: 'gwennyn', pattern: /gwennyn/i },
   { id: 'sortie', pattern: /sortie|spectacle|fest-noz|défilé|defile|festival/i },
-  { id: 'monitorat', pattern: /monitorat/i },
   { id: 'commission', pattern: /commission|deadline/i },
 ]
 

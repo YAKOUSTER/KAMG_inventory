@@ -6,6 +6,7 @@
         <div>
           <div class="member-space__eyebrow">{{ GROUP_NAME }}</div>
           <h1 class="member-space__title">Espace membres</h1>
+          <p v-if="memberDisplayName" class="member-space__user">{{ memberDisplayName }}</p>
         </div>
       </router-link>
       <div class="member-space__actions">
@@ -29,10 +30,11 @@
     <v-alert v-if="error" type="error" variant="tonal" class="mb-3">{{ error }}</v-alert>
 
     <section v-if="pending" class="member-waiting">
-      <h2>Inscription reçue</h2>
+      <h2>Demande reçue</h2>
       <p>
-        Votre compte est en attente de rangement par le bureau : groupe de danse, fiche, ou lien avec les
-        enfants. Vous pourrez répondre aux sondages ensuite.
+        Votre demande pour rejoindre l'espace membre a bien été reçue. Celle-ci va être traitée par le
+        conseil d'administration. Vous pourrez répondre aux sondages ensuite et accéder à l'actualité du
+        cercle.
       </p>
       <p v-if="auth.user?.signup?.childrenNames" class="text-body-2">
         Enfant(s) indiqué(s) : {{ auth.user.signup.childrenNames }}
@@ -116,7 +118,6 @@
               :presences="data.presences || []"
               :person-id="selectedPersonId"
               public-mode
-              :readonly="!selectedPersonId"
               @select="openMemberEvent"
               @updated="onPresenceUpdated"
             />
@@ -211,7 +212,6 @@
             public-mode
             hide-identity
             show-attendees
-            :readonly="!selectedPersonId"
             @updated="onPresenceUpdated"
           />
           <SortieFiche
@@ -284,6 +284,7 @@ const auth = useAuthStore()
 const display = useDisplay()
 const mdAndUp = computed(() => display.mdAndUp.value)
 const canOpenGestion = computed(() => canAccessGestion(auth.user))
+const memberDisplayName = computed(() => String(auth.user?.nom || auth.user?.login || '').trim())
 const loading = ref(true)
 const error = ref('')
 const pending = ref(false)
@@ -469,6 +470,13 @@ function closeMemberEvent() {
   margin: 0;
   letter-spacing: -0.03em;
   color: var(--kamg-ink);
+}
+
+.member-space__user {
+  margin: 2px 0 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: rgba(44, 51, 44, 0.72);
 }
 
 .member-space--mobile .member-space__eyebrow {

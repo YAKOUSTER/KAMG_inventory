@@ -43,6 +43,7 @@ import {
   listEvents,
   importGoogleCalendarEvents,
   getPublicCalendarIcs,
+  getMemberSpace,
 } from './store.js'
 
 async function tmpOptions() {
@@ -658,5 +659,53 @@ END:VCALENDAR`
     db.passwordResets[0].expiresAt = new Date(Date.now() - 1000).toISOString()
     await writeDb(db, options)
     await assert.rejects(() => resetPassword(token, 'nouveaumdp', options), /invalide/)
+  })
+
+  it('crée des répétitions récurrentes indépendantes', async () => {
+    const start = new Date(2026, 8, 4, 18, 0, 0).toISOString()
+    const end = new Date(2026, 8, 4, 20, 0, 0).toISOString()
+    const created = await createEvent(
+      {
+        kinds: ['repetition_ado'],
+        titre: 'Salle',
+        debut: start,
+        fin: end,
+        recurrence: { freq: 'weekly', until: '2026-09-18' },
+      },
+      options,
+    )
+    assert.equal(created.createdCount, 3)
+    const events = (await listEvents(options)).filter((event) => event.kinds.includes('repetition_ado'))
+    assert.equal(events.length, 3)
+    assert.ok(events.every((event) => !event.recurrence))
+    const updated = await updateEvent(created.id, { lieu: 'Moulin Vert' }, options)
+    assert.equal(updated.lieu, 'Moulin Vert')
+    const others = events.filter((event) => event.id !== created.id)
+    assert.ok(others.every((event) => !event.lieu))
+  })
+
+  it('filtre les emprunts du groupe du membre', async () => {
+    const jupe = await createItem(
+      { code: 'JUP-ADO', nom: 'Jupe ado', categorie: 'piece_costume', disponibilite: 'Disponible' },
+      options,
+    )
+    const gilet = await createItem(
+      { code: 'GIL-CON', nom: 'Gilet concours', categorie: 'piece_costume', disponibilite: 'Disponible' },
+      options,
+    )
+    const ado = await createPerson({ nom: 'Ado', prenom: 'Léa', roles: ['danseur_ado'] }, options)
+    const concours = await createPerson(
+      { nom: 'Concours', prenom: 'Yan', roles: ['danseur_concours'] },
+      options,
+    )
+    await createLoan({ personId: ado.id, items: [{ itemId: jupe.id }] }, options)
+    await createLoan({ personId: concours.id, items: [{ itemId: gilet.id }] }, options)
+    const user = await createUser(
+      { login: 'lea-membre', password: 'motdepasse', nom: 'Léa', role: 'membre', personIds: [ado.id] },
+      options,
+    )
+    const space = await getMemberSpace(user, options)
+    assert.equal(space.loans.length, 1)
+    assert.equal(space.loans[0].personId, ado.id)
   })
 })

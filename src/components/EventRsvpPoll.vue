@@ -13,10 +13,6 @@
       @update:model-value="emit('update:personId', $event || '')"
     />
 
-    <p v-if="publicMode && !personId && hideIdentity" class="rsvp-poll__hint">
-      Votre compte n’est lié à aucune fiche pour le moment.
-    </p>
-
     <div
       class="rsvp-poll__actions"
       :class="{ 'rsvp-poll__actions--compact': compact }"
@@ -32,7 +28,7 @@
           'is-pending': saving && pendingStatut === statut.id,
           'rsvp-poll__btn--compact': compact,
         }"
-        :disabled="!canRespond || saving"
+        :disabled="readonly || saving"
         :aria-pressed="currentStatut === statut.id"
         @click="choose(statut.id)"
       >
@@ -45,12 +41,24 @@
       v-if="!publicMode && currentStatut"
       type="button"
       class="rsvp-poll__clear"
-      :disabled="!canRespond || saving"
+      :disabled="readonly || saving"
       @click="choose('')"
     >
       Effacer la réponse
     </button>
     <p v-if="error" class="rsvp-poll__error">{{ error }}</p>
+
+    <v-dialog v-model="blockedOpen" max-width="420">
+      <v-card>
+        <v-card-text class="text-body-1 pt-6">
+          Vous n'êtes pas concerné par cet événement ou vous n'avez pas de compte
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn color="primary" variant="text" class="text-none" @click="blockedOpen = false">OK</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
     <div v-if="showAttendees" class="rsvp-poll__people">
       <details v-for="group in attendeeGroups" :key="group.id" :open="group.id === 'present'">
@@ -79,6 +87,7 @@ import {
   summarizePresences,
 } from '@/domain/presence'
 import { api } from '@/services/api'
+import { personCanRsvpToEvent } from '@/domain/eventGroups'
 
 const props = defineProps({
   event: { type: Object, required: true },
@@ -97,6 +106,7 @@ const emit = defineEmits(['updated', 'update:personId'])
 const saving = ref(false)
 const pendingStatut = ref('')
 const error = ref('')
+const blockedOpen = ref(false)
 
 const filteredPeople = computed(() => filterPeopleForPresence(props.people, 'tous'))
 const personItems = computed(() =>
@@ -124,12 +134,19 @@ const attendeeGroups = computed(() => [
 const canRespond = computed(() => {
   if (props.readonly) return false
   if (!props.event?.id) return false
-  if (!props.publicMode) return Boolean(props.personId)
-  return Boolean(props.personId)
+  return true
 })
+const selectedPerson = computed(
+  () => (props.people || []).find((person) => person.id === props.personId) || null,
+)
 
 async function choose(statut) {
   if (!canRespond.value || saving.value) return
+  if (props.publicMode && (!props.personId || !personCanRsvpToEvent(selectedPerson.value, props.event))) {
+    blockedOpen.value = true
+    return
+  }
+  if (!props.publicMode && !props.personId) return
   const previous = currentStatut.value
   const next = nextPresenceStatut(previous, statut, { toggleClears: props.publicMode })
   if (next === previous) return
@@ -167,7 +184,6 @@ async function choose(statut) {
   margin-bottom: 10px;
 }
 
-.rsvp-poll__hint,
 .rsvp-poll__empty {
   margin: 0 0 8px;
   font-size: 0.82rem;

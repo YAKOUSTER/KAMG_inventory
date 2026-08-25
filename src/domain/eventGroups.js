@@ -8,7 +8,6 @@ export const EVENT_GROUPS = [
   { id: 'loisir', label: 'Loisir', icon: 'mdi-heart-outline' },
   { id: 'gwennyn', label: 'Gwennyn', icon: 'mdi-flower-outline' },
   { id: 'sortie', label: 'Sortie', icon: 'mdi-drama-masks' },
-  { id: 'monitorat', label: 'Monitorat', icon: 'mdi-account-supervisor-outline' },
   { id: 'commission', label: 'Commission', icon: 'mdi-clipboard-text-outline' },
 ]
 
@@ -36,4 +35,52 @@ export function filterEventsByGroups(events = [], groupIds = []) {
   const ids = [...new Set((groupIds || []).map((id) => String(id || '').trim()).filter((id) => id && id !== 'tous'))]
   if (!ids.length) return events
   return events.filter((event) => (event.groupes || []).some((group) => ids.includes(group)))
+}
+
+export const ROLE_TO_EVENT_GROUP = {
+  danseur_enfant: 'enfant',
+  danseur_ado: 'ado',
+  danseur_tremplin: 'tremplin',
+  danseur_concours: 'concours',
+  danseur_loisir: 'loisir',
+}
+
+export const RSVP_GROUP_IDS = ['korrigan', 'enfant', 'ado', 'tremplin', 'concours', 'loisir', 'gwennyn']
+
+export function danceGroupSelectItems(groups = activeEventGroups()) {
+  return groups
+    .filter((group) => group.id !== 'tous' && group.id !== 'sortie' && group.id !== 'monitorat')
+    .map((group) => ({ title: group.label, value: group.id }))
+}
+
+export function personDanceGroups(person) {
+  return [
+    ...new Set((person?.roles || []).map((role) => ROLE_TO_EVENT_GROUP[role]).filter(Boolean)),
+  ]
+}
+
+export function eventAudienceGroups(event) {
+  return (event?.groupes || []).filter((id) => RSVP_GROUP_IDS.includes(id))
+}
+
+export function personCanRsvpToEvent(person, event) {
+  if (!person) return false
+  const required = eventAudienceGroups(event)
+  if (!required.length) return true
+  return personDanceGroups(person).some((id) => required.includes(id))
+}
+
+export function loansVisibleToMember(loans = [], people = [], memberPersonIds = []) {
+  const allowed = new Set(memberPersonIds)
+  const mine = people.filter((person) => allowed.has(person.id))
+  const groups = new Set(mine.flatMap((person) => personDanceGroups(person)))
+  if (!groups.size) {
+    return loans.filter((loan) => allowed.has(loan.personId))
+  }
+  const inGroup = new Set(
+    people
+      .filter((person) => personDanceGroups(person).some((group) => groups.has(group)))
+      .map((person) => person.id),
+  )
+  return loans.filter((loan) => inGroup.has(loan.personId))
 }

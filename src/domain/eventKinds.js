@@ -237,6 +237,10 @@ export function primaryTypeFromKinds(kinds = [], fallback = 'autre') {
   return fallback
 }
 
+export function kindsAreRepetition(kinds = []) {
+  return normalizeEventKinds(kinds).some((id) => String(id).startsWith('repetition_'))
+}
+
 export function groupesFromKinds(kinds = []) {
   const groups = []
   for (const id of normalizeEventKinds(kinds)) {

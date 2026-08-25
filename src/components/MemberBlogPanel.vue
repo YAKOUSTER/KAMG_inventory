@@ -106,10 +106,6 @@
     </template>
 
     <template v-else>
-      <p class="member-blog__intro">
-        Guides, tutos et infos du cercle — comme dans l’app Glide.
-      </p>
-
       <div class="member-blog__filters d-flex flex-wrap ga-2 mb-4">
         <v-chip
           :color="categoryFilter === 'tous' ? 'primary' : undefined"
@@ -289,12 +285,6 @@ function closeArticle() {
 </script>
 
 <style scoped>
-.member-blog__intro {
-  margin: 0 0 16px;
-  color: rgba(44, 51, 44, 0.72);
-  line-height: 1.5;
-}
-
 .member-blog__back {
   display: inline-flex;
   align-items: center;
