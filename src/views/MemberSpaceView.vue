@@ -10,10 +10,11 @@
       </router-link>
       <div class="member-space__actions">
         <v-btn
-          v-if="auth.can('items.read')"
-          variant="text"
+          v-if="canOpenGestion"
+          variant="tonal"
           size="small"
-          class="text-none d-none d-md-inline-flex"
+          class="text-none"
+          prepend-icon="mdi-briefcase-outline"
           to="/"
         >
           Gestion
@@ -266,12 +267,14 @@ import EventRsvpPoll from '@/components/EventRsvpPoll.vue'
 import SortieFiche from '@/components/SortieFiche.vue'
 import BottomTabBar from '@/components/BottomTabBar.vue'
 import { useAuthStore } from '@/stores/auth'
+import { canAccessGestion } from '@/domain/gestionNav'
 
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
 const display = useDisplay()
 const mdAndUp = computed(() => display.mdAndUp.value)
+const canOpenGestion = computed(() => canAccessGestion(auth.user))
 const loading = ref(true)
 const error = ref('')
 const pending = ref(false)

@@ -7,7 +7,14 @@
     </template>
 
     <template v-else>
-      <v-app-bar color="primary" elevation="0" :height="mdAndUp ? 56 : 48" class="app-bar">
+      <v-app-bar
+        color="primary"
+        elevation="0"
+        :height="mdAndUp ? 56 : 48"
+        :extended="showAreaToolbar"
+        :extension-height="showAreaToolbar ? 40 : 0"
+        class="app-bar"
+      >
         <router-link to="/" class="brand" :class="{ 'brand--mobile': !mdAndUp }" :title="GROUP_NAME">
           <img :src="LOGO_SRC" :alt="GROUP_NAME" class="brand-logo" />
           <span class="brand-name">{{ APP_TITLE }}</span>
@@ -15,19 +22,37 @@
 
         <div class="nav-scroll d-none d-md-flex">
           <v-btn
-            v-for="link in visibleLinks"
-            :key="link.to"
-            :to="link.to"
-            :exact="link.exact"
+            v-for="area in areas"
+            :key="area.id"
+            :to="area.home"
             variant="text"
             size="small"
             class="nav-link"
+            active-class=""
+            exact-active-class=""
+            :class="{ 'nav-link--active': currentArea?.id === area.id }"
           >
-            {{ link.title }}
+            <v-badge
+              :content="pendingMembersBadge"
+              color="warning"
+              :model-value="area.id === 'membres' && Boolean(pendingMembersBadge)"
+            >
+              {{ area.title }}
+            </v-badge>
           </v-btn>
         </div>
 
         <v-spacer />
+
+        <v-btn
+          variant="tonal"
+          size="small"
+          class="text-none nav-member-btn"
+          to="/espace-membre"
+        >
+          <v-icon :start="mdAndUp" size="20">mdi-account-heart-outline</v-icon>
+          <span class="d-none d-md-inline">Espace membres</span>
+        </v-btn>
 
         <v-btn
           v-if="auth.can('loans.write')"
@@ -52,6 +77,11 @@
           <v-list density="compact" min-width="220" class="kamg-sheet-list">
             <v-list-item :title="auth.user?.nom" :subtitle="roleLabel" />
             <v-list-item
+              title="Espace membres"
+              prepend-icon="mdi-account-heart-outline"
+              to="/espace-membre"
+            />
+            <v-list-item
               v-if="auth.can('users.manage')"
               title="Comptes et accès"
               prepend-icon="mdi-account-key-outline"
@@ -73,6 +103,23 @@
             <PushNotificationsToggle />
           </v-list>
         </v-menu>
+
+        <template v-if="showAreaToolbar" #extension>
+          <div class="area-toolbar">
+            <span class="area-toolbar__label">{{ currentArea.fullTitle || currentArea.title }}</span>
+            <v-btn
+              v-for="link in areaToolbarLinks"
+              :key="link.to"
+              :to="link.to"
+              :exact="link.exact"
+              variant="text"
+              size="small"
+              class="area-toolbar__link text-none"
+            >
+              {{ link.title }}
+            </v-btn>
+          </div>
+        </template>
       </v-app-bar>
 
       <v-main>
@@ -100,24 +147,27 @@
       <v-bottom-sheet v-model="moreOpen" class="kamg-more-sheet">
         <v-list class="kamg-sheet-list pa-2">
           <v-list-item
-            v-for="link in plusLinks"
-            :key="link.to"
-            :to="link.to"
-            :title="link.title"
-            :prepend-icon="link.icon"
+            title="Espace membres"
+            prepend-icon="mdi-account-heart-outline"
+            to="/espace-membre"
             @click="moreOpen = false"
           />
-          <v-list-item
-            v-if="auth.can('loans.write')"
-            to="/panier"
-            title="Panier"
-            prepend-icon="mdi-cart-outline"
-            @click="moreOpen = false"
-          >
-            <template v-if="cart.count" #append>
-              <v-chip size="x-small" color="warning" variant="flat">{{ cart.count }}</v-chip>
-            </template>
-          </v-list-item>
+          <template v-for="area in areas" :key="area.id">
+            <v-list-subheader>{{ area.title }}</v-list-subheader>
+            <v-list-item
+              v-for="link in area.links"
+              :key="link.to"
+              :to="link.to"
+              :title="link.title"
+              :prepend-icon="link.icon"
+              @click="moreOpen = false"
+            >
+              <template v-if="link.to === '/panier' && cart.count" #append>
+                <v-chip size="x-small" color="warning" variant="flat">{{ cart.count }}</v-chip>
+              </template>
+            </v-list-item>
+          </template>
+          <v-list-subheader>Compte</v-list-subheader>
           <v-list-item
             v-if="auth.can('users.manage')"
             title="Comptes et accès"
@@ -165,6 +215,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
 import { ROLES, canReceivePushNotifications } from '@/domain/auth'
 import { APP_TITLE, GROUP_NAME, LOGO_SRC } from '@/domain/brand'
+import { gestionAreaForPath, toolbarLinksForArea, visibleGestionAreas } from '@/domain/gestionNav'
 import PushNotificationsToggle from '@/components/PushNotificationsToggle.vue'
 import BottomTabBar from '@/components/BottomTabBar.vue'
 import { registerPushServiceWorker } from '@/services/pushNotifications'
@@ -186,49 +237,38 @@ const isLogin = computed(() =>
 const isMemberSpace = computed(() => route.meta.publicLayout === 'member')
 const isStandalonePublic = computed(() => isLogin.value || isMemberSpace.value)
 
-const links = [
-  { to: '/', title: 'Accueil', icon: 'mdi-home-outline', activeIcon: 'mdi-home', permission: 'items.read', exact: true, tab: 'home' },
-  { to: '/inventaire', title: 'Inventaire', icon: 'mdi-hanger', permission: 'items.read', tab: 'inventory', match: ['/inventaire', '/pieces'] },
-  { to: '/agenda', title: 'Agenda', icon: 'mdi-calendar-month-outline', activeIcon: 'mdi-calendar-month', permission: 'agenda.read', tab: 'agenda', match: ['/agenda'] },
-  { to: '/emprunts', title: 'Emprunts', icon: 'mdi-swap-horizontal', permission: 'loans.read', tab: 'loans', match: ['/emprunts'] },
-  { to: '/personnes', title: 'Personnes', icon: 'mdi-account-group-outline', permission: 'people.read' },
-  { to: '/a-ranger', title: 'À ranger', icon: 'mdi-account-clock-outline', permission: 'people.write' },
-  { to: '/contenus', title: 'Contenus', icon: 'mdi-book-open-page-variant-outline', permission: 'content.read' },
-]
-
-const visibleLinks = computed(() => links.filter((link) => auth.can(link.permission)))
-const primaryTabs = computed(() => visibleLinks.value.filter((link) => link.tab))
-const plusLinks = computed(() => visibleLinks.value.filter((link) => !link.tab))
+const areas = computed(() => visibleGestionAreas(auth.user))
+const currentArea = computed(() => gestionAreaForPath(route.path, auth.user))
+const areaToolbarLinks = computed(() => toolbarLinksForArea(currentArea.value))
+const showAreaToolbar = computed(
+  () => mdAndUp.value && areaToolbarLinks.value.length > 1,
+)
+const pendingMembersBadge = computed(() =>
+  inventory.stats?.pendingMembers ? String(inventory.stats.pendingMembers) : '',
+)
 const roleLabel = computed(() => ROLES.find((role) => role.id === auth.user?.role)?.label || auth.user?.role)
 
 const mobileTabs = computed(() => [
-  ...primaryTabs.value.map((link) => ({
-    id: link.tab,
-    label: link.title,
-    icon: link.icon,
-    activeIcon: link.activeIcon || link.icon,
-    to: link.to,
+  ...areas.value.map((area) => ({
+    id: area.id,
+    label: area.short,
+    icon: area.icon,
+    activeIcon: area.activeIcon || area.icon,
+    to: area.home,
+    badge: area.id === 'membres' ? pendingMembersBadge.value : '',
   })),
   { id: 'more', label: 'Plus', icon: 'mdi-dots-horizontal', activeIcon: 'mdi-dots-horizontal' },
 ])
 
-const mobileActiveId = computed(() => {
-  const path = route.path
-  const match = primaryTabs.value.find((link) => {
-    if (link.exact) return path === link.to
-    return (link.match || [link.to]).some((prefix) => path === prefix || path.startsWith(`${prefix}/`))
-  })
-  if (match) return match.tab
-  return 'more'
-})
+const mobileActiveId = computed(() => currentArea.value?.id || 'more')
 
 function onMobileTab(id) {
   if (id === 'more') {
     moreOpen.value = true
     return
   }
-  const link = primaryTabs.value.find((entry) => entry.tab === id)
-  if (link) router.push(link.to)
+  const area = areas.value.find((entry) => entry.id === id)
+  if (area) router.push(area.home)
 }
 
 watch(
@@ -341,6 +381,44 @@ watch(
   font-weight: 600;
   min-height: 40px;
   padding-inline: 0.7rem !important;
+  opacity: 0.82;
+}
+
+.nav-link--active {
+  opacity: 1;
+  font-weight: 800;
+  box-shadow: inset 0 -2px 0 currentColor;
+}
+
+.nav-member-btn {
+  min-height: 40px;
+  font-weight: 700;
+}
+
+.area-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  width: 100%;
+  min-height: 40px;
+  padding-inline: clamp(0.4rem, 2vw, 1.25rem);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.area-toolbar__label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.8;
+  margin-right: 0.55rem;
+  white-space: nowrap;
+}
+
+.area-toolbar__link {
+  font-size: 0.86rem;
+  font-weight: 600;
+  min-height: 32px;
 }
 
 .nav-icon-btn,
@@ -352,5 +430,9 @@ watch(
 .app-bar :deep(.v-toolbar__content) {
   padding-inline: clamp(0.4rem, 2vw, 1.25rem);
   gap: 0.15rem;
+}
+
+.app-bar :deep(.v-toolbar__extension) {
+  padding: 0;
 }
 </style>
