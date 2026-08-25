@@ -98,6 +98,9 @@ body,
 .kamg-account-sheet .v-overlay__content,
 .inventory-filter-sheet .v-overlay__content {
   border-radius: 20px 20px 0 0 !important;
+  width: 100% !important;
+  max-height: 75vh !important;
+  overflow-y: auto;
 }
 
 .kamg-sheet-panel {

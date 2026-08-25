@@ -49,6 +49,7 @@ const emit = defineEmits(['select'])
   background: #fff;
   border-top: 1px solid var(--kamg-border);
   box-shadow: 0 -6px 18px rgba(28, 36, 32, 0.06);
+  isolation: isolate;
 }
 
 .bottom-tab-bar__item {
