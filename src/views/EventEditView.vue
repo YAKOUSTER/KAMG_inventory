@@ -52,7 +52,7 @@
         <FieldRow label="Inscriptions">
           <v-checkbox
             v-model="form.inscriptionsOuvertes"
-            label="Les membres peuvent indiquer leur présence (1 / 0 / ?)"
+            label="Sondage de présence (Je viens / Absent / Peut-être)"
             hide-details
           />
         </FieldRow>

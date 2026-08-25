@@ -28,7 +28,8 @@
           'is-selected': currentStatut === statut.id,
           'is-pending': saving && pendingStatut === statut.id,
         }"
-        :disabled="!canRespond || (saving && pendingStatut !== statut.id)"
+        :disabled="!canRespond || saving"
+        :aria-pressed="currentStatut === statut.id"
         @click="choose(statut.id)"
       >
         <v-icon size="18">{{ statut.icon }}</v-icon>
@@ -113,7 +114,7 @@ const canRespond = computed(() => {
 })
 
 async function choose(statut) {
-  if (!canRespond.value) return
+  if (!canRespond.value || saving.value) return
   const previous = currentStatut.value
   const next = previous === statut ? '' : statut
   saving.value = true

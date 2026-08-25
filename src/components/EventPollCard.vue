@@ -85,6 +85,12 @@ const timeLabel = computed(() => eventTimeLabel(props.event))
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  width: 48px;
+  min-height: 58px;
+  padding: 6px 2px;
+  border-radius: 12px;
+  background: rgba(106, 140, 105, 0.14);
   line-height: 1.05;
   color: var(--kamg-deep);
 }
