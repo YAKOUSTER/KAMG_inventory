@@ -22,7 +22,7 @@
       <v-btn
         v-if="auth.can('loans.manage')"
         type="button"
-        :variant="loanAction === 'edit' ? 'flat' : 'tonal'"
+        :variant="loanAction === 'edit' ? 'flat' : 'text'"
         :color="loanAction === 'edit' ? 'primary' : undefined"
         prepend-icon="mdi-pencil-outline"
         class="text-none"
@@ -33,8 +33,8 @@
       <v-btn
         v-if="auth.can('loans.write') && hasOpen"
         type="button"
-        :variant="loanAction === 'return' ? 'flat' : 'tonal'"
-        :color="loanAction === 'return' ? 'primary' : undefined"
+        variant="flat"
+        color="primary"
         prepend-icon="mdi-backup-restore"
         class="text-none"
         @click="setLoanAction('return')"

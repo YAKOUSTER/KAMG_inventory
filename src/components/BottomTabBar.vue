@@ -44,11 +44,11 @@ const emit = defineEmits(['select'])
   display: flex;
   justify-content: space-around;
   align-items: stretch;
-  min-height: 56px;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  min-height: 60px;
+  padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px));
   background: var(--kamg-overlay);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border-top: 1px solid var(--kamg-border);
 }
 
@@ -59,17 +59,19 @@ const emit = defineEmits(['select'])
   align-items: center;
   justify-content: center;
   gap: 2px;
-  min-height: 56px;
+  min-height: 48px;
   border: 0;
   background: transparent;
-  color: rgba(44, 51, 44, 0.55);
+  color: var(--kamg-muted);
   cursor: pointer;
-  padding: 6px 4px 8px;
+  padding: 6px 4px;
+  border-radius: 14px;
 }
 
 .bottom-tab-bar__item.is-active {
   color: var(--kamg-deep);
   font-weight: 700;
+  background: rgba(83, 115, 106, 0.12);
 }
 
 .bottom-tab-bar__label {

@@ -1,5 +1,5 @@
 <template>
-  <v-card class="item-card h-100 hover-card" :class="{ 'item-card--compact': compact }" variant="flat">
+  <v-card class="item-card h-100 hover-card kamg-card" :class="{ 'item-card--compact': compact }" variant="flat">
     <router-link class="card-link" :to="{ name: 'item-detail', params: { id: item.id } }">
       <div class="thumb-wrap">
         <div class="thumb" :style="{ backgroundImage: cover ? `url(${cover})` : 'none' }">
@@ -101,7 +101,14 @@ function add() {
 
 <style scoped>
 .hover-card {
-  background: transparent !important;
+  background: #fff !important;
+  padding: 10px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.hover-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--kamg-shadow-hover) !important;
 }
 
 .hover-card:hover .item-card__title,
@@ -121,11 +128,11 @@ function add() {
 
 .thumb {
   height: 140px;
-  background: #edede5 center/cover no-repeat;
+  background: var(--kamg-linen) center/cover no-repeat;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 20px;
+  border-radius: 16px;
 }
 
 .thumb-status {
@@ -178,7 +185,11 @@ function add() {
 .item-card--compact .thumb {
   height: auto;
   aspect-ratio: 4 / 5;
-  border-radius: 10px;
+  border-radius: 12px;
+}
+
+.item-card--compact {
+  padding: 8px;
 }
 
 .item-card--compact .item-card__body {

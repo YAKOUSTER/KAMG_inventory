@@ -175,15 +175,14 @@ function coverOf(page) {
 
 .member-home__title {
   margin: 0;
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 0.95rem;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  background: var(--kamg-deep);
-  color: #fff;
-  padding: 6px 14px;
-  border-radius: 6px;
-  display: inline-block;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--kamg-ink);
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  display: block;
 }
 
 .member-home__intro {
@@ -212,9 +211,16 @@ function coverOf(page) {
 .member-home-news {
   background: #fff;
   border: 1px solid var(--kamg-border);
-  border-radius: 16px;
+  border-radius: var(--kamg-radius);
+  box-shadow: var(--kamg-shadow);
   overflow: hidden;
   cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.member-home-news:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--kamg-shadow-hover);
 }
 
 .member-home-news__cover {
@@ -242,6 +248,8 @@ function coverOf(page) {
 .member-home-news__body h3 {
   margin: 0 0 6px;
   font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   line-height: 1.3;
 }
 
@@ -277,15 +285,16 @@ function coverOf(page) {
   gap: 10px;
   background: #fff;
   border: 1px solid var(--kamg-border);
-  border-radius: 14px;
-  padding: 8px;
+  border-radius: 16px;
+  box-shadow: var(--kamg-shadow);
+  padding: 10px;
 }
 
 .member-home-person__photo {
   width: 48px;
   height: 48px;
   border-radius: 12px;
-  background: #edede5 center/cover no-repeat;
+  background: var(--kamg-linen) center/cover no-repeat;
   display: flex;
   align-items: center;
   justify-content: center;

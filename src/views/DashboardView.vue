@@ -9,58 +9,64 @@
     </div>
 
     <div class="stats">
-      <router-link v-for="card in cards" :key="card.label" :to="card.to" class="stat">
-        <div class="text-h5 font-weight-bold">{{ card.value }}</div>
-        <div class="text-body-2 text-medium-emphasis">{{ card.label }}</div>
+      <router-link v-for="card in cards" :key="card.label" :to="card.to" class="stat kamg-card">
+        <div class="stat__value">{{ card.value }}</div>
+        <div class="stat__label">{{ card.label }}</div>
       </router-link>
     </div>
 
-    <div class="d-flex flex-wrap" style="gap: 3rem">
-      <section v-if="auth.can('items.read')" id="a-faire" class="flex-grow-1" style="min-width: 260px">
+    <div class="home-columns">
+      <section v-if="auth.can('items.read')" id="a-faire">
         <div class="section-label">À faire</div>
-        <v-list v-if="taskRows.length" lines="two" class="pa-0">
-          <v-list-item
-            v-for="row in taskRows"
-            :key="`${row.item.id}-${row.task.id}`"
-            :to="{ name: 'item-detail', params: { id: row.item.id } }"
-            :title="row.task.text"
-            :subtitle="`${row.item.code} — ${row.item.nom}`"
-          />
-        </v-list>
+        <div v-if="taskRows.length" class="kamg-card pa-2">
+          <v-list lines="two" class="pa-0">
+            <v-list-item
+              v-for="row in taskRows"
+              :key="`${row.item.id}-${row.task.id}`"
+              :to="{ name: 'item-detail', params: { id: row.item.id } }"
+              :title="row.task.text"
+              :subtitle="`${row.item.code} — ${row.item.nom}`"
+            />
+          </v-list>
+        </div>
         <p v-else class="text-medium-emphasis">Rien à traiter pour le moment.</p>
       </section>
-      <section class="flex-grow-1" style="min-width: 260px">
+      <section>
         <div class="section-label">Dernières pièces</div>
-        <v-list v-if="recent.length" lines="two" class="pa-0">
-          <v-list-item
-            v-for="item in recent"
-            :key="item.id"
-            :to="{ name: 'item-detail', params: { id: item.id } }"
-            :title="item.nom"
-            :subtitle="`${item.code} · ${categoryLabel(item.categorie, referentiels)}`"
-          >
-            <template #append>
-              <StatusChip :status="item.disponibilite" />
-            </template>
-          </v-list-item>
-        </v-list>
+        <div v-if="recent.length" class="kamg-card pa-2">
+          <v-list lines="two" class="pa-0">
+            <v-list-item
+              v-for="item in recent"
+              :key="item.id"
+              :to="{ name: 'item-detail', params: { id: item.id } }"
+              :title="item.nom"
+              :subtitle="`${item.code} · ${categoryLabel(item.categorie, referentiels)}`"
+            >
+              <template #append>
+                <StatusChip :status="item.disponibilite" />
+              </template>
+            </v-list-item>
+          </v-list>
+        </div>
         <p v-else class="text-medium-emphasis">Aucune fiche pour le moment.</p>
       </section>
-      <section class="flex-grow-1" style="min-width: 260px">
+      <section>
         <div class="section-label">Emprunts en cours</div>
-        <v-list v-if="activeLoans.length" lines="two" class="pa-0">
-          <v-list-item
-            v-for="loan in activeLoans"
-            :key="loan.id"
-            :to="{ name: 'loan-detail', params: { id: loan.id } }"
-            :title="loan.titre"
-            :subtitle="`${loan.personName} · ${displayDate(loan.dateEmprunt)}`"
-          >
-            <template #append>
-              <v-chip v-if="isOverdue(loan)" size="x-small" color="error" variant="tonal">Retard</v-chip>
-            </template>
-          </v-list-item>
-        </v-list>
+        <div v-if="activeLoans.length" class="kamg-card pa-2">
+          <v-list lines="two" class="pa-0">
+            <v-list-item
+              v-for="loan in activeLoans"
+              :key="loan.id"
+              :to="{ name: 'loan-detail', params: { id: loan.id } }"
+              :title="loan.titre"
+              :subtitle="`${loan.personName} · ${displayDate(loan.dateEmprunt)}`"
+            >
+              <template #append>
+                <v-chip v-if="isOverdue(loan)" size="x-small" color="error" variant="tonal">Retard</v-chip>
+              </template>
+            </v-list-item>
+          </v-list>
+        </div>
         <p v-else class="text-medium-emphasis">Aucun emprunt en cours.</p>
       </section>
     </div>
@@ -137,17 +143,37 @@ const activeLoans = computed(() => inventory.loans.filter((loan) => loan.statut 
 
 <style scoped>
 .stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.5rem 2.5rem;
-  margin-bottom: 3rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 2rem;
 }
 .stat {
   text-decoration: none;
   color: inherit;
-  min-width: 6rem;
+  padding: 16px 18px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
-.stat:hover .text-h5 {
-  color: #53736a;
+.stat:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--kamg-shadow-hover);
+}
+.stat__value {
+  font-size: 1.55rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  color: var(--kamg-ink);
+}
+.stat__label {
+  margin-top: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--kamg-muted);
+}
+.home-columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
 }
 </style>

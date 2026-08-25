@@ -8,12 +8,12 @@
 
     <template v-else>
       <v-app-bar
-        color="primary"
+        color="surface"
         elevation="0"
-        :height="mdAndUp ? 56 : 48"
+        :height="mdAndUp ? 64 : 52"
         :extended="showAreaToolbar"
-        :extension-height="showAreaToolbar ? 40 : 0"
-        class="app-bar"
+        :extension-height="showAreaToolbar ? 44 : 0"
+        class="app-bar app-bar--light"
       >
         <router-link to="/" class="brand" :class="{ 'brand--mobile': !mdAndUp }" :title="GROUP_NAME">
           <img :src="LOGO_SRC" :alt="GROUP_NAME" class="brand-logo" />
@@ -45,7 +45,8 @@
         <v-spacer />
 
         <v-btn
-          variant="tonal"
+          color="primary"
+          variant="flat"
           size="small"
           class="text-none nav-member-btn"
           to="/espace-membre"
@@ -320,17 +321,23 @@ watch(
 <style scoped>
 .login-bg {
   background:
-    radial-gradient(circle at 12% 18%, rgba(106, 140, 105, 0.22), transparent 42%),
-    radial-gradient(circle at 88% 82%, rgba(83, 115, 106, 0.18), transparent 40%),
-    linear-gradient(155deg, #eef2ee 0%, #f8faf8 38%, #e8ece8 100%);
+    radial-gradient(circle at 12% 18%, rgba(83, 115, 106, 0.12), transparent 42%),
+    radial-gradient(circle at 88% 82%, rgba(138, 163, 181, 0.12), transparent 40%),
+    var(--kamg-mist);
 }
 
 .member-bg {
-  background:
-    radial-gradient(circle at 10% 12%, rgba(106, 140, 105, 0.16), transparent 40%),
-    radial-gradient(circle at 90% 88%, rgba(83, 115, 106, 0.12), transparent 38%),
-    linear-gradient(160deg, #f3f6f3 0%, #fafcfa 45%, #eef2ee 100%);
+  background: var(--kamg-mist);
   min-height: 100vh;
+}
+
+.app-bar--light {
+  border-bottom: 1px solid var(--kamg-border);
+}
+
+.app-bar--light :deep(.v-toolbar__content),
+.app-bar--light :deep(.v-toolbar__extension) {
+  color: var(--kamg-ink);
 }
 
 .brand {
@@ -357,10 +364,11 @@ watch(
 }
 
 .brand-name {
-  font-size: 0.98rem;
-  font-weight: 700;
+  font-size: 1rem;
+  font-weight: 800;
   white-space: nowrap;
-  letter-spacing: 0.01em;
+  letter-spacing: -0.03em;
+  color: var(--kamg-ink);
 }
 
 .brand--mobile .brand-name {
@@ -376,33 +384,36 @@ watch(
 .nav-link {
   flex: 0 0 auto;
   text-transform: none;
-  letter-spacing: 0.01em;
+  letter-spacing: 0;
   font-size: 0.92rem;
   font-weight: 600;
-  min-height: 40px;
-  padding-inline: 0.7rem !important;
-  opacity: 0.82;
+  min-height: 36px;
+  padding-inline: 0.85rem !important;
+  color: var(--kamg-muted) !important;
+  border-radius: 999px !important;
 }
 
 .nav-link--active {
-  opacity: 1;
-  font-weight: 800;
-  box-shadow: inset 0 -2px 0 currentColor;
+  color: var(--kamg-deep) !important;
+  font-weight: 700;
+  background: rgba(83, 115, 106, 0.12);
 }
 
 .nav-member-btn {
-  min-height: 40px;
+  min-height: 36px;
   font-weight: 700;
+  box-shadow: none !important;
 }
 
 .area-toolbar {
   display: flex;
   align-items: center;
-  gap: 0.15rem;
+  gap: 0.25rem;
   width: 100%;
-  min-height: 40px;
+  min-height: 44px;
   padding-inline: clamp(0.4rem, 2vw, 1.25rem);
-  background: rgba(255, 255, 255, 0.1);
+  background: transparent;
+  border-top: 1px solid var(--kamg-border);
 }
 
 .area-toolbar__label {
@@ -410,7 +421,7 @@ watch(
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  opacity: 0.8;
+  color: var(--kamg-muted);
   margin-right: 0.55rem;
   white-space: nowrap;
 }
@@ -419,6 +430,13 @@ watch(
   font-size: 0.86rem;
   font-weight: 600;
   min-height: 32px;
+  color: var(--kamg-muted) !important;
+  border-radius: 999px !important;
+}
+
+.area-toolbar__link.v-btn--active {
+  color: var(--kamg-deep) !important;
+  background: rgba(83, 115, 106, 0.12);
 }
 
 .nav-icon-btn,

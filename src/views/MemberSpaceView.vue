@@ -463,11 +463,12 @@ function closeMemberEvent() {
 }
 
 .member-space__title {
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 1.05rem;
-  line-height: 1.2;
+  font-size: 1.15rem;
+  font-weight: 800;
+  line-height: 1.15;
   margin: 0;
-  letter-spacing: 0.02em;
+  letter-spacing: -0.03em;
+  color: var(--kamg-ink);
 }
 
 .member-space--mobile .member-space__eyebrow {
@@ -524,15 +525,14 @@ function closeMemberEvent() {
 }
 
 .member-section__title {
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 0.95rem;
-  font-weight: 700;
-  letter-spacing: 0.03em;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
   margin: 0 0 8px;
-  background: var(--kamg-deep);
-  color: #fff;
-  padding: 6px 14px;
-  border-radius: 6px;
+  color: var(--kamg-ink);
+  background: none;
+  padding: 0;
+  border-radius: 0;
 }
 
 .member-section__intro {
@@ -549,7 +549,8 @@ function closeMemberEvent() {
 .member-card {
   background: #fff;
   border: 1px solid var(--kamg-border);
-  border-radius: 16px;
+  border-radius: var(--kamg-radius);
+  box-shadow: var(--kamg-shadow);
   padding: 16px;
 }
 
@@ -593,7 +594,7 @@ function closeMemberEvent() {
   }
 
   .member-space__title {
-    font-size: 1.2rem;
+    font-size: 1.4rem;
   }
 
   .member-space__login {
@@ -617,7 +618,8 @@ function closeMemberEvent() {
 .member-waiting {
   background: #fff;
   border: 1px solid var(--kamg-border);
-  border-radius: 16px;
+  border-radius: var(--kamg-radius);
+  box-shadow: var(--kamg-shadow);
   padding: 20px 18px;
   max-width: 560px;
 }

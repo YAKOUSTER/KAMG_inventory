@@ -175,9 +175,10 @@ async function submit() {
 .login-card__title {
   margin: 0;
   font-size: clamp(1.45rem, 4vw, 1.75rem);
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: -0.03em;
   line-height: 1.2;
-  color: #2c332c;
+  color: var(--kamg-ink);
 }
 
 .login-card__subtitle {

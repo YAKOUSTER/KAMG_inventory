@@ -197,7 +197,8 @@ async function submit() {
 .login-card__title {
   margin: 0;
   font-size: 1.45rem;
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: -0.03em;
 }
 .login-card__subtitle {
   margin: 0.55rem 0 0;

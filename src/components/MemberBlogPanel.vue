@@ -356,8 +356,9 @@ function goToAgendaInscriptions() {
   display: flex;
   flex-direction: column;
   background: #fff;
-  border: 1px solid rgba(71, 91, 145, 0.14);
-  border-radius: 16px;
+  border: 1px solid var(--kamg-border);
+  border-radius: var(--kamg-radius);
+  box-shadow: var(--kamg-shadow);
   overflow: hidden;
   cursor: pointer;
   transition: box-shadow 0.2s ease, transform 0.2s ease;
@@ -365,7 +366,7 @@ function goToAgendaInscriptions() {
 
 .member-blog-card:hover,
 .member-blog-card:focus-visible {
-  box-shadow: 0 8px 28px rgba(44, 51, 74, 0.1);
+  box-shadow: var(--kamg-shadow-hover);
   transform: translateY(-2px);
   outline: none;
 }
@@ -399,6 +400,8 @@ function goToAgendaInscriptions() {
 .member-blog-card__title {
   margin: 0 0 8px;
   font-size: 1.08rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   line-height: 1.3;
 }
 
@@ -426,8 +429,9 @@ function goToAgendaInscriptions() {
 
 .member-blog-article {
   background: #fff;
-  border: 1px solid rgba(71, 91, 145, 0.12);
-  border-radius: 18px;
+  border: 1px solid var(--kamg-border);
+  border-radius: var(--kamg-radius);
+  box-shadow: var(--kamg-shadow);
   overflow: hidden;
 }
 
@@ -453,6 +457,8 @@ function goToAgendaInscriptions() {
 .member-blog-article__title {
   margin: 12px 0 0;
   font-size: clamp(1.35rem, 4vw, 1.75rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
   line-height: 1.25;
 }
 

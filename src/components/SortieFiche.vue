@@ -335,9 +335,10 @@ const personItems = computed(() =>
 .sortie-fiche {
   background: #fff;
   border: 1px solid var(--kamg-border);
-  border-radius: 16px;
-  padding: 16px;
-  color: #2c332c;
+  border-radius: var(--kamg-radius);
+  box-shadow: var(--kamg-shadow);
+  padding: 20px;
+  color: var(--kamg-ink);
 }
 
 .sortie-fiche--embedded {
@@ -363,10 +364,10 @@ const personItems = computed(() =>
 
 .sortie-fiche__title-box {
   flex: 1;
-  background: var(--kamg-deep);
-  color: #fff;
-  border-radius: 8px;
-  padding: 10px 16px;
+  background: transparent;
+  color: var(--kamg-ink);
+  border-radius: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -375,30 +376,30 @@ const personItems = computed(() =>
 
 .sortie-fiche__title {
   margin: 0;
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 1.15rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  text-transform: none;
   line-height: 1.2;
 }
 
 .sortie-fiche__season {
   margin: 4px 0 0;
-  opacity: 0.9;
-  font-size: 0.92rem;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--kamg-muted);
 }
 
 .sortie-fiche__banner {
-  background: var(--kamg-deep);
-  color: #fff;
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 0.95rem;
+  background: rgba(83, 115, 106, 0.1);
+  color: var(--kamg-deep);
+  font-size: 0.82rem;
   font-weight: 700;
-  letter-spacing: 0.03em;
-  margin: 16px 0 10px;
-  padding: 6px 14px;
-  border-radius: 6px;
+  letter-spacing: 0.02em;
+  margin: 18px 0 10px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  display: inline-block;
 }
 
 .sortie-fiche__grid {
@@ -424,6 +425,7 @@ const personItems = computed(() =>
 .sortie-fiche__label {
   font-size: 0.78rem;
   font-weight: 700;
+  color: var(--kamg-muted);
   margin-bottom: 4px;
 }
 

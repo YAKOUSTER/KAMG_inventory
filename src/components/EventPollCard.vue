@@ -67,8 +67,9 @@ const timeLabel = computed(() => eventTimeLabel(props.event))
 .event-poll-card {
   background: #fff;
   border: 1px solid var(--kamg-border);
-  border-radius: 16px;
-  padding: 10px 10px 12px;
+  border-radius: var(--kamg-radius);
+  box-shadow: var(--kamg-shadow);
+  padding: 12px 14px 10px;
 }
 
 .event-poll-card__main {
@@ -115,6 +116,8 @@ const timeLabel = computed(() => eventTimeLabel(props.event))
 .event-poll-card__title {
   margin: 2px 0 4px;
   font-size: 0.98rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   line-height: 1.25;
 }
 
@@ -139,8 +142,8 @@ const timeLabel = computed(() => eventTimeLabel(props.event))
 }
 
 .event-poll-card__poll {
-  margin-top: 6px;
-  padding-top: 6px;
+  margin-top: 8px;
+  padding-top: 8px;
   border-top: 1px solid var(--kamg-border);
 }
 </style>

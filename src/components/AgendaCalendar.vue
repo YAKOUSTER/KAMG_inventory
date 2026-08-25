@@ -384,8 +384,9 @@ function openMonth(entry) {
 .agenda-cal {
   background: #fff;
   border: 1px solid var(--kamg-border);
-  border-radius: 16px;
-  padding: 12px;
+  border-radius: var(--kamg-radius);
+  box-shadow: var(--kamg-shadow);
+  padding: 16px;
 }
 
 .agenda-cal__toolbar {
