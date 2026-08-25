@@ -44,6 +44,7 @@
     <AgendaCalendar
       :events="filtered"
       :can-write="auth.can('agenda.write')"
+      mark-past
       storage-key="kamg-agenda-gestion"
       @select="openEvent"
       @create="createOnDay"

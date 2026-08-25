@@ -232,6 +232,17 @@ export function pastEvents(events = [], now = new Date()) {
   )
 }
 
+export function eventIsPast(event, now = new Date()) {
+  const raw = event?.fin || event?.debut
+  if (!raw) return false
+  const end = new Date(raw)
+  if (Number.isNaN(end.getTime())) {
+    const day = eventLocalDay(event)
+    return Boolean(day && day < todayLocal(now))
+  }
+  return end.getTime() < now.getTime()
+}
+
 export function publicEventSummary(event, { includeDescription = false } = {}) {
   if (!event?.id) return null
   const description = includeDescription ? String(event.description || '').slice(0, 400) : ''

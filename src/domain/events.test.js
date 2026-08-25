@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { applyEventOverlay, normalizeEvent, upcomingEvents, pastEvents, publicEventSummary } from './events.js'
+import { applyEventOverlay, eventIsPast, normalizeEvent, upcomingEvents, pastEvents, publicEventSummary } from './events.js'
 import { eventIsHorsCercle } from './eventKinds.js'
 
 describe('normalizeEvent', () => {
@@ -157,5 +157,12 @@ describe('event lists', () => {
   it('filtre les événements passés publiés', () => {
     const list = pastEvents(events, new Date('2026-08-22T12:00:00.000Z'))
     assert.deepEqual(list.map((event) => event.id), ['1'])
+  })
+
+  it('repère un événement déjà terminé', () => {
+    const now = new Date('2026-08-22T12:00:00.000Z')
+    assert.equal(eventIsPast({ debut: '2026-08-21T18:00:00.000Z', fin: '2026-08-21T20:00:00.000Z' }, now), true)
+    assert.equal(eventIsPast({ debut: '2026-08-22T18:00:00.000Z', fin: '2026-08-22T20:00:00.000Z' }, now), false)
+    assert.equal(eventIsPast({ debut: '2026-08-22T10:00:00.000Z', fin: '2026-08-22T11:00:00.000Z' }, now), true)
   })
 })

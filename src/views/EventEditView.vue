@@ -11,9 +11,16 @@
         <img :src="LOGO_SRC" :alt="GROUP_NAME" class="kamg-fiche__logo" />
         <div class="kamg-title-box">
           <h1 class="kamg-title-box__title">{{ fullTitle || (isEdit ? 'Modifier l’événement' : 'Nouvel événement') }}</h1>
-          <p class="kamg-title-box__meta">{{ isSortie ? 'Fiche sortie' : 'Événement du cercle' }}</p>
+          <p class="kamg-title-box__meta">
+            {{ isSortie ? 'Fiche sortie' : 'Événement du cercle' }}
+            <span v-if="isPast"> · Passé</span>
+          </p>
         </div>
       </header>
+
+      <v-alert v-if="isPast" type="info" variant="tonal" class="mb-4" density="compact">
+        Cet événement est passé. Vous pouvez encore le modifier.
+      </v-alert>
 
       <h2 class="kamg-banner">Informations générales</h2>
       <div class="form-fields-grid form-fields-grid--2">
@@ -152,6 +159,7 @@ import {
 } from '@/domain/eventKinds'
 import { danceGroupSelectItems } from '@/domain/eventGroups'
 import { emptySortie, normalizeSortie } from '@/domain/sortie'
+import { eventIsPast } from '@/domain/events'
 import {
   defaultRecurrenceUntil,
   RECURRENCE_FREQS,
@@ -199,6 +207,12 @@ const titlePrefix = computed(() => eventTitlePrefix(form.kinds))
 const fullTitle = computed(() => applyEventTitlePrefix(form.titleRest, form.kinds))
 const isSortie = computed(() => form.kinds.includes('sortie') || form.kinds.includes('fest_noz'))
 const isRepetition = computed(() => kindsAreRepetition(form.kinds))
+const isPast = computed(() =>
+  eventIsPast({
+    debut: fromLocalInput(form.debut),
+    fin: fromLocalInput(form.fin),
+  }),
+)
 const showRecurrence = computed(() => !isEdit.value && isRepetition.value)
 const recurrenceCaption = computed(() =>
   recurrenceSummary(fromLocalInput(form.debut), { freq: form.recurrenceFreq }),

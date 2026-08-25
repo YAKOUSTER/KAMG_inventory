@@ -54,6 +54,7 @@
           v-for="event in group.events"
           :key="event.id"
           class="agenda-cal__list-item"
+          :class="{ 'is-past': isPastEvent(event) }"
           @click="emit('select', event)"
         >
           <time class="agenda-cal__list-when">
@@ -64,6 +65,9 @@
               <EventKindChips :event="event" />
               <v-chip v-if="event.publie === false" size="x-small" color="warning" variant="tonal">
                 Brouillon
+              </v-chip>
+              <v-chip v-if="isPastEvent(event)" size="x-small" variant="tonal" color="secondary">
+                Passé
               </v-chip>
             </div>
             <div class="agenda-cal__list-title">{{ event.titre }}</div>
@@ -89,7 +93,7 @@
           :key="event.id"
           type="button"
           class="agenda-cal__chip"
-          :class="`agenda-cal__chip--${event.type || 'autre'}`"
+          :class="chipClass(event)"
           @click.stop="emit('select', event)"
         >
           <span class="agenda-cal__chip-time">{{ eventTimeLabel(event) }}</span>
@@ -126,7 +130,7 @@
           :key="event.id"
           type="button"
           class="agenda-cal__chip agenda-cal__chip--compact"
-          :class="`agenda-cal__chip--${event.type || 'autre'}`"
+          :class="chipClass(event)"
           @click="emit('select', event)"
         >
           {{ eventTimeLabel(event) }} {{ event.titre }}
@@ -187,10 +191,14 @@
             :key="event.id"
             type="button"
             class="agenda-cal__day-item"
+            :class="{ 'is-past': isPastEvent(event) }"
             @click="selectFromDay(event)"
           >
             <span class="agenda-cal__chip-time">{{ eventTimeLabel(event) }}</span>
             <EventKindChips :event="event" />
+            <v-chip v-if="isPastEvent(event)" size="x-small" variant="tonal" color="secondary">
+              Passé
+            </v-chip>
             <span class="agenda-cal__list-title">{{ event.titre }}</span>
             <span v-if="event.lieu" class="agenda-cal__list-meta">{{ event.lieu }}</span>
           </button>
@@ -244,10 +252,12 @@ import {
   readStoredHolidaysVisible,
   writeStoredHolidaysVisible,
 } from '@/domain/schoolHolidays'
+import { eventIsPast } from '@/domain/events'
 
 const props = defineProps({
   events: { type: Array, default: () => [] },
   canWrite: { type: Boolean, default: false },
+  markPast: { type: Boolean, default: false },
   storageKey: { type: String, default: 'kamg-agenda-view' },
   initialView: { type: String, default: 'mois' },
 })
@@ -309,6 +319,17 @@ function goToday() {
 
 function eventsFor(isoDay) {
   return eventsOnDay(byDay.value, isoDay)
+}
+
+function isPastEvent(event) {
+  return props.markPast && eventIsPast(event)
+}
+
+function chipClass(event) {
+  return {
+    [`agenda-cal__chip--${event.type || 'autre'}`]: true,
+    'is-past': isPastEvent(event),
+  }
 }
 
 function dayNumber(isoDay) {
@@ -566,6 +587,20 @@ function openMonth(entry) {
 
 .agenda-cal__day-item:hover {
   background: rgba(83, 115, 106, 0.08);
+}
+
+.agenda-cal__day-item.is-past,
+.agenda-cal__list-item.is-past,
+.agenda-cal__chip.is-past {
+  opacity: 0.55;
+  filter: grayscale(0.4);
+}
+
+.agenda-cal__day-item.is-past:hover,
+.agenda-cal__list-item.is-past:hover,
+.agenda-cal__chip.is-past:hover {
+  opacity: 0.8;
+  filter: grayscale(0.15);
 }
 
 .agenda-cal__list-item {
