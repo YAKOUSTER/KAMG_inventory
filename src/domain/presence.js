@@ -1,4 +1,5 @@
-import { personDisplayName } from './person.js'
+import { personDisplayName, personSeasons, isNewMember } from './person.js'
+import { coverSrc } from './images.js'
 
 export const PRESENCE_PERSON_STORAGE_KEY = 'kamg-presence-person-id'
 
@@ -71,6 +72,9 @@ export function publicPerson(person) {
     prenom,
     nom,
     roles: Array.isArray(person.roles) ? person.roles : [],
+    saisons: personSeasons(person),
+    nouveau: isNewMember(person),
+    photo: coverSrc(person) || '',
   }
 }
 

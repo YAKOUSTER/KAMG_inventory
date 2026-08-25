@@ -88,6 +88,14 @@ export const EVENT_KINDS = [
     color: 'deep-orange',
   },
   {
+    id: 'fest_noz',
+    label: 'Fest-noz (hors cercle)',
+    family: 'sortie',
+    prefix: '[FEST-NOZ]',
+    groupes: ['sortie'],
+    color: 'deep-orange',
+  },
+  {
     id: 'concours',
     label: 'Concours',
     family: 'concours',
@@ -118,6 +126,7 @@ const COMBINED_PREFIXES = [
   'Répétition Bugale',
   'Répétition Ado',
   '[CONCOURS]',
+  '[FEST-NOZ]',
   '[SORTIE]',
   '[STAGE]',
   'Atelier broderie',
@@ -160,7 +169,8 @@ export function eventTitlePrefix(kinds = []) {
   else if (bugale) prefixes.push('Répétition Bugale')
 
   if (set.has('concours')) prefixes.push('[CONCOURS]')
-  if (set.has('sortie')) prefixes.push('[SORTIE]')
+  if (set.has('fest_noz')) prefixes.push('[FEST-NOZ]')
+  else if (set.has('sortie')) prefixes.push('[SORTIE]')
   if (set.has('stage')) prefixes.push('[STAGE]')
   if (set.has('atelier_broderie')) prefixes.push('Atelier broderie')
   if (set.has('atelier_couture')) prefixes.push('Atelier couture')
@@ -201,7 +211,7 @@ export function applyEventTitlePrefix(titre, kinds = []) {
 
 export function primaryTypeFromKinds(kinds = [], fallback = 'autre') {
   const set = new Set(normalizeEventKinds(kinds))
-  if (set.has('sortie')) return 'sortie'
+  if (set.has('fest_noz') || set.has('sortie')) return 'sortie'
   if (set.has('concours')) return 'concours'
   if (set.has('stage')) return 'stage'
   if ([...set].some((id) => id.startsWith('atelier_'))) return 'atelier'
@@ -239,7 +249,18 @@ export function eventHasKind(event, kindId) {
 }
 
 export function eventIsSortie(event) {
-  return eventHasKind(event, 'sortie') || event?.type === 'sortie'
+  return eventHasKind(event, 'sortie') || eventHasKind(event, 'fest_noz') || event?.type === 'sortie'
+}
+
+export function eventIsFestNoz(event) {
+  return eventHasKind(event, 'fest_noz')
+}
+
+export function eventIsHorsCercle(event) {
+  if (!event) return false
+  if (event.horsCercle === true) return true
+  if (event.horsCercle === false) return false
+  return eventIsFestNoz(event)
 }
 
 export function inferEventKinds(titre = '', description = '', type = '') {
@@ -252,7 +273,8 @@ export function inferEventKinds(titre = '', description = '', type = '') {
   if (/\[concours\]/.test(text) || (/\bconcours\b/.test(text) && !/répétition|repetition/.test(text))) {
     kinds.push('concours')
   }
-  if (/\[sortie\]/.test(text) || type === 'sortie' || /sortie|spectacle|fest-noz|défilé|defile|festival/.test(text)) {
+  if (/fest-?noz/.test(text)) kinds.push('fest_noz')
+  else if (/\[sortie\]/.test(text) || type === 'sortie' || /sortie|spectacle|défilé|defile|festival/.test(text)) {
     kinds.push('sortie')
   }
   if (/répétition|repetition/.test(text) || type === 'repetition') {

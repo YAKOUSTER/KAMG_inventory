@@ -11,6 +11,9 @@
         <FieldRow label="Ordre">
           <v-text-field v-model.number="form.ordre" type="number" hide-details />
         </FieldRow>
+        <FieldRow v-if="form.categorie === 'newsletter'" label="Date de l’actualité">
+          <v-text-field v-model="form.datePublication" type="date" hide-details />
+        </FieldRow>
         <FieldRow label="Titre" class="form-fields-grid__span-2">
           <v-text-field v-model="form.titre" hide-details="auto" :rules="[required]" />
         </FieldRow>
@@ -126,6 +129,7 @@ const form = reactive({
   corps: '',
   ordre: 0,
   publie: true,
+  datePublication: new Date().toISOString().slice(0, 10),
   couvertureUrl: '',
   couvertureLegende: '',
   medias: [],
@@ -150,6 +154,7 @@ onMounted(async () => {
       corps: page.corps || '',
       ordre: page.ordre || 0,
       publie: page.publie !== false,
+      datePublication: String(page.datePublication || page.createdAt || '').slice(0, 10),
       couvertureUrl: page.couverture?.url || '',
       couvertureLegende: page.couverture?.legende || '',
       medias: (page.medias || []).map((media) => ({
@@ -172,6 +177,7 @@ async function submit() {
       corps: form.corps,
       ordre: form.ordre,
       publie: form.publie,
+      datePublication: form.datePublication ? `${form.datePublication}T12:00:00` : undefined,
       couverture: form.couvertureUrl.trim()
         ? {
             type: 'image',

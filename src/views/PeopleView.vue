@@ -33,7 +33,7 @@
         />
       </v-col>
       <v-col cols="12" md="2">
-        <v-select v-model="filters.annee" :items="yearItems" label="Année" hide-details />
+        <v-select v-model="filters.annee" :items="yearItems" label="Saison" hide-details />
       </v-col>
       <v-col cols="12" md="3">
         <v-select v-model="filters.role" :items="roleItems" label="Groupe / rôle" hide-details />
@@ -69,7 +69,7 @@
         Aucune personne à afficher pour ces filtres.
       </p>
       <div v-for="section in promotionSections" :key="section.year" class="promotion-year page-block">
-        <h2 class="section-label">{{ section.year }}</h2>
+        <h2 class="section-label">{{ section.year === 'NEW' ? 'NEW · rentrée' : `Saison ${section.year}` }}</h2>
         <div v-for="group in section.groups" :key="`${section.year}-${group.role}`" class="promotion-group">
           <div class="text-subtitle-1 font-weight-bold mb-3">
             {{ group.label }}
@@ -151,7 +151,8 @@ function updateQuery(patch) {
 }
 
 const yearItems = computed(() => [
-  { title: 'Toutes les années', value: 'Toutes' },
+  { title: 'Toutes les saisons', value: 'Toutes' },
+  { title: 'NEW (rentrée)', value: 'NEW' },
   ...availablePersonYears(inventory.people).map((year) => ({ title: year, value: year })),
 ])
 
@@ -162,7 +163,7 @@ const roleItems = computed(() => [
 
 const sortItems = [
   { title: 'Nom', value: 'nom' },
-  { title: 'Année', value: 'annee' },
+  { title: 'Saison', value: 'annee' },
   { title: 'Groupe', value: 'groupe' },
 ]
 

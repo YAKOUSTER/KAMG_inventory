@@ -320,7 +320,8 @@ describe('json store', () => {
     assert.equal(person.prenom, 'Anna')
     assert.equal(person.nom, 'LE GALL')
     assert.deepEqual(person.roles, ['membre', 'danseur_enfant', 'couture'])
-    assert.equal(person.anneeMembre, '2026')
+    assert.equal(person.anneeMembre, '2026-2027')
+    assert.deepEqual(person.saisons, ['2026-2027'])
   })
 
   it('regroupe l’historique d’emprunts d’une personne par année', async () => {
@@ -539,6 +540,7 @@ describe('json store', () => {
         titre: 'Fest-noz test',
         debut: '2026-09-01T18:00:00.000Z',
         lieu: 'Quimper',
+        inscriptionsOuvertes: true,
       },
       options,
     )

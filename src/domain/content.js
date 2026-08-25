@@ -3,7 +3,7 @@ import { normalizeMediaUrl } from './mediaUrls.js'
 export const CONTENT_CATEGORIES = [
   { id: 'commencer_danse', label: 'Commencer la danse', icon: 'mdi-human-female-dance' },
   { id: 'presentation', label: 'Présentation', icon: 'mdi-information-outline' },
-  { id: 'newsletter', label: 'Infos & newsletter', icon: 'mdi-bullhorn-outline' },
+  { id: 'newsletter', label: 'Actualité du cercle', icon: 'mdi-bullhorn-outline' },
   { id: 'tuto_coiffure', label: 'Tuto coiffure', icon: 'mdi-face-woman-shimmer' },
   { id: 'tuto_habillage', label: 'Tuto habillage', icon: 'mdi-tshirt-crew' },
   { id: 'vocabulaire', label: 'Vocabulaire', icon: 'mdi-book-alphabet' },
@@ -76,6 +76,7 @@ export function normalizeContentPage(input = {}, { id } = {}) {
     medias,
     ordre: Number.isFinite(Number(input.ordre)) ? Number(input.ordre) : 0,
     publie: input.publie !== false,
+    datePublication: normalizeIsoDate(input.datePublication) || normalizeIsoDate(input.createdAt) || new Date().toISOString(),
     createdAt: normalizeIsoDate(input.createdAt) || new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   }
@@ -190,8 +191,18 @@ export function publicContentSummary(page) {
     excerpt: contentExcerpt(page.corps),
     couverture: page.couverture || null,
     ordre: page.ordre || 0,
+    datePublication: page.datePublication || page.createdAt || '',
     publie: true,
   }
+}
+
+export function circleNewsPages(pages = [], { limit = 3 } = {}) {
+  return filterPublishedPages(pages)
+    .filter((page) => page.categorie === 'newsletter')
+    .sort((a, b) =>
+      String(b.datePublication || b.createdAt || '').localeCompare(String(a.datePublication || a.createdAt || '')),
+    )
+    .slice(0, limit)
 }
 
 export function groupPagesByCategory(pages = []) {

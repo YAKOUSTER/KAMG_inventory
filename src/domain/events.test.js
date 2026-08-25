@@ -1,6 +1,7 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { applyEventOverlay, normalizeEvent, upcomingEvents, pastEvents, publicEventSummary } from './events.js'
+import { eventIsHorsCercle } from './eventKinds.js'
 
 describe('normalizeEvent', () => {
   it('normalise un événement publié', () => {
@@ -120,6 +121,22 @@ describe('event lists', () => {
     assert.equal(summary.inscriptionsOuvertes, true)
     assert.ok(Array.isArray(summary.kinds))
     assert.equal(summary.kinds.includes('sortie'), true)
+  })
+
+  it('marque un fest-noz comme libre hors cercle', () => {
+    const event = normalizeEvent(
+      {
+        kinds: ['fest_noz'],
+        titre: 'Fest-noz Plouzané',
+        debut: '2026-09-12T21:00:00',
+      },
+      { id: 'fest-1' },
+    )
+    assert.equal(event.type, 'sortie')
+    assert.equal(event.horsCercle, true)
+    assert.equal(event.inscriptionsOuvertes, false)
+    assert.equal(eventIsHorsCercle(event), true)
+    assert.equal(publicEventSummary(event).horsCercle, true)
   })
 
   it('filtre les événements passés publiés', () => {

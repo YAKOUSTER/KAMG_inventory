@@ -7,6 +7,7 @@ import {
   groupesFromKinds,
   eventKindsOf,
   eventIsSortie,
+  eventIsHorsCercle,
   eventKindMeta,
   eventKindLabel,
 } from './eventKinds.js'
@@ -17,6 +18,8 @@ export {
   eventKindLabel,
   eventKindsOf,
   eventIsSortie,
+  eventIsFestNoz,
+  eventIsHorsCercle,
   eventMatchesKindFilter,
   eventTitlePrefix,
   eventTitleRest,
@@ -89,10 +92,13 @@ export function normalizeEvent(input = {}, { id } = {}) {
         ? [...new Set(input.groupes.map((value) => trim(value)).filter(Boolean))]
         : derivedGroupes
 
-  const isSortie = explicitKinds.includes('sortie') || type === 'sortie'
+  const isSortie = explicitKinds.includes('sortie') || explicitKinds.includes('fest_noz') || type === 'sortie'
+  const inferredLibre =
+    explicitKinds.includes('fest_noz') || /fest-?noz/i.test(`${titre} ${trim(input.description)}`)
+  const horsCercle = input.horsCercle == null ? inferredLibre : Boolean(input.horsCercle)
   const inscriptionsOuvertes =
     input.inscriptionsOuvertes == null
-      ? isSortie || type === 'concours' || explicitKinds.includes('concours')
+      ? (isSortie || type === 'concours' || explicitKinds.includes('concours')) && !horsCercle
       : Boolean(input.inscriptionsOuvertes)
 
   return {
@@ -110,6 +116,7 @@ export function normalizeEvent(input = {}, { id } = {}) {
     inscriptionsOuvertes,
     cible,
     groupes,
+    horsCercle,
     sortie: isSortie ? normalizeSortie(input.sortie) : null,
     createdAt: normalizeIsoDate(input.createdAt) || new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -146,7 +153,10 @@ export function applyEventOverlay(event, overlay) {
     overlay.inscriptionsOuvertes == null
       ? eventAcceptsInscriptions({ ...event, type, kinds })
       : Boolean(overlay.inscriptionsOuvertes)
-  const isSortie = kinds.includes('sortie') || type === 'sortie'
+  const isSortie = kinds.includes('sortie') || kinds.includes('fest_noz') || type === 'sortie'
+  const inferredLibre = kinds.includes('fest_noz') || /fest-?noz/i.test(`${titre} ${description}`)
+  const horsCercle =
+    overlay.horsCercle == null ? (event.horsCercle == null ? inferredLibre : Boolean(event.horsCercle)) : Boolean(overlay.horsCercle)
   const sortie = overlay.sortie
     ? normalizeSortie(overlay.sortie)
     : isSortie
@@ -162,6 +172,7 @@ export function applyEventOverlay(event, overlay) {
     description,
     publie,
     inscriptionsOuvertes,
+    horsCercle,
     sortie,
   }
 }
@@ -233,6 +244,7 @@ export function publicEventSummary(event, { includeDescription = false } = {}) {
     inscriptionsOuvertes: eventAcceptsInscriptions(event),
     groupes: Array.isArray(event.groupes) ? event.groupes : [],
     kinds: eventKindsOf(event),
+    horsCercle: eventIsHorsCercle(event),
     sortie: event.sortie || null,
   }
 }

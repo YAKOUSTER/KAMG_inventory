@@ -31,6 +31,7 @@
           <v-chip v-for="label in roleChips" :key="label" size="small" variant="tonal">{{ label }}</v-chip>
         </div>
         <div class="detail-rows">
+          <DetailRow v-if="seasonLabel" label="Saisons" :value="seasonLabel" />
           <DetailRow v-if="person.telephone" label="Téléphone" :value="person.telephone" />
           <DetailRow v-if="person.email" label="Courriel" :value="person.email" />
           <DetailRow v-if="person.tailleLettre" label="Taille générale" :value="person.tailleLettre" />
@@ -104,7 +105,7 @@ import { useRouter } from 'vue-router'
 import { api } from '@/services/api'
 import { useAuthStore } from '@/stores/auth'
 import { useInventoryStore } from '@/stores/inventory'
-import { PERSON_MEASUREMENTS, displayDate, personDisplayName, personRoleLabels } from '@/domain/person'
+import { PERSON_MEASUREMENTS, displayDate, personDisplayName, personRoleLabels, personSeasons, isNewMember } from '@/domain/person'
 import { itemsInPossession } from '@/domain/loans'
 import { useUiStore } from '@/stores/ui'
 import ImageGallery from '@/components/ImageGallery.vue'
@@ -128,6 +129,11 @@ const filledMeasures = computed(() =>
 )
 
 const roleChips = computed(() => personRoleLabels(person.value))
+const seasonLabel = computed(() => {
+  const seasons = personSeasons(person.value)
+  if (!seasons.length) return isNewMember(person.value) ? 'NEW' : ''
+  return isNewMember(person.value) ? `${seasons.join(', ')} · NEW` : seasons.join(', ')
+})
 
 const heldEntries = computed(() =>
   itemsInPossession(person.value?.loans || []).map((entry) => ({

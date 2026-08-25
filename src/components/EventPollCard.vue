@@ -12,6 +12,9 @@
           <v-chip v-if="event.inscriptionsOuvertes" size="x-small" color="deep-orange" variant="tonal">
             Sondage
           </v-chip>
+          <v-chip v-if="event.horsCercle" size="x-small" color="secondary" variant="tonal">
+            Libre · hors cercle
+          </v-chip>
         </div>
         <h3 class="event-poll-card__title">{{ event.titre }}</h3>
         <p class="event-poll-card__meta">

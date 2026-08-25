@@ -213,7 +213,7 @@ const props = defineProps({
 
 const route = useRoute()
 const router = useRouter()
-const categoryFilter = ref('tous')
+const categoryFilter = ref(route.query.categorie || 'tous')
 const selectedArticleId = ref(route.query.article || '')
 const fullPages = ref({})
 const articleLoading = ref(false)
@@ -243,6 +243,13 @@ const selectedLayout = computed(() =>
 
 const showAgendaCard = computed(
   () => !selectedPage.value && (categoryFilter.value === 'tous' || categoryFilter.value === 'commencer_danse'),
+)
+
+watch(
+  () => route.query.categorie,
+  (value) => {
+    if (value) categoryFilter.value = value
+  },
 )
 
 watch(

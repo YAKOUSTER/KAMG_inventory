@@ -14,8 +14,27 @@
             @update:model-value="person.nom = String($event || '').toLocaleUpperCase('fr')"
           />
         </FieldRow>
-        <FieldRow v-if="showAnnee" label="Année de promotion">
-          <v-select v-model="person.anneeMembre" :items="membershipYears()" hide-details clearable />
+        <FieldRow v-if="showSeasons" label="Saisons" class="form-fields-grid__span-2">
+          <v-select
+            v-model="person.saisons"
+            :items="seasonItems"
+            multiple
+            chips
+            closable-chips
+            hide-details
+            label="Saisons au cercle"
+          />
+          <v-checkbox
+            :model-value="nouveauChecked"
+            class="mt-2"
+            hide-details
+            :label="`Nouveau · rentrée ${newSeason}`"
+            @update:model-value="person.nouveau = $event"
+          />
+          <p class="text-caption text-medium-emphasis mt-1">
+            Cochez les saisons déjà réalisées (ex. 2025-2026). La saison {{ newSeason }} sert pour la
+            rentrée. Les invités n’ont pas de saison.
+          </p>
         </FieldRow>
         <FieldRow label="Taille générale">
           <v-select v-model="person.tailleLettre" :items="tailleItems" hide-details />
@@ -87,10 +106,13 @@ import {
   PERSON_ROLES,
   COHORT_ROLES,
   emptyPerson,
-  membershipYears,
+  membershipSeasons,
   normalizeRoles,
   personDisplayName,
+  personSeasons,
+  isNewMember,
 } from '@/domain/person'
+import { newSeasonId } from '@/domain/seasons'
 import { normalizeImages } from '@/domain/images'
 import FieldRow from './FieldRow.vue'
 import ItemPhotos from './ItemPhotos.vue'
@@ -106,7 +128,10 @@ const form = ref(null)
 const person = reactive(emptyPerson())
 const inventory = useInventoryStore()
 const tailleItems = computed(() => ['', ...inventory.resolvedReferentiels.tailles])
-const showAnnee = computed(() => person.roles.some((role) => COHORT_ROLES.includes(role)))
+const showSeasons = computed(() => person.roles.some((role) => COHORT_ROLES.includes(role)))
+const newSeason = newSeasonId()
+const seasonItems = membershipSeasons()
+const nouveauChecked = computed(() => isNewMember(person))
 const required = (v) => !!v || 'Champ requis'
 const photoCode = computed(() => personDisplayName(person) || 'personne')
 
@@ -117,6 +142,9 @@ watch(
     person.images = normalizeImages(person.images)
     person.mesures = { ...emptyPerson().mesures, ...(value?.mesures || {}) }
     person.roles = normalizeRoles(value || person)
+    person.saisons = personSeasons(person)
+    if (value?.nouveau === true || value?.nouveau === false) person.nouveau = value.nouveau
+    else person.nouveau = null
   },
   { immediate: true, deep: true },
 )

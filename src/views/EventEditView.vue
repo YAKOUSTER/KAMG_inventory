@@ -56,6 +56,13 @@
             hide-details
           />
         </FieldRow>
+        <FieldRow label="Hors cercle">
+          <v-checkbox
+            v-model="form.horsCercle"
+            label="Libre · Fest-noz / sortie hors cercle"
+            hide-details
+          />
+        </FieldRow>
       </div>
 
       <section v-if="isSortie" class="mt-8">
@@ -140,12 +147,13 @@ const form = reactive({
   description: '',
   publie: true,
   inscriptionsOuvertes: false,
+  horsCercle: false,
   sortie: emptySortie(),
 })
 
 const titlePrefix = computed(() => eventTitlePrefix(form.kinds))
 const fullTitle = computed(() => applyEventTitlePrefix(form.titleRest, form.kinds))
-const isSortie = computed(() => form.kinds.includes('sortie'))
+const isSortie = computed(() => form.kinds.includes('sortie') || form.kinds.includes('fest_noz'))
 const dancerCount = computed(() => summarizePresences(presences.value, props.id).present)
 const required = (value) => Boolean(String(value || '').trim()) || 'Champ requis'
 const requiredKinds = (value) => (Array.isArray(value) && value.length > 0) || 'Choisissez au moins un type'
@@ -156,6 +164,10 @@ watch(
   () => {
     if (!isEdit.value) {
       form.inscriptionsOuvertes = form.kinds.includes('sortie') || form.kinds.includes('concours')
+      if (form.kinds.includes('fest_noz')) {
+        form.horsCercle = true
+        form.inscriptionsOuvertes = false
+      }
     }
   },
 )
@@ -197,6 +209,7 @@ onMounted(async () => {
         description: event.description || '',
         publie: event.publie !== false,
         inscriptionsOuvertes: event.inscriptionsOuvertes === true,
+        horsCercle: event.horsCercle === true,
         sortie: normalizeSortie(event.sortie),
       })
       presences.value = await api.eventPresences(props.id).catch(() => [])
@@ -226,6 +239,7 @@ async function submit() {
       description: form.description,
       publie: form.publie,
       inscriptionsOuvertes: form.inscriptionsOuvertes,
+      horsCercle: form.horsCercle,
       sortie: isSortie.value ? form.sortie : null,
     }
     const saved = props.id ? await api.updateEvent(props.id, payload) : await api.createEvent(payload)

@@ -41,10 +41,26 @@
 
     <template v-else-if="data">
       <v-tabs v-if="mdAndUp" v-model="tab" color="primary" class="member-space__tabs" density="compact">
+        <v-tab value="accueil" class="text-none">Accueil</v-tab>
         <v-tab value="agenda" class="text-none">Agenda</v-tab>
         <v-tab value="infos" class="text-none">Infos & tutos</v-tab>
         <v-tab value="emprunts" class="text-none">Emprunts</v-tab>
       </v-tabs>
+
+      <div v-show="tab === 'accueil'" class="member-space__panel">
+        <MemberHomePanel
+          :events="data.events?.upcoming || []"
+          :pages="data.pages || []"
+          :people="data.people || []"
+          :presences="data.presences || []"
+          :person-id="selectedPersonId"
+          @open-agenda="openAgendaTab"
+          @open-news="openNewsTab"
+          @open-article="openArticle"
+          @select-event="openMemberEvent"
+          @updated="onPresenceUpdated"
+        />
+      </div>
 
       <div v-show="tab === 'agenda'" class="member-space__panel">
         <div class="member-space__toolbar">
@@ -260,6 +276,7 @@ import {
 } from '@/domain/agendaSettings'
 import AddToCalendarButton from '@/components/AddToCalendarButton.vue'
 import MemberBlogPanel from '@/components/MemberBlogPanel.vue'
+import MemberHomePanel from '@/components/MemberHomePanel.vue'
 import AgendaCalendar from '@/components/AgendaCalendar.vue'
 import EventKindChips from '@/components/EventKindChips.vue'
 import EventPollCard from '@/components/EventPollCard.vue'
@@ -279,7 +296,7 @@ const loading = ref(true)
 const error = ref('')
 const pending = ref(false)
 const data = ref(null)
-const tab = ref(route.query.onglet || 'agenda')
+const tab = ref(route.query.onglet || 'accueil')
 const agendaMode = ref('events')
 const groupFilter = ref('tous')
 const selectedPersonId = ref('')
@@ -293,6 +310,7 @@ const origin = typeof window === 'undefined' ? '' : window.location.origin
 const googleSubscribeUrl = computed(() => googleCalendarSubscribeFromIcsUrl(appCalendarIcsUrl(origin)))
 const icalSubscribeUrl = computed(() => appCalendarWebcalUrl(origin))
 const memberTabs = [
+  { id: 'accueil', label: 'Accueil', icon: 'mdi-home-outline', activeIcon: 'mdi-home' },
   { id: 'agenda', label: 'Agenda', icon: 'mdi-calendar-month-outline', activeIcon: 'mdi-calendar-month' },
   { id: 'infos', label: 'Infos', icon: 'mdi-book-open-page-variant-outline', activeIcon: 'mdi-book-open-page-variant' },
   { id: 'emprunts', label: 'Emprunts', icon: 'mdi-swap-horizontal' },
@@ -325,6 +343,10 @@ watch(tab, (value) => {
   if (value === 'emprunts') empruntsVisited.value = true
   const query = { ...route.query, onglet: value }
   if (value !== 'agenda') delete query.inscriptions
+  if (value !== 'infos') {
+    delete query.article
+    delete query.categorie
+  }
   router.replace({ query }).catch(() => {})
 })
 
@@ -377,6 +399,23 @@ async function logout() {
 function onPresenceUpdated(record) {
   if (!data.value) return
   data.value = { ...data.value, presences: applyPresenceUpdate(data.value.presences, record) }
+}
+
+function openAgendaTab() {
+  tab.value = 'agenda'
+  agendaMode.value = 'events'
+}
+
+function openNewsTab() {
+  infosVisited.value = true
+  tab.value = 'infos'
+  router.replace({ query: { ...route.query, onglet: 'infos', categorie: 'newsletter' } }).catch(() => {})
+}
+
+function openArticle(id) {
+  infosVisited.value = true
+  tab.value = 'infos'
+  router.replace({ query: { ...route.query, onglet: 'infos', article: id } }).catch(() => {})
 }
 
 function openMemberEvent(event) {

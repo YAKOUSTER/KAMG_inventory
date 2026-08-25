@@ -26,6 +26,7 @@ describe('eventTitlePrefix', () => {
 
   it('préfixe une sortie, un concours et un stage', () => {
     assert.equal(eventTitlePrefix(['sortie']), '[SORTIE]')
+    assert.equal(eventTitlePrefix(['fest_noz']), '[FEST-NOZ]')
     assert.equal(eventTitlePrefix(['concours']), '[CONCOURS]')
     assert.equal(eventTitlePrefix(['stage']), '[STAGE]')
   })

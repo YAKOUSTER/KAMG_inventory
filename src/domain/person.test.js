@@ -42,8 +42,13 @@ describe('normalizePerson', () => {
       { id: 'p2' },
     )
     assert.deepEqual(person.roles, ['membre', 'danseur_loisir', 'couture'])
-    assert.equal(person.anneeMembre, '2026')
-    assert.equal(personRolesLabel(person), 'Membre 2026 · Danseur loisir 2026 · Couture')
+    assert.equal(person.anneeMembre, '2026-2027')
+    assert.deepEqual(person.saisons, ['2026-2027'])
+    assert.equal(person.nouveau, true)
+    assert.equal(
+      personRolesLabel(person),
+      'Membre 2026-2027 · Danseur loisir 2026-2027 · Couture · NEW',
+    )
     assert.equal(person.role, undefined)
   })
 
@@ -57,14 +62,34 @@ describe('normalizePerson', () => {
       },
       { id: 'p4' },
     )
-    assert.equal(person.anneeMembre, '2024')
-    assert.equal(personRolesLabel(person), 'Danseur concours 2024')
+    assert.equal(person.anneeMembre, '2024-2025')
+    assert.deepEqual(person.saisons, ['2024-2025'])
+    assert.equal(person.nouveau, false)
+    assert.equal(personRolesLabel(person), 'Danseur concours 2024-2025')
   })
 
   it('reprend un ancien rôle texte connu', () => {
     assert.deepEqual(normalizeRoles({ role: 'Invité' }), ['invite'])
     const person = normalizePerson({ nom: 'Le Roux', prenom: 'Maïwenn', role: 'Couture' }, { id: 'p3' })
     assert.deepEqual(person.roles, ['couture'])
+    assert.deepEqual(person.saisons, [])
+    assert.equal(person.nouveau, false)
+  })
+
+  it('refuse les saisons pour un invité', () => {
+    const person = normalizePerson(
+      {
+        nom: 'Hamon',
+        prenom: 'Loeiza',
+        roles: ['invite'],
+        saisons: ['2026-2027'],
+        nouveau: true,
+      },
+      { id: 'p-invite' },
+    )
+    assert.deepEqual(person.saisons, [])
+    assert.equal(person.nouveau, false)
+    assert.equal(person.anneeMembre, '')
   })
 })
 
@@ -93,6 +118,7 @@ describe('filterPeople et promotions', () => {
 
   it('filtre par année et rôle', () => {
     assert.equal(filterPeople(people, { annee: '2024' }).length, 2)
+    assert.equal(filterPeople(people, { annee: '2024-2025' }).length, 2)
     assert.equal(filterPeople(people, { role: 'danseur_ado' }).length, 1)
   })
 

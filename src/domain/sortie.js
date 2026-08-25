@@ -154,9 +154,4 @@ export function sortieHasContent(sortie) {
   })
 }
 
-export function seasonLabel(value, now = new Date()) {
-  const date = value ? new Date(value) : now
-  const source = Number.isNaN(date.getTime()) ? now : date
-  const year = source.getMonth() >= 8 ? source.getFullYear() : source.getFullYear() - 1
-  return `${year}-${year + 1}`
-}
+export { seasonLabel } from './seasons.js'
