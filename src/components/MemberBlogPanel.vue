@@ -30,45 +30,51 @@
             v-for="(block, index) in selectedLayout.sections"
             :key="index"
             class="member-blog-article__section"
+            :class="{
+              'has-image': block.images.length,
+              'is-flip': block.imageSide === 'left',
+            }"
           >
-            <h3 v-if="block.heading" class="member-blog-article__heading">{{ block.heading }}</h3>
-
-            <figure
-              v-for="(media, mediaIndex) in block.images"
-              :key="`${selectedPage.id}-img-${index}-${mediaIndex}`"
-              class="member-blog-article__inline-figure"
-            >
-              <CoverImage :src="media.url" :alt="media.legende || selectedPage.titre" />
-            </figure>
-
-            <div class="member-blog-article__paragraphs">
-              <p v-for="(line, lineIndex) in block.lines" :key="lineIndex">
-                <template v-if="line.kind === 'link'">
-                  <a :href="line.url" target="_blank" rel="noopener noreferrer">{{ line.label }}</a>
-                </template>
-                <template v-else-if="line.kind === 'video'">
-                  <a :href="line.url" target="_blank" rel="noopener noreferrer">Voir la vidéo</a>
-                </template>
-                <template v-else>{{ line.text }}</template>
-              </p>
+            <div class="member-blog-article__copy">
+              <h3 v-if="block.heading" class="member-blog-article__heading">{{ block.heading }}</h3>
+              <div class="member-blog-article__paragraphs">
+                <p v-for="(line, lineIndex) in block.lines" :key="lineIndex">
+                  <template v-if="line.kind === 'link'">
+                    <a :href="line.url" target="_blank" rel="noopener noreferrer">{{ line.label }}</a>
+                  </template>
+                  <template v-else-if="line.kind === 'video'">
+                    <a :href="line.url" target="_blank" rel="noopener noreferrer">Voir la vidéo</a>
+                  </template>
+                  <template v-else>{{ line.text }}</template>
+                </p>
+              </div>
+              <figure
+                v-for="(media, mediaIndex) in block.videos"
+                :key="`${selectedPage.id}-vid-${index}-${mediaIndex}`"
+                class="member-blog-article__figure"
+              >
+                <iframe
+                  v-if="media.type === 'youtube'"
+                  :src="media.url"
+                  class="member-blog-article__youtube"
+                  title="Vidéo"
+                  loading="lazy"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowfullscreen
+                />
+                <video v-else :src="media.url" controls preload="metadata" />
+              </figure>
             </div>
-
-            <figure
-              v-for="(media, mediaIndex) in block.videos"
-              :key="`${selectedPage.id}-vid-${index}-${mediaIndex}`"
-              class="member-blog-article__figure"
-            >
-              <iframe
-                v-if="media.type === 'youtube'"
-                :src="media.url"
-                class="member-blog-article__youtube"
-                title="Vidéo"
-                loading="lazy"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowfullscreen
-              />
-              <video v-else :src="media.url" controls preload="metadata" />
-            </figure>
+            <div v-if="block.images.length" class="member-blog-article__media">
+              <figure
+                v-for="(media, mediaIndex) in block.images"
+                :key="`${selectedPage.id}-img-${index}-${mediaIndex}`"
+                class="member-blog-article__inline-figure"
+              >
+                <CoverImage :src="media.url" :alt="media.legende || selectedPage.titre" />
+                <figcaption v-if="media.legende && media.legende !== block.heading">{{ media.legende }}</figcaption>
+              </figure>
+            </div>
           </section>
         </div>
 
@@ -128,33 +134,7 @@
         </v-chip>
       </div>
 
-      <div v-if="filteredPages.length || showAgendaCard" class="member-blog__feed">
-        <article
-          v-if="showAgendaCard"
-          class="member-blog-card member-blog-card--agenda"
-          tabindex="0"
-          role="button"
-          @click="goToAgendaInscriptions"
-          @keydown.enter="goToAgendaInscriptions"
-        >
-          <div class="member-blog-card__cover member-blog-card__cover--placeholder">
-            <v-icon size="32" color="deep-orange">mdi-calendar-check</v-icon>
-          </div>
-          <div class="member-blog-card__body">
-            <v-chip size="x-small" variant="tonal" color="deep-orange" class="text-none mb-2">
-              Agenda
-            </v-chip>
-            <h3 class="member-blog-card__title">S’inscrire aux sorties de l’année</h3>
-            <p class="member-blog-card__excerpt">
-              Indiquez votre présence (1 présent, 0 absent, ? peut-être) directement dans l’agenda,
-              à la place du tableur Excel.
-            </p>
-            <span class="member-blog-card__cta">
-              Ouvrir l’agenda
-              <v-icon size="16">mdi-arrow-right</v-icon>
-            </span>
-          </div>
-        </article>
+      <div v-if="filteredPages.length" class="member-blog__feed">
         <article
           v-for="page in filteredPages"
           :key="page.id"
@@ -171,19 +151,15 @@
             />
           </figure>
           <div v-else class="member-blog-card__cover member-blog-card__cover--placeholder">
-            <v-icon size="32" color="primary">{{ categoryMeta(page.categorie).icon }}</v-icon>
+            <v-icon size="24" color="primary">{{ categoryMeta(page.categorie).icon }}</v-icon>
           </div>
 
           <div class="member-blog-card__body">
-            <v-chip size="x-small" variant="tonal" color="primary" class="text-none mb-2">
+            <v-chip size="x-small" variant="tonal" color="primary" class="text-none mb-1">
               {{ categoryMeta(page.categorie).label }}
             </v-chip>
             <h3 class="member-blog-card__title">{{ page.titre }}</h3>
             <p class="member-blog-card__excerpt">{{ cardExcerpt(page) }}</p>
-            <span class="member-blog-card__cta">
-              Lire l’article
-              <v-icon size="16">mdi-arrow-right</v-icon>
-            </span>
           </div>
         </article>
       </div>
@@ -239,10 +215,6 @@ const fullArticle = computed(() => fullPages.value[selectedArticleId.value] || n
 
 const selectedLayout = computed(() =>
   fullArticle.value ? articleLayout(fullArticle.value) : { sections: [], gallery: [] },
-)
-
-const showAgendaCard = computed(
-  () => !selectedPage.value && (categoryFilter.value === 'tous' || categoryFilter.value === 'commencer_danse'),
 )
 
 watch(
@@ -314,10 +286,6 @@ function openArticle(id) {
 function closeArticle() {
   selectedArticleId.value = ''
 }
-
-function goToAgendaInscriptions() {
-  router.replace({ query: { onglet: 'agenda', inscriptions: '1' } }).catch(() => {})
-}
 </script>
 
 <style scoped>
@@ -343,12 +311,24 @@ function goToAgendaInscriptions() {
 
 .member-blog__feed {
   display: grid;
-  gap: 16px;
+  gap: 10px;
 }
 
-@media (min-width: 720px) {
+@media (min-width: 640px) {
   .member-blog__feed {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 960px) {
+  .member-blog__feed {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .member-blog__feed {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
@@ -357,7 +337,7 @@ function goToAgendaInscriptions() {
   flex-direction: column;
   background: #fff;
   border: 1px solid var(--kamg-border);
-  border-radius: var(--kamg-radius);
+  border-radius: 14px;
   box-shadow: var(--kamg-shadow);
   overflow: hidden;
   cursor: pointer;
@@ -373,7 +353,8 @@ function goToAgendaInscriptions() {
 
 .member-blog-card__cover {
   margin: 0;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 4 / 3;
+  max-height: 140px;
   background: rgba(71, 91, 145, 0.06);
   overflow: hidden;
 }
@@ -394,37 +375,27 @@ function goToAgendaInscriptions() {
   display: flex;
   flex-direction: column;
   flex: 1;
-  padding: 14px 16px 16px;
+  padding: 10px 12px 12px;
 }
 
 .member-blog-card__title {
-  margin: 0 0 8px;
-  font-size: 1.08rem;
+  margin: 0 0 4px;
+  font-size: 0.92rem;
   font-weight: 700;
   letter-spacing: -0.02em;
-  line-height: 1.3;
+  line-height: 1.25;
 }
 
 .member-blog-card__excerpt {
   margin: 0;
   flex: 1;
-  font-size: 0.92rem;
-  line-height: 1.5;
+  font-size: 0.78rem;
+  line-height: 1.4;
   color: rgba(44, 51, 44, 0.72);
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-}
-
-.member-blog-card__cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  margin-top: 12px;
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: rgb(var(--v-theme-primary));
 }
 
 .member-blog-article {
@@ -433,6 +404,8 @@ function goToAgendaInscriptions() {
   border-radius: var(--kamg-radius);
   box-shadow: var(--kamg-shadow);
   overflow: hidden;
+  max-width: 920px;
+  margin: 0 auto;
 }
 
 .member-blog-article__hero {
@@ -451,7 +424,7 @@ function goToAgendaInscriptions() {
 }
 
 .member-blog-article__header {
-  padding: 20px 20px 0;
+  padding: 24px 28px 0;
 }
 
 .member-blog-article__title {
@@ -463,32 +436,43 @@ function goToAgendaInscriptions() {
 }
 
 .member-blog-article__body {
-  padding: 20px;
+  padding: 20px 28px 28px;
 }
 
 .member-blog-article__heading {
-  margin: 24px 0 10px;
+  margin: 0 0 10px;
   font-size: 1.05rem;
   font-weight: 700;
   color: rgba(44, 51, 74, 0.92);
 }
 
-.member-blog-article__heading:first-child {
-  margin-top: 0;
-}
-
 .member-blog-article__section {
-  margin-bottom: 8px;
+  margin-bottom: 28px;
 }
 
-.member-blog-article__section:first-child .member-blog-article__heading {
-  margin-top: 0;
+.member-blog-article__section.has-image {
+  display: grid;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (min-width: 800px) {
+  .member-blog-article__section.has-image {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    gap: 32px;
+  }
+
+  .member-blog-article__section.is-flip .member-blog-article__copy {
+    order: 2;
+  }
+
+  .member-blog-article__section.is-flip .member-blog-article__media {
+    order: 1;
+  }
 }
 
 .member-blog-article__inline-figure {
-  margin: 0 0 14px;
-  aspect-ratio: 16 / 9;
-  max-height: 280px;
+  margin: 0;
   overflow: hidden;
   border-radius: 12px;
   background: rgba(71, 91, 145, 0.06);
@@ -497,13 +481,25 @@ function goToAgendaInscriptions() {
 .member-blog-article__inline-figure :deep(img) {
   display: block;
   width: 100%;
-  height: 100%;
+  height: auto;
+  max-height: 360px;
   object-fit: cover;
 }
 
+.member-blog-article__inline-figure figcaption {
+  margin: 6px 8px 8px;
+  font-size: 0.82rem;
+  color: rgba(44, 51, 44, 0.62);
+}
+
+.member-blog-article__paragraphs {
+  max-width: 62ch;
+}
+
 .member-blog-article__paragraphs p {
-  margin: 0 0 10px;
-  line-height: 1.65;
+  margin: 0 0 12px;
+  line-height: 1.75;
+  font-size: 1.02rem;
   white-space: pre-wrap;
 }
 
@@ -515,7 +511,7 @@ function goToAgendaInscriptions() {
 .member-blog-article__gallery {
   display: grid;
   gap: 16px;
-  padding: 0 20px 20px;
+  padding: 0 28px 28px;
 }
 
 @media (min-width: 720px) {

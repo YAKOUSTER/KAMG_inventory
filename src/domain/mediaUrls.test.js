@@ -27,6 +27,11 @@ describe('normalizeMediaUrl', () => {
     assert.equal(normalizeMediaUrl('277246805_facebook.jpg'), '')
   })
 
+  it('conserve les photos locales de l’application', () => {
+    assert.equal(normalizeMediaUrl('/content/costume.jpg'), '/content/costume.jpg')
+    assert.equal(normalizeMediaUrl('/uploads/fiche-1.jpg'), '/uploads/fiche-1.jpg')
+  })
+
   it('conserve les URLs Glide et externes valides', () => {
     const glide =
       'https://storage.googleapis.com/glide-prod.appspot.com/uploads-v2/abc/pub/img.png'

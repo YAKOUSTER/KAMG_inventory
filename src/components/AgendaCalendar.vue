@@ -17,13 +17,15 @@
       </div>
 
       <div class="agenda-cal__nav">
-        <v-btn icon variant="text" size="small" aria-label="Période précédente" @click="shift(-1)">
-          <v-icon>mdi-chevron-left</v-icon>
-        </v-btn>
-        <button type="button" class="agenda-cal__today" @click="goToday">Aujourd’hui</button>
-        <v-btn icon variant="text" size="small" aria-label="Période suivante" @click="shift(1)">
-          <v-icon>mdi-chevron-right</v-icon>
-        </v-btn>
+        <template v-if="view !== 'liste'">
+          <v-btn icon variant="text" size="small" aria-label="Période précédente" @click="shift(-1)">
+            <v-icon>mdi-chevron-left</v-icon>
+          </v-btn>
+          <button type="button" class="agenda-cal__today" @click="goToday">Aujourd’hui</button>
+          <v-btn icon variant="text" size="small" aria-label="Période suivante" @click="shift(1)">
+            <v-icon>mdi-chevron-right</v-icon>
+          </v-btn>
+        </template>
         <div class="agenda-cal__label">{{ label }}</div>
         <button
           type="button"
@@ -72,7 +74,7 @@
           </div>
         </article>
       </section>
-      <p v-if="!listGroups.length" class="agenda-cal__empty">Aucun événement sur cette période.</p>
+      <p v-if="!listGroups.length" class="agenda-cal__empty">Aucun événement.</p>
     </div>
 
     <div v-else-if="view === 'semaine'" class="agenda-cal__week">
@@ -223,7 +225,6 @@ import EventKindChips from '@/components/EventKindChips.vue'
 import {
   AGENDA_VIEWS,
   WEEKDAY_LABELS,
-  eventsInMonth,
   eventsOnDay,
   eventTimeLabel,
   groupEventsByDay,
@@ -274,7 +275,9 @@ const year = computed(() => {
   const parsed = parsedCursor.value
   return parsed ? yearMonths(parsed.year) : []
 })
-const listEvents = computed(() => eventsInMonth(props.events, cursor.value))
+const listEvents = computed(() =>
+  [...props.events].sort((a, b) => String(a.debut || '').localeCompare(String(b.debut || ''))),
+)
 const listGroups = computed(() => listGroupsByDay(listEvents.value))
 const dayOpen = ref(false)
 const selectedDay = ref('')
@@ -340,7 +343,7 @@ function miniDayClass(cell) {
     'is-today': isToday(cell.iso),
     'has-events': count > 0 && cell.inMonth,
     'has-many': count > 1 && cell.inMonth,
-    'is-holiday': holidaysVisible.value && isSchoolHoliday(cell.iso) && cell.inMonth,
+    'is-holiday': holidaysVisible.value && isSchoolHoliday(cell.iso),
   }
 }
 
@@ -613,7 +616,7 @@ function openMonth(entry) {
 
 .agenda-cal__week-col.is-today {
   border-color: rgb(var(--v-theme-primary));
-  background: rgba(106, 140, 105, 0.08);
+  box-shadow: inset 0 0 0 1px rgb(var(--v-theme-primary));
 }
 
 .agenda-cal__week-col.is-holiday {
@@ -627,7 +630,13 @@ function openMonth(entry) {
 }
 
 .agenda-cal__week-col.is-holiday.is-today {
-  background: rgba(106, 140, 105, 0.1);
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(201, 162, 39, 0.22),
+    rgba(201, 162, 39, 0.22) 6px,
+    rgba(106, 140, 105, 0.12) 6px,
+    rgba(106, 140, 105, 0.12) 12px
+  );
 }
 
 .agenda-cal__week-head {
@@ -736,12 +745,16 @@ function openMonth(entry) {
 }
 
 .agenda-cal__cell.is-out {
-  opacity: 0.42;
+  background: #f7f8f7;
+}
+
+.agenda-cal__cell.is-out .agenda-cal__cell-num {
+  color: rgba(44, 51, 44, 0.42);
 }
 
 .agenda-cal__cell.is-today {
   border-color: rgb(var(--v-theme-primary));
-  background: rgba(106, 140, 105, 0.08);
+  box-shadow: inset 0 0 0 1px rgb(var(--v-theme-primary));
 }
 
 .agenda-cal__cell.is-holiday {
@@ -755,7 +768,13 @@ function openMonth(entry) {
 }
 
 .agenda-cal__cell.is-holiday.is-today {
-  background: rgba(106, 140, 105, 0.1);
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(201, 162, 39, 0.22),
+    rgba(201, 162, 39, 0.22) 6px,
+    rgba(106, 140, 105, 0.12) 6px,
+    rgba(106, 140, 105, 0.12) 12px
+  );
 }
 
 .agenda-cal__chip--compact {

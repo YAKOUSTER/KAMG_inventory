@@ -19,16 +19,6 @@
         >
           Gestion
         </v-btn>
-        <v-btn
-          v-if="canSubscribe"
-          variant="tonal"
-          size="small"
-          class="text-none"
-          prepend-icon="mdi-calendar-sync"
-          @click="subscribeOpen = true"
-        >
-          S’abonner
-        </v-btn>
         <v-btn variant="text" size="small" class="text-none" @click="logout">
           Déconnexion
         </v-btn>
@@ -78,6 +68,16 @@
             <v-btn value="events" class="text-none" size="small">À venir</v-btn>
             <v-btn value="calendar" class="text-none" size="small">Calendrier</v-btn>
           </v-btn-toggle>
+          <v-btn
+            v-if="canSubscribe"
+            variant="tonal"
+            size="small"
+            class="text-none"
+            prepend-icon="mdi-calendar-sync"
+            @click="subscribeOpen = true"
+          >
+            S’abonner
+          </v-btn>
           <v-select
             v-if="personItems.length > 1"
             v-model="selectedPersonId"

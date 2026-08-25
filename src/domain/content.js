@@ -145,6 +145,7 @@ export function articleLayout(page) {
   const coverUrl = contentCoverMedia(page)?.url
   const medias = (page.medias || []).filter((media) => media.url !== coverUrl)
   const used = new Set()
+  let imageIndex = 0
 
   const sections = parseContentBlocks(page?.corps).map((block) => {
     const attached = []
@@ -159,11 +160,13 @@ export function articleLayout(page) {
       }
     }
     const hasEmbed = attached.some((media) => media.type === 'youtube' || media.type === 'video')
+    const images = attached.filter((media) => media.type === 'image')
     return {
       heading: block.heading,
       lines: hasEmbed ? block.lines.filter((line) => line.kind !== 'video') : block.lines,
-      images: attached.filter((media) => media.type === 'image'),
+      images,
       videos: attached.filter((media) => media.type !== 'image'),
+      imageSide: images.length ? (imageIndex++ % 2 === 0 ? 'right' : 'left') : null,
     }
   })
 

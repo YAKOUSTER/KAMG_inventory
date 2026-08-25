@@ -95,6 +95,8 @@ describe('navigation', () => {
     assert.match(periodLabel('mois', '2026-04-14'), /Avril 2026/)
     assert.equal(periodLabel('annee', '2026-04-14'), '2026')
     assert.match(periodLabel('semaine', '2026-08-26'), /24/)
+    assert.equal(periodLabel('liste', '2026-04-14'), 'Tous les événements')
+    assert.equal(shiftPeriod('liste', '2026-08-15', 1), '2026-08-15')
     assert.equal(isAgendaView('mois'), true)
     assert.equal(isAgendaView('jour'), false)
   })

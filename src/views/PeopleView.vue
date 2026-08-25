@@ -53,7 +53,7 @@
 
     <template v-if="viewMode === 'liste'">
       <v-row>
-        <v-col v-for="person in sortedPeople" :key="person.id" cols="12" sm="6" md="4" lg="3">
+        <v-col v-for="person in sortedPeople" :key="person.id" cols="6" sm="4" md="3" lg="2">
           <PersonCard :person="person" />
         </v-col>
         <v-col v-if="!sortedPeople.length" cols="12">
@@ -76,7 +76,7 @@
             <span class="text-medium-emphasis font-weight-regular">({{ group.people.length }})</span>
           </div>
           <v-row>
-            <v-col v-for="person in group.people" :key="person.id" cols="12" sm="6" md="4" lg="3">
+            <v-col v-for="person in group.people" :key="person.id" cols="6" sm="4" md="3" lg="2">
               <PersonCard :person="person" />
             </v-col>
           </v-row>

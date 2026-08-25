@@ -21,21 +21,10 @@
       <v-icon size="36" color="primary">mdi-camera-plus-outline</v-icon>
       <div class="text-subtitle-1 mt-2">Déposer des photos ici</div>
       <div class="text-body-2 text-medium-emphasis">
-        ou cliquer pour parcourir — JPG, PNG, WEBP (10 Mo max)
+        JPG, PNG, WEBP (10 Mo max)
       </div>
       <div v-if="uploading" class="text-caption mt-2">Envoi en cours…</div>
     </div>
-
-    <v-text-field
-      v-model="urlInput"
-      class="mb-4"
-      label="Ou coller une URL déjà hébergée"
-      hide-details
-      density="compact"
-      append-inner-icon="mdi-plus"
-      @click:append-inner="addUrl"
-      @keyup.enter="addUrl"
-    />
 
     <v-alert v-if="error" type="error" class="mb-4" density="compact">{{ error }}</v-alert>
 
@@ -111,7 +100,6 @@ const fileInput = ref(null)
 const dragging = ref(false)
 const uploading = ref(false)
 const error = ref('')
-const urlInput = ref('')
 
 const images = computed(() => normalizeImages(props.modelValue))
 let saveTimer
@@ -138,19 +126,6 @@ function move(id, direction) {
 
 function makeCover(id) {
   commit(setPrincipal(images.value, id), true)
-}
-
-function addUrl() {
-  const src = urlInput.value.trim()
-  if (!src) return
-  urlInput.value = ''
-  commit(
-    [
-      ...images.value,
-      createImage({ src, principale: images.value.length === 0 }),
-    ],
-    true,
-  )
 }
 
 function onInput(event) {

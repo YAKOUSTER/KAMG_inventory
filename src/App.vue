@@ -78,11 +78,6 @@
           <v-list density="compact" min-width="220" class="kamg-sheet-list">
             <v-list-item :title="auth.user?.nom" :subtitle="roleLabel" />
             <v-list-item
-              title="Espace membres"
-              prepend-icon="mdi-account-heart-outline"
-              to="/espace-membre"
-            />
-            <v-list-item
               v-if="auth.can('users.manage')"
               title="Comptes et accès"
               prepend-icon="mdi-account-key-outline"
@@ -147,12 +142,6 @@
 
       <v-bottom-sheet v-model="moreOpen" class="kamg-more-sheet">
         <v-list class="kamg-sheet-list pa-2">
-          <v-list-item
-            title="Espace membres"
-            prepend-icon="mdi-account-heart-outline"
-            to="/espace-membre"
-            @click="moreOpen = false"
-          />
           <template v-for="area in areas" :key="area.id">
             <v-list-subheader>{{ area.title }}</v-list-subheader>
             <v-list-item

@@ -141,10 +141,7 @@ export function shiftPeriod(view, isoDay, delta = 1) {
   if (!parsed) return todayLocal()
   if (view === 'semaine') return addDays(startOfWeek(isoDay), delta * 7)
   if (view === 'annee') return `${parsed.year + delta}-${pad2(parsed.month)}-${pad2(parsed.day)}`
-  if (view === 'liste') {
-    const next = new Date(parsed.year, parsed.month - 1 + delta, 1)
-    return todayLocal(next)
-  }
+  if (view === 'liste') return isoDay || todayLocal()
   const next = new Date(parsed.year, parsed.month - 1 + delta, 1)
   return todayLocal(next)
 }
@@ -152,6 +149,7 @@ export function shiftPeriod(view, isoDay, delta = 1) {
 export function periodLabel(view, isoDay) {
   const parsed = parseLocalDay(isoDay || todayLocal())
   if (!parsed) return ''
+  if (view === 'liste') return 'Tous les événements'
   if (view === 'annee') return String(parsed.year)
   if (view === 'semaine') {
     const days = weekDays(isoDay)

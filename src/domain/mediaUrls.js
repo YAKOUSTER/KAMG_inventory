@@ -14,6 +14,12 @@ export function isValidAbsoluteUrl(raw) {
   }
 }
 
+/** Photos hébergées par l’app (upload ou contenu local), pas Drive. */
+export function isAppMediaPath(raw) {
+  const url = String(raw ?? '').trim()
+  return url.startsWith('/uploads/') || url.startsWith('/content/')
+}
+
 export function extractDriveFileId(raw) {
   const url = String(raw ?? '').trim()
   if (!url) return ''
@@ -24,10 +30,11 @@ export function extractDriveFileId(raw) {
   return ''
 }
 
-/** URL affichable dans une balise img (Drive → CDN Google). */
+/** URL affichable dans une balise img (chemin local, ou Drive → CDN Google). */
 export function normalizeMediaUrl(raw, { width = 1200 } = {}) {
   const url = String(raw ?? '').trim()
   if (!url) return ''
+  if (isAppMediaPath(url)) return url
 
   const driveId = extractDriveFileId(url)
   if (driveId) {

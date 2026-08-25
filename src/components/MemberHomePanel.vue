@@ -3,8 +3,8 @@
     <section class="member-home__section">
       <div class="member-home__head">
         <div>
-          <h2 class="member-home__title">Prochain événement</h2>
-          <p class="member-home__intro">Ce qui arrive au cercle.</p>
+          <h2 class="member-home__title">📅 Prochain événement</h2>
+          <p class="member-home__intro">Prochaines répétitions, sorties et événements du cercle</p>
         </div>
         <v-btn variant="text" size="small" class="text-none" @click="emit('open-agenda')">
           Voir plus
@@ -30,8 +30,8 @@
     <section class="member-home__section">
       <div class="member-home__head">
         <div>
-          <h2 class="member-home__title">Actualité du cercle</h2>
-          <p class="member-home__intro">Newsletter et infos à retenir.</p>
+          <h2 class="member-home__title">📣 Actualité du cercle</h2>
+          <p class="member-home__intro">Que se passe-t-il en ce moment chez les Korriganed</p>
         </div>
         <v-btn variant="text" size="small" class="text-none" @click="emit('open-news')">
           Voir plus
@@ -66,9 +66,9 @@
     <section class="member-home__section">
       <div class="member-home__head">
         <div>
-          <h2 class="member-home__title">Nouveaux membres</h2>
+          <h2 class="member-home__title">✨ Nouveaux membres</h2>
           <p class="member-home__intro">
-            Rentrée {{ newcomers.season }} · associés à NEW. Les invités n’apparaissent pas ici.
+            Qui sont les petits nouveaux de cette année et dans quel(s) groupe(s) sont-ils ?
           </p>
         </div>
       </div>
@@ -99,7 +99,7 @@
     <section class="member-home__section">
       <div class="member-home__head">
         <div>
-          <h2 class="member-home__title">Prochaines sorties</h2>
+          <h2 class="member-home__title">🎉 Prochaines sorties</h2>
           <p class="member-home__intro">Fest-noz et sorties libres, hors cercle.</p>
         </div>
         <v-btn variant="text" size="small" class="text-none" @click="emit('open-agenda')">
@@ -162,7 +162,7 @@ function coverOf(page) {
 .member-home {
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 56px;
 }
 
 .member-home__head {
@@ -170,7 +170,7 @@ function coverOf(page) {
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 12px;
+  margin-bottom: 20px;
 }
 
 .member-home__title {
@@ -185,8 +185,12 @@ function coverOf(page) {
   display: block;
 }
 
+.member-home__section + .member-home__section {
+  padding-top: 8px;
+}
+
 .member-home__intro {
-  margin: 6px 0 0;
+  margin: 8px 0 0;
   font-size: 0.9rem;
   color: rgba(44, 51, 44, 0.68);
 }

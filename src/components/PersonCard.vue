@@ -1,11 +1,11 @@
 <template>
   <router-link class="person-link kamg-card" :to="{ name: 'person-detail', params: { id: person.id } }">
     <div class="thumb" :style="{ backgroundImage: cover ? `url(${cover})` : 'none' }">
-      <v-icon v-if="!cover" size="40" color="primary">mdi-account</v-icon>
+      <v-icon v-if="!cover" size="28" color="primary">mdi-account</v-icon>
     </div>
     <div class="person-link__body">
-      <div class="text-subtitle-1 font-weight-bold">{{ personDisplayName(person) }}</div>
-      <div v-if="personRolesLabel(person)" class="text-body-2 text-medium-emphasis">{{ personRolesLabel(person) }}</div>
+      <div class="text-subtitle-2 font-weight-bold">{{ personDisplayName(person) }}</div>
+      <div v-if="personRolesLabel(person)" class="text-caption text-medium-emphasis">{{ personRolesLabel(person) }}</div>
       <div v-if="person.tailleLettre" class="text-caption text-medium-emphasis">Taille {{ person.tailleLettre }}</div>
     </div>
   </router-link>
@@ -28,7 +28,7 @@ const cover = computed(() => coverSrc(props.person))
   display: block;
   color: inherit;
   text-decoration: none;
-  padding: 10px;
+  padding: 8px;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 .person-link:hover {
@@ -36,14 +36,14 @@ const cover = computed(() => coverSrc(props.person))
   box-shadow: var(--kamg-shadow-hover);
 }
 .person-link__body {
-  padding-top: 10px;
+  padding-top: 6px;
 }
 .thumb {
-  height: 140px;
+  height: 88px;
   background: var(--kamg-linen) center/cover no-repeat;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 14px;
+  border-radius: 10px;
 }
 </style>

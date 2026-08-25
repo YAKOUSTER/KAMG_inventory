@@ -53,12 +53,13 @@
       <h2 class="text-subtitle-1 font-weight-bold mb-2">Feuille de présences</h2>
       <p class="text-body-2 text-medium-emphasis mb-3">
         Toutes les sorties à venir, une colonne par événement — y compris s’il y en a plusieurs le même jour.
+        La feuille se consulte ici ; les réponses se font depuis l’espace membres ou la fiche événement.
       </p>
       <PresenceGrid
         :events="gridEvents"
         :people="people"
         :presences="presences"
-        :readonly="!auth.can('agenda.write')"
+        :readonly="true"
         @updated="onPresenceUpdated"
       />
     </section>

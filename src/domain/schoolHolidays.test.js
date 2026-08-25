@@ -14,6 +14,12 @@ describe('vacances scolaires Rennes (zone B)', () => {
     assert.match(RENNES_ACADEMY.legend, /Rennes/)
   })
 
+  it('marque le 25 août 2026 comme vacances d’été jusqu’à la rentrée du 1er septembre', () => {
+    assert.equal(holidayOnDay('2026-08-25')?.kind, 'ete')
+    assert.equal(isSchoolHoliday('2026-08-31'), true)
+    assert.equal(isSchoolHoliday('2026-09-01'), false)
+  })
+
   it('colorie les jours de vacances, pas le lundi de reprise', () => {
     assert.equal(isSchoolHoliday('2026-02-14'), true)
     assert.equal(holidayShortLabel('2026-02-14'), 'Hiver')

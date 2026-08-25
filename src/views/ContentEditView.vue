@@ -3,6 +3,14 @@
     <h1 class="text-h5 text-md-h4 page-title mb-6">{{ isEdit ? 'Modifier le contenu' : 'Nouveau contenu' }}</h1>
     <v-alert v-if="error" type="error" class="mb-4">{{ error }}</v-alert>
 
+    <input
+      ref="fileInput"
+      type="file"
+      accept="image/*"
+      hidden
+      @change="onFilePicked"
+    />
+
     <v-form v-if="ready" @submit.prevent="submit">
       <div class="form-fields-grid form-fields-grid--2">
         <FieldRow label="Catégorie">
@@ -19,12 +27,28 @@
         </FieldRow>
         <FieldRow label="Image de couverture" align-top class="form-fields-grid__span-2">
           <div class="content-cover">
-            <v-text-field
-              v-model="form.couvertureUrl"
-              label="URL (colonne Photo du CSV / Drive / Glide)"
-              hide-details="auto"
-              placeholder="https://drive.google.com/file/d/… ou https://…"
-            />
+            <div class="d-flex flex-wrap ga-2">
+              <v-btn
+                variant="tonal"
+                size="small"
+                class="text-none"
+                prepend-icon="mdi-image-plus"
+                :loading="uploading"
+                @click="pickFile('cover')"
+              >
+                Importer une photo
+              </v-btn>
+              <v-btn
+                v-if="form.couvertureUrl"
+                variant="text"
+                size="small"
+                color="error"
+                class="text-none"
+                @click="form.couvertureUrl = ''"
+              >
+                Retirer
+              </v-btn>
+            </div>
             <v-text-field
               v-model="form.couvertureLegende"
               label="Légende"
@@ -37,12 +61,17 @@
           </div>
         </FieldRow>
         <FieldRow label="Contenu" align-top class="form-fields-grid__span-2">
-          <v-textarea v-model="form.corps" hide-details rows="12" hint="Texte libre, sauts de ligne conservés" />
+          <v-textarea
+            v-model="form.corps"
+            hide-details
+            rows="12"
+            hint="Texte libre. Les liens et vidéos restent des URL (Lien : https://… / Vidéo : https://…)."
+          />
         </FieldRow>
         <FieldRow label="Photos & vidéos" align-top class="form-fields-grid__span-2">
           <div class="content-medias">
             <div v-if="!form.medias.length" class="text-body-2 text-medium-emphasis mb-3">
-              Aucun média. Ajoutez une URL d’image ou de vidéo (upload via Contenus ou lien Glide).
+              Photos : fichier importé. Vidéos et liens : URL.
             </div>
             <div v-for="(media, index) in form.medias" :key="index" class="content-medias__row">
               <v-select
@@ -53,13 +82,27 @@
                 density="compact"
                 class="content-medias__type"
               />
+              <div v-if="media.type === 'image'" class="content-medias__file">
+                <v-btn
+                  variant="tonal"
+                  size="small"
+                  class="text-none"
+                  prepend-icon="mdi-image-plus"
+                  :loading="uploading"
+                  @click="pickFile(index)"
+                >
+                  {{ media.url ? 'Remplacer' : 'Importer' }}
+                </v-btn>
+                <CoverImage v-if="media.url" :src="media.url" :alt="media.legende || 'Photo'" class="content-medias__thumb" />
+              </div>
               <v-text-field
+                v-else
                 v-model="media.url"
-                label="URL"
+                label="Lien de la vidéo"
                 hide-details
                 density="compact"
                 class="content-medias__url"
-                placeholder="https://… ou /uploads/…"
+                placeholder="https://youtu.be/… ou fichier .mp4"
               />
               <v-text-field
                 v-model="media.legende"
@@ -70,9 +113,14 @@
               />
               <v-btn icon="mdi-delete" variant="text" color="error" size="small" @click="removeMedia(index)" />
             </div>
-            <v-btn variant="tonal" size="small" class="text-none mt-2" prepend-icon="mdi-plus" @click="addMedia">
-              Ajouter un média
-            </v-btn>
+            <div class="d-flex flex-wrap ga-2 mt-2">
+              <v-btn variant="tonal" size="small" class="text-none" prepend-icon="mdi-plus" @click="addMedia('image')">
+                Ajouter une photo
+              </v-btn>
+              <v-btn variant="text" size="small" class="text-none" prepend-icon="mdi-link" @click="addMedia('youtube')">
+                Ajouter un lien / vidéo
+              </v-btn>
+            </div>
           </div>
         </FieldRow>
         <FieldRow label="Publication">
@@ -104,6 +152,7 @@ import { useRouter } from 'vue-router'
 import FieldRow from '@/components/FieldRow.vue'
 import CoverImage from '@/components/CoverImage.vue'
 import { api } from '@/services/api'
+import { compressImageFile } from '@/services/compressImage'
 import { useAuthStore } from '@/stores/auth'
 import { CONTENT_CATEGORIES } from '@/domain/content'
 
@@ -113,8 +162,12 @@ const auth = useAuthStore()
 const ready = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
+const uploading = ref(false)
 const error = ref('')
+const fileInput = ref(null)
+const fileTarget = ref('cover')
 const isEdit = computed(() => Boolean(props.id))
+const uploadPrefix = computed(() => (props.id ? `page-${props.id}` : 'page'))
 
 const categoryItems = CONTENT_CATEGORIES.map((cat) => ({ title: cat.label, value: cat.id }))
 const mediaTypeItems = [
@@ -137,12 +190,43 @@ const form = reactive({
 
 const required = (value) => Boolean(String(value || '').trim()) || 'Champ requis'
 
-function addMedia() {
-  form.medias.push({ type: 'image', url: '', legende: '' })
+function addMedia(type = 'image') {
+  form.medias.push({ type, url: '', legende: '' })
 }
 
 function removeMedia(index) {
   form.medias.splice(index, 1)
+}
+
+function pickFile(target) {
+  fileTarget.value = target
+  fileInput.value?.click()
+}
+
+async function onFilePicked(event) {
+  const file = event.target.files?.[0]
+  event.target.value = ''
+  if (!file) return
+  uploading.value = true
+  error.value = ''
+  try {
+    const compressed = await compressImageFile(file)
+    const uploaded = await api.upload(compressed.filename, compressed.dataUrl, uploadPrefix.value)
+    const src = uploaded.src || uploaded
+    if (fileTarget.value === 'cover') {
+      form.couvertureUrl = src
+    } else {
+      const index = Number(fileTarget.value)
+      if (form.medias[index]) {
+        form.medias[index].type = 'image'
+        form.medias[index].url = src
+      }
+    }
+  } catch (err) {
+    error.value = err.message || 'Impossible d’importer la photo.'
+  } finally {
+    uploading.value = false
+  }
 }
 
 onMounted(async () => {
@@ -231,10 +315,25 @@ async function remove() {
 
 .content-medias__row {
   display: grid;
-  grid-template-columns: 120px 1fr 1fr auto;
+  grid-template-columns: 120px minmax(0, 1.2fr) minmax(0, 1fr) auto;
   gap: 8px;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
+}
+
+.content-medias__file {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.content-medias__thumb {
+  width: 64px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
 }
 
 @media (max-width: 900px) {
