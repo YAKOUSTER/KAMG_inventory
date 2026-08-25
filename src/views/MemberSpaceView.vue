@@ -161,9 +161,14 @@
       @select="tab = $event"
     />
 
-    <v-dialog v-model="eventDialog" max-width="760">
-      <v-card v-if="selectedEvent" class="pa-2">
-        <v-card-title class="text-wrap">{{ selectedEvent.titre }}</v-card-title>
+    <v-dialog v-model="eventDialog" :fullscreen="!mdAndUp" max-width="760" scrollable>
+      <v-card v-if="selectedEvent">
+        <v-card-title class="event-dialog__title">
+          <span class="event-dialog__heading">{{ selectedEvent.titre }}</span>
+          <v-btn icon variant="text" aria-label="Fermer" @click="closeMemberEvent">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
         <v-card-text>
           <div class="d-flex flex-wrap ga-1 mb-3">
             <EventKindChips :event="selectedEvent" size="small" />
@@ -345,6 +350,10 @@ function openMemberEvent(event) {
   selectedEvent.value = event
   eventDialog.value = true
 }
+
+function closeMemberEvent() {
+  eventDialog.value = false
+}
 </script>
 
 <style scoped>
@@ -440,6 +449,19 @@ function openMemberEvent(event) {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.event-dialog__title {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  white-space: normal;
+}
+
+.event-dialog__heading {
+  flex: 1;
+  min-width: 0;
+  line-height: 1.25;
 }
 
 .member-section {
