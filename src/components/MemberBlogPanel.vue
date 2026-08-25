@@ -181,12 +181,13 @@ import CoverImage from '@/components/CoverImage.vue'
 
 const props = defineProps({
   pages: { type: Array, default: () => [] },
+  articleId: { type: String, default: '' },
 })
 
 const route = useRoute()
 const router = useRouter()
 const categoryFilter = ref(route.query.categorie || 'tous')
-const selectedArticleId = ref(route.query.article || '')
+const selectedArticleId = ref(props.articleId || route.query.article || '')
 const fullPages = ref({})
 const articleLoading = ref(false)
 const articleError = ref('')
@@ -221,9 +222,20 @@ watch(
 )
 
 watch(
+  () => props.articleId,
+  (value, previous) => {
+    if (value && value !== previous) selectedArticleId.value = value
+  },
+)
+
+watch(
   () => route.query.article,
   (value) => {
-    selectedArticleId.value = value || ''
+    if (value) {
+      selectedArticleId.value = value
+      return
+    }
+    if (!props.articleId) selectedArticleId.value = ''
   },
 )
 

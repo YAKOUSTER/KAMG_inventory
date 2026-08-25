@@ -138,7 +138,7 @@
       </div>
 
       <div v-if="infosVisited" v-show="tab === 'infos'" class="member-space__panel">
-        <MemberBlogPanel :pages="data.pages" />
+        <MemberBlogPanel :pages="data.pages" :article-id="pendingArticleId" />
       </div>
 
       <div v-if="empruntsVisited" v-show="tab === 'emprunts'" class="member-space__panel">
@@ -296,6 +296,7 @@ import SortieFiche from '@/components/SortieFiche.vue'
 import BottomTabBar from '@/components/BottomTabBar.vue'
 import { useAuthStore } from '@/stores/auth'
 import { canAccessGestion } from '@/domain/gestionNav'
+import { memberSpaceQuery } from '@/domain/memberSpaceNav'
 
 const route = useRoute()
 const router = useRouter()
@@ -318,6 +319,8 @@ const selectedEvent = ref(null)
 const eventDialog = ref(false)
 const subscribeOpen = ref(false)
 const accountOpen = ref(false)
+const pendingArticleId = ref(route.query.article || '')
+const pendingInfosCategory = ref(route.query.categorie || '')
 
 const eventGroups = computed(() => activeEventGroups())
 const canSubscribe = computed(() => Boolean(data.value))
@@ -355,12 +358,16 @@ watch(tab, (value) => {
   if (!value || value === 'moi') return
   if (value === 'infos') infosVisited.value = true
   if (value === 'emprunts') empruntsVisited.value = true
-  const query = { ...route.query, onglet: value }
-  if (value !== 'agenda') delete query.inscriptions
-  if (value !== 'infos') {
-    delete query.article
-    delete query.categorie
+  const extra = {}
+  if (value === 'infos') {
+    if (pendingArticleId.value) extra.article = pendingArticleId.value
+    if (pendingInfosCategory.value) extra.categorie = pendingInfosCategory.value
+  } else {
+    pendingArticleId.value = ''
+    pendingInfosCategory.value = ''
   }
+  const query = memberSpaceQuery(value, route.query, extra)
+  if (!query) return
   router.replace({ query }).catch(() => {})
 })
 
@@ -436,15 +443,18 @@ function openAgendaTab() {
 }
 
 function openNewsTab() {
+  pendingArticleId.value = ''
+  pendingInfosCategory.value = 'newsletter'
   infosVisited.value = true
   tab.value = 'infos'
-  router.replace({ query: { ...route.query, onglet: 'infos', categorie: 'newsletter' } }).catch(() => {})
 }
 
 function openArticle(id) {
+  pendingArticleId.value = String(id || '')
+  pendingInfosCategory.value = ''
   infosVisited.value = true
   tab.value = 'infos'
-  router.replace({ query: { ...route.query, onglet: 'infos', article: id } }).catch(() => {})
+  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 function openMemberEvent(event) {
