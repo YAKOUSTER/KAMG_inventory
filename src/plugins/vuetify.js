@@ -49,6 +49,6 @@ export default createVuetify({
       itemsPerPageText: 'Lignes par page',
       hover: false,
     },
-    VList: { bgColor: 'transparent' },
+    VList: { bgColor: 'surface' },
   },
 })

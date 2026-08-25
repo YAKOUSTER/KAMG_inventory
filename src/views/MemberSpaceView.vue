@@ -1,6 +1,6 @@
 <template>
   <div class="member-space" :class="{ 'member-space--mobile': !mdAndUp }">
-    <header class="member-space__header">
+    <header v-if="mdAndUp" class="member-space__header">
       <router-link to="/espace-membre" class="member-space__brand">
         <img :src="LOGO_SRC" :alt="GROUP_NAME" class="member-space__logo" />
         <div>
@@ -39,6 +39,9 @@
       <p v-if="auth.user?.signup?.childrenNames" class="text-body-2">
         Enfant(s) indiqué(s) : {{ auth.user.signup.childrenNames }}
       </p>
+      <v-btn v-if="!mdAndUp" variant="tonal" class="text-none mt-2" @click="logout">
+        Déconnexion
+      </v-btn>
     </section>
 
     <template v-else-if="data">
@@ -172,10 +175,24 @@
     <BottomTabBar
       v-if="!mdAndUp && !pending"
       :items="memberTabs"
-      :active-id="tab"
+      :active-id="accountOpen ? 'moi' : tab"
       label="Espace membres"
-      @select="tab = $event"
+      @select="onMemberTab"
     />
+
+    <v-bottom-sheet v-model="accountOpen" class="kamg-account-sheet">
+      <v-list class="kamg-sheet-list pa-2 bg-surface">
+        <v-list-item :title="memberDisplayName || 'Compte'" :subtitle="GROUP_NAME" />
+        <v-list-item
+          v-if="canOpenGestion"
+          title="Gestion"
+          prepend-icon="mdi-briefcase-outline"
+          to="/"
+          @click="accountOpen = false"
+        />
+        <v-list-item title="Déconnexion" prepend-icon="mdi-logout" @click="onAccountLogout" />
+      </v-list>
+    </v-bottom-sheet>
 
     <v-dialog v-model="eventDialog" :fullscreen="!mdAndUp" max-width="760" scrollable>
       <v-card v-if="selectedEvent">
@@ -298,6 +315,7 @@ const empruntsVisited = ref(route.query.onglet === 'emprunts')
 const selectedEvent = ref(null)
 const eventDialog = ref(false)
 const subscribeOpen = ref(false)
+const accountOpen = ref(false)
 
 const eventGroups = computed(() => activeEventGroups())
 const canSubscribe = computed(() => Boolean(data.value))
@@ -306,6 +324,7 @@ const memberTabs = [
   { id: 'agenda', label: 'Agenda', icon: 'mdi-calendar-month-outline', activeIcon: 'mdi-calendar-month' },
   { id: 'infos', label: 'Infos', icon: 'mdi-book-open-page-variant-outline', activeIcon: 'mdi-book-open-page-variant' },
   { id: 'emprunts', label: 'Emprunts', icon: 'mdi-swap-horizontal' },
+  { id: 'moi', label: 'Moi', icon: 'mdi-account-outline', activeIcon: 'mdi-account' },
 ]
 
 const allEvents = computed(() => [
@@ -331,6 +350,7 @@ const selectedDancerCount = computed(() => {
 })
 
 watch(tab, (value) => {
+  if (!value || value === 'moi') return
   if (value === 'infos') infosVisited.value = true
   if (value === 'emprunts') empruntsVisited.value = true
   const query = { ...route.query, onglet: value }
@@ -345,7 +365,7 @@ watch(tab, (value) => {
 watch(
   () => route.query.onglet,
   (value) => {
-    if (value && value !== tab.value) tab.value = value
+    if (value && value !== 'moi' && value !== tab.value) tab.value = value
   },
 )
 
@@ -387,6 +407,20 @@ onMounted(async () => {
 async function logout() {
   await auth.logout()
   router.push({ name: 'login' })
+}
+
+function onMemberTab(id) {
+  if (id === 'moi') {
+    accountOpen.value = true
+    return
+  }
+  accountOpen.value = false
+  tab.value = id
+}
+
+async function onAccountLogout() {
+  accountOpen.value = false
+  await logout()
 }
 
 function onPresenceUpdated(record) {

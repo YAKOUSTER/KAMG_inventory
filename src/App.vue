@@ -8,9 +8,10 @@
 
     <template v-else>
       <v-app-bar
+        v-if="mdAndUp"
         color="surface"
         elevation="0"
-        :height="mdAndUp ? 64 : 52"
+        height="64"
         :extended="showAreaToolbar"
         :extension-height="showAreaToolbar ? 44 : 0"
         class="app-bar app-bar--light"
@@ -68,14 +69,14 @@
           </v-badge>
         </v-btn>
 
-        <v-menu location="bottom end" :menu-props="{ contentClass: 'kamg-nav-menu' }">
+        <v-menu location="bottom end" content-class="kamg-nav-menu">
           <template #activator="{ props }">
             <v-btn v-bind="props" variant="text" size="small" class="nav-account" aria-label="Compte">
               <v-icon :start="mdAndUp" size="22">mdi-account-circle-outline</v-icon>
               <span class="d-none d-md-inline text-none">{{ auth.user?.nom }}</span>
             </v-btn>
           </template>
-          <v-list density="compact" min-width="220" class="kamg-sheet-list">
+          <v-list density="compact" min-width="220" class="kamg-sheet-list bg-surface">
             <v-list-item :title="auth.user?.nom" :subtitle="roleLabel" />
             <v-list-item
               v-if="auth.can('users.manage')"
@@ -141,7 +142,13 @@
       />
 
       <v-bottom-sheet v-model="moreOpen" class="kamg-more-sheet">
-        <v-list class="kamg-sheet-list pa-2">
+        <v-list class="kamg-sheet-list pa-2 bg-surface">
+          <v-list-item
+            title="Espace membres"
+            prepend-icon="mdi-account-heart-outline"
+            to="/espace-membre"
+            @click="moreOpen = false"
+          />
           <template v-for="area in areas" :key="area.id">
             <v-list-subheader>{{ area.title }}</v-list-subheader>
             <v-list-item
@@ -250,7 +257,9 @@ const mobileTabs = computed(() => [
   { id: 'more', label: 'Plus', icon: 'mdi-dots-horizontal', activeIcon: 'mdi-dots-horizontal' },
 ])
 
-const mobileActiveId = computed(() => currentArea.value?.id || 'more')
+const mobileActiveId = computed(() =>
+  moreOpen.value ? 'more' : currentArea.value?.id || 'more',
+)
 
 function onMobileTab(id) {
   if (id === 'more') {

@@ -6,7 +6,7 @@
   --kamg-ink: #1c2420;
   --kamg-muted: #5c6862;
   --kamg-border: rgba(83, 115, 106, 0.12);
-  --kamg-overlay: rgba(255, 255, 255, 0.86);
+  --kamg-overlay: #ffffff;
   --kamg-radius: 18px;
   --kamg-shadow: 0 10px 32px rgba(28, 36, 32, 0.06);
   --kamg-shadow-hover: 0 14px 36px rgba(28, 36, 32, 0.1);
@@ -46,14 +46,12 @@ body,
 
 /* Menus / drawer au-dessus du contenu */
 .kamg-nav-drawer.v-navigation-drawer {
-  background: transparent !important;
+  background: #fff !important;
   box-shadow: none !important;
 }
 
 .kamg-nav-drawer .v-navigation-drawer__content {
-  background: var(--kamg-overlay) !important;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: #fff !important;
   border-right: 1px solid var(--kamg-border);
 }
 
@@ -66,14 +64,40 @@ body,
 }
 
 .kamg-nav-menu .v-list {
-  background: transparent !important;
+  background: #fff !important;
+}
+
+.v-overlay.v-menu .v-overlay__content,
+.v-overlay.v-bottom-sheet .v-overlay__content,
+.v-overlay.v-select .v-overlay__content,
+.v-overlay.v-autocomplete .v-overlay__content,
+.v-overlay.v-combobox .v-overlay__content {
+  background: #fff !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.v-overlay .v-list,
+.v-navigation-drawer .v-list {
+  background: #fff !important;
 }
 
 /* Bottom sheet filtres inventaire (mobile) */
+.inventory-filter-sheet .v-overlay__content,
+.kamg-more-sheet .v-overlay__content,
+.kamg-account-sheet .v-overlay__content,
+.v-select__content,
+.v-autocomplete__content,
+.v-combobox__content {
+  background: #fff !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.kamg-more-sheet .v-overlay__content,
+.kamg-account-sheet .v-overlay__content,
 .inventory-filter-sheet .v-overlay__content {
-  background: var(--kamg-overlay) !important;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  border-radius: 20px 20px 0 0 !important;
 }
 
 a {
@@ -204,10 +228,18 @@ a {
 }
 
 .v-table,
-.v-data-table,
-.v-list {
+.v-data-table {
   background: transparent !important;
   box-shadow: none !important;
+}
+
+.v-list {
+  box-shadow: none !important;
+}
+
+.kamg-card .v-list,
+.kamg-fiche .v-list {
+  background: transparent !important;
 }
 
 .v-card--variant-outlined {
@@ -435,6 +467,10 @@ a {
 
 .app-shell--mobile .v-main {
   padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)) !important;
+}
+
+.app-shell--mobile .page-container {
+  padding-top: 0.75rem;
 }
 
 .kamg-sheet-list .v-list-item {

@@ -46,10 +46,9 @@ const emit = defineEmits(['select'])
   align-items: stretch;
   min-height: 60px;
   padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px));
-  background: var(--kamg-overlay);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: #fff;
   border-top: 1px solid var(--kamg-border);
+  box-shadow: 0 -6px 18px rgba(28, 36, 32, 0.06);
 }
 
 .bottom-tab-bar__item {
