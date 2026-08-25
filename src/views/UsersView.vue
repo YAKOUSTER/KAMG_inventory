@@ -34,7 +34,7 @@
       </div>
     </div>
 
-    <v-dialog v-model="dialog" :fullscreen="display.smAndDown" max-width="640">
+    <v-dialog v-model="dialog" :fullscreen="Boolean(smAndDown)" max-width="640">
       <v-card>
         <v-card-title class="d-flex align-center">
           <span>{{ editing.id ? 'Modifier le compte' : 'Nouveau compte' }}</span>
@@ -82,7 +82,7 @@ import { api } from '@/services/api'
 import { PERMISSIONS, ROLE_PRESETS, ROLES } from '@/domain/auth'
 import { useUiStore } from '@/stores/ui'
 
-const display = useDisplay()
+const { smAndDown } = useDisplay()
 const ui = useUiStore()
 const users = ref([])
 const dialog = ref(false)
