@@ -72,6 +72,7 @@ export function publicPerson(person) {
     prenom,
     nom,
     roles: Array.isArray(person.roles) ? person.roles : [],
+    tags: Array.isArray(person.tags) ? person.tags : [],
     saisons: personSeasons(person),
     nouveau: isNewMember(person),
     photo: coverSrc(person) || '',

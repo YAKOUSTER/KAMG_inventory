@@ -39,6 +39,9 @@
         <v-select v-model="filters.role" :items="roleItems" label="Groupe / rôle" hide-details />
       </v-col>
       <v-col cols="12" md="3">
+        <v-select v-model="filters.tag" :items="tagItems" label="Organigramme" hide-details />
+      </v-col>
+      <v-col cols="12" md="2">
         <v-select v-model="filters.tri" :items="sortItems" label="Tri" hide-details />
       </v-col>
     </v-row>
@@ -98,6 +101,7 @@ import {
   groupPeopleByPromotion,
   sortPeople,
 } from '@/domain/person'
+import { ORG_TAGS } from '@/domain/orgChart'
 import PersonCard from '@/components/PersonCard.vue'
 
 const inventory = useInventoryStore()
@@ -115,6 +119,7 @@ function defaultFilters() {
     search: '',
     annee: route.query.annee || 'Toutes',
     role: route.query.role || 'Tous',
+    tag: route.query.tag || 'Tous',
     tri: route.query.tri || 'nom',
   }
 }
@@ -126,16 +131,18 @@ watch(
   () => {
     filters.annee = route.query.annee || 'Toutes'
     filters.role = route.query.role || 'Tous'
+    filters.tag = route.query.tag || 'Tous'
     filters.tri = route.query.tri || 'nom'
   },
 )
 
 watch(
-  () => [filters.annee, filters.role, filters.tri],
+  () => [filters.annee, filters.role, filters.tag, filters.tri],
   () => {
     updateQuery({
       annee: filters.annee !== 'Toutes' ? filters.annee : undefined,
       role: filters.role !== 'Tous' ? filters.role : undefined,
+      tag: filters.tag !== 'Tous' ? filters.tag : undefined,
       tri: filters.tri !== 'nom' ? filters.tri : undefined,
     })
   },
@@ -161,6 +168,11 @@ const roleItems = computed(() => [
   ...PERSON_ROLES.map((role) => ({ title: role.label, value: role.id })),
 ])
 
+const tagItems = computed(() => [
+  { title: 'Toutes les responsabilités', value: 'Tous' },
+  ...ORG_TAGS.filter((slot) => !slot.hideInForm).map((slot) => ({ title: slot.label, value: slot.id })),
+])
+
 const sortItems = [
   { title: 'Nom', value: 'nom' },
   { title: 'Saison', value: 'annee' },
@@ -180,6 +192,7 @@ const hasActiveFilters = computed(
     Boolean(filters.search.trim()) ||
     filters.annee !== 'Toutes' ||
     filters.role !== 'Tous' ||
+    filters.tag !== 'Tous' ||
     filters.tri !== 'nom',
 )
 
@@ -187,6 +200,7 @@ function resetFilters() {
   filters.search = ''
   filters.annee = 'Toutes'
   filters.role = 'Tous'
+  filters.tag = 'Tous'
   filters.tri = 'nom'
   router.replace({ query: { vue: viewMode.value === 'promotions' ? 'promotions' : undefined } })
 }

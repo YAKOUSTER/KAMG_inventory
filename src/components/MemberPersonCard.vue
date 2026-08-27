@@ -50,6 +50,7 @@
 import { computed, ref } from 'vue'
 import { personDisplayName } from '@/domain/person'
 import { eventGroupLabel, personDanceGroups } from '@/domain/eventGroups'
+import { personOrgTagLabels } from '@/domain/orgChart'
 
 const props = defineProps({
   person: { type: Object, required: true },
@@ -57,7 +58,10 @@ const props = defineProps({
 })
 
 const open = ref(false)
-const groupLabels = computed(() => personDanceGroups(props.person).map((id) => eventGroupLabel(id)))
+const groupLabels = computed(() => [
+  ...personDanceGroups(props.person).map((id) => eventGroupLabel(id)),
+  ...personOrgTagLabels(props.person),
+])
 const excerpt = computed(() => {
   const text = String(props.person?.bio || '').trim()
   if (!text) return ''

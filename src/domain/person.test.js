@@ -27,6 +27,7 @@ describe('normalizePerson', () => {
     assert.equal(person.mesures.tourTete, null)
     assert.equal(person.images.length, 0)
     assert.deepEqual(person.roles, [])
+    assert.deepEqual(person.tags, [])
     assert.throws(() => normalizePerson({}, { id: 'x' }))
     assert.throws(() => normalizePerson({ nom: 'Le Gall' }, { id: 'x' }))
     assert.throws(() => normalizePerson({ prenom: 'Anna' }, { id: 'x' }))
@@ -38,11 +39,13 @@ describe('normalizePerson', () => {
         nom: 'Prigent',
         prenom: 'Yann',
         roles: ['membre', 'danseur_loisir', 'couture', 'inconnu'],
+        tags: ['ca_president', 'inconnu'],
         anneeMembre: 2026,
       },
       { id: 'p2' },
     )
     assert.deepEqual(person.roles, ['membre', 'danseur_loisir', 'couture'])
+    assert.deepEqual(person.tags, ['ca_president'])
     assert.equal(person.anneeMembre, '2026-2027')
     assert.deepEqual(person.saisons, ['2026-2027'])
     assert.equal(person.nouveau, true)
@@ -122,6 +125,15 @@ describe('filterPeople et promotions', () => {
     assert.equal(filterPeople(people, { annee: '2024' }).length, 2)
     assert.equal(filterPeople(people, { annee: '2024-2025' }).length, 2)
     assert.equal(filterPeople(people, { role: 'danseur_ado' }).length, 1)
+  })
+
+  it('filtre par tag d’organigramme', () => {
+    const list = [
+      { id: '1', prenom: 'Anna', nom: 'A', tags: ['ca_president'] },
+      { id: '2', prenom: 'Bob', nom: 'B', tags: ['ca_membre'] },
+    ]
+    assert.equal(filterPeople(list, { tag: 'ca_president' }).length, 1)
+    assert.equal(filterPeople(list, { search: 'president' }).length, 1)
   })
 
   it('recherche insensible à la casse et aux accents', () => {

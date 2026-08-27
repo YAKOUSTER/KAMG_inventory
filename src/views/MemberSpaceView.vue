@@ -57,7 +57,7 @@
     <template v-else-if="data">
       <v-tabs v-if="mdAndUp" v-model="tab" color="primary" class="member-space__tabs" density="compact">
         <v-tab value="accueil" class="text-none">Accueil</v-tab>
-        <v-tab value="groupe" class="text-none">Groupe</v-tab>
+        <v-tab value="groupe" class="text-none">Adhérents</v-tab>
         <v-tab value="agenda" class="text-none">Agenda</v-tab>
         <v-tab value="infos" class="text-none">Infos & tutos</v-tab>
         <v-tab value="emprunts" class="text-none">Emprunts</v-tab>
@@ -146,10 +146,7 @@
       </div>
 
       <div v-show="tab === 'groupe'" class="member-space__panel">
-        <MemberGroupPanel
-          :people="data.people || []"
-          :person-ids="(data.profiles || []).map((person) => person.id)"
-        />
+        <MemberGroupPanel :people="data.people || []" />
       </div>
 
       <div v-if="empruntsVisited" v-show="tab === 'emprunts'" class="member-space__panel">
@@ -336,7 +333,7 @@ const eventGroups = computed(() => activeEventGroups())
 const canSubscribe = computed(() => Boolean(data.value))
 const memberTabs = [
   { id: 'accueil', label: 'Accueil', icon: 'mdi-home-outline', activeIcon: 'mdi-home' },
-  { id: 'groupe', label: 'Groupe', icon: 'mdi-account-group-outline', activeIcon: 'mdi-account-group' },
+  { id: 'groupe', label: 'Adhérents', icon: 'mdi-account-group-outline', activeIcon: 'mdi-account-group' },
   { id: 'agenda', label: 'Agenda', icon: 'mdi-calendar-month-outline', activeIcon: 'mdi-calendar-month' },
   { id: 'infos', label: 'Infos', icon: 'mdi-book-open-page-variant-outline', activeIcon: 'mdi-book-open-page-variant' },
   { id: 'emprunts', label: 'Emprunts', icon: 'mdi-swap-horizontal' },

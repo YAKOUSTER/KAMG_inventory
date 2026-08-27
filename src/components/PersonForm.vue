@@ -96,6 +96,65 @@
       </FieldRow>
     </section>
 
+    <v-expansion-panels class="form-block form-section form-section--flat" variant="accordion">
+      <v-expansion-panel>
+        <v-expansion-panel-title class="section-label section-label--panel">
+          Organigramme du cercle
+        </v-expansion-panel-title>
+        <v-expansion-panel-text>
+          <p class="text-body-2 text-medium-emphasis mb-4">
+            Cochez les responsabilités pour que la personne apparaisse dans l’onglet Adhérents.
+            Les danseurs des groupes Loisir, Ado, Tremplin et Concours y sont déjà listés via leur rôle.
+          </p>
+          <div v-for="section in orgFormTree" :key="section.id" class="org-form-section">
+            <h3 class="org-form-section__title">{{ section.label }}</h3>
+            <div class="org-form-section__chips">
+              <v-chip
+                v-for="slot in section.slots"
+                :key="slot.id"
+                class="ma-1"
+                filter
+                :variant="person.tags.includes(slot.id) ? 'flat' : 'outlined'"
+                color="primary"
+                @click.prevent="toggleOrgTag(slot.id)"
+              >
+                {{ slot.label }}
+              </v-chip>
+            </div>
+            <div v-for="child in section.children" :key="child.id" class="org-form-child">
+              <h4 class="org-form-section__subtitle">{{ child.label }}</h4>
+              <div class="org-form-section__chips">
+                <v-chip
+                  v-for="slot in child.slots"
+                  :key="slot.id"
+                  class="ma-1"
+                  filter
+                  :variant="person.tags.includes(slot.id) ? 'flat' : 'outlined'"
+                  color="primary"
+                  @click.prevent="toggleOrgTag(slot.id)"
+                >
+                  {{ slot.label }}
+                </v-chip>
+              </div>
+            </div>
+            <div v-if="section.afterSlots.length" class="org-form-section__chips mt-2">
+              <v-chip
+                v-for="slot in section.afterSlots"
+                :key="slot.id"
+                class="ma-1"
+                filter
+                :variant="person.tags.includes(slot.id) ? 'flat' : 'outlined'"
+                color="primary"
+                @click.prevent="toggleOrgTag(slot.id)"
+              >
+                {{ slot.label }}
+              </v-chip>
+            </div>
+          </div>
+        </v-expansion-panel-text>
+      </v-expansion-panel>
+    </v-expansion-panels>
+
     <section class="form-block form-section">
       <h2 class="section-label">Photo</h2>
       <ItemPhotos v-model="person.images" :code="photoCode" variant="avatar" />
@@ -143,6 +202,7 @@ import {
 } from '@/domain/person'
 import { newSeasonId } from '@/domain/seasons'
 import { normalizeImages } from '@/domain/images'
+import { orgFormSections, normalizeOrgTags } from '@/domain/orgChart'
 import FieldRow from './FieldRow.vue'
 import ItemPhotos from './ItemPhotos.vue'
 
@@ -161,8 +221,15 @@ const showSeasons = computed(() => person.roles.some((role) => COHORT_ROLES.incl
 const newSeason = newSeasonId()
 const seasonItems = membershipSeasons()
 const nouveauChecked = computed(() => isNewMember(person))
+const orgFormTree = orgFormSections()
 const required = (v) => !!v || 'Champ requis'
 const photoCode = computed(() => personDisplayName(person) || 'personne')
+
+function toggleOrgTag(id) {
+  const index = person.tags.indexOf(id)
+  if (index >= 0) person.tags.splice(index, 1)
+  else person.tags.push(id)
+}
 
 watch(
   () => props.initial,
@@ -171,6 +238,7 @@ watch(
     person.images = normalizeImages(person.images)
     person.mesures = { ...emptyPerson().mesures, ...(value?.mesures || {}) }
     person.roles = normalizeRoles(value || person)
+    person.tags = normalizeOrgTags(value || person)
     person.saisons = personSeasons(person)
     if (value?.nouveau === true || value?.nouveau === false) person.nouveau = value.nouveau
     else person.nouveau = null
@@ -186,6 +254,7 @@ async function submit() {
     images: normalizeImages(person.images),
     mesures: { ...emptyPerson().mesures, ...person.mesures },
     roles: [...person.roles],
+    tags: [...person.tags],
   })
 }
 </script>
@@ -200,6 +269,27 @@ async function submit() {
 }
 .role-chips :deep(.v-chip) {
   margin: 4px 8px 4px 0;
+}
+.org-form-section + .org-form-section {
+  margin-top: 1.1rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid rgba(83, 115, 106, 0.12);
+}
+.org-form-section__title {
+  margin: 0 0 6px;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+.org-form-section__subtitle {
+  margin: 10px 0 4px;
+  font-size: 0.82rem;
+  font-weight: 650;
+  color: var(--kamg-deep);
+}
+.org-form-child {
+  margin-left: 0.4rem;
+  padding-left: 0.7rem;
+  border-left: 2px solid rgba(83, 115, 106, 0.18);
 }
 .section-label--panel {
   font-size: 0.82rem;

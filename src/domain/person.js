@@ -7,6 +7,7 @@ import {
   isFirstYearOfSeason,
   parseSeasonId,
 } from './seasons.js'
+import { normalizeOrgTags, personOrgTagLabels } from './orgChart.js'
 
 export { displayDate, formatDate, membershipSeasons }
 
@@ -76,6 +77,7 @@ export function emptyPerson() {
     nom: '',
     prenom: '',
     roles: [],
+    tags: [],
     anneeMembre: '',
     saisons: [],
     nouveau: null,
@@ -102,6 +104,7 @@ export function memberSelfProfile(person) {
     prenom,
     nom,
     roles: normalizeRoles(person),
+    tags: normalizeOrgTags(person),
     saisons: personSeasons(person),
     nouveau: isNewMember(person),
     photo: coverSrc(person) || '',
@@ -210,6 +213,7 @@ export function personSearchText(person) {
     person?.nom,
     personDisplayName(person),
     personRolesLabel(person),
+    personOrgTagLabels(person).join(' '),
     person?.email,
     person?.telephone,
     personYear(person),
@@ -245,6 +249,9 @@ export function filterPeople(people = [], filters = {}) {
     }
     if (filters.role && filters.role !== 'Tous') {
       if (!normalizeRoles(person).includes(filters.role)) return false
+    }
+    if (filters.tag && filters.tag !== 'Tous') {
+      if (!normalizeOrgTags(person).includes(filters.tag)) return false
     }
     return true
   })
@@ -381,6 +388,7 @@ export function normalizePerson(input = {}, { id, now } = {}) {
   person.nom = String(person.nom).trim().toLocaleUpperCase('fr')
   person.prenom = String(person.prenom).trim()
   person.roles = normalizeRoles(person)
+  person.tags = normalizeOrgTags(person)
   const cohort = hasCohortRole(person)
   person.saisons = cohort ? normalizeSeasons(person.saisons, person.anneeMembre) : []
   person.anneeMembre = person.saisons.at(-1) || ''
