@@ -206,7 +206,7 @@ describe('API HTTP', () => {
     })
     const child = await request(app, 'POST', '/api/people', {
       token: login.body.token,
-      body: { nom: 'Le Gall', prenom: 'Léa', roles: ['danseur_enfant'] },
+      body: { nom: 'Le Gall', prenom: 'Léa', roles: ['danseur_enfant'], saisons: ['2025-2026', '2026-2027'] },
     })
     const event = await request(app, 'POST', '/api/events', {
       token: login.body.token,
@@ -287,7 +287,7 @@ describe('API HTTP', () => {
     })
     const dancer = await request(app, 'POST', '/api/people', {
       token: login.body.token,
-      body: { nom: 'Le Gall', prenom: 'Yan', roles: ['danseur_concours'] },
+      body: { nom: 'Le Gall', prenom: 'Yan', roles: ['danseur_concours'], saisons: ['2025-2026', '2026-2027'] },
     })
     const event = await request(app, 'POST', '/api/events', {
       token: login.body.token,
@@ -592,10 +592,17 @@ describe('API HTTP', () => {
     })
     const paid = await request(app, 'PUT', `/api/people/${person.body.id}/adhesion`, {
       token: login.body.token,
-      body: { seasonId: '2025-2026', paid: true },
+      body: { seasonId: '2025-2026', paid: true, methode: 'hello_asso' },
     })
     assert.equal(paid.status, 200)
     assert.deepEqual(paid.body.saisons, ['2025-2026'])
+    assert.equal(paid.body.adhesions[0].methode, 'hello_asso')
+
+    const missing = await request(app, 'PUT', `/api/people/${person.body.id}/adhesion`, {
+      token: login.body.token,
+      body: { seasonId: '2026-2027', paid: true },
+    })
+    assert.equal(missing.status, 400)
 
     const lecteur = await request(app, 'POST', '/api/users', {
       token: login.body.token,

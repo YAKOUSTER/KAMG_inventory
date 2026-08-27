@@ -66,7 +66,25 @@ export const DANCER_CATEGORY_ROLES = [
   'danseur_loisir',
 ]
 
+export const PAYMENT_METHODS = [
+  { id: 'hello_asso', label: 'Hello Asso' },
+  { id: 'virement', label: 'Virement bancaire' },
+  { id: 'espece', label: 'Espèce' },
+  { id: 'cheque', label: 'Chèque' },
+  { id: 'autre', label: 'Autre' },
+]
+
 const ROLE_IDS = new Set(PERSON_ROLES.map((role) => role.id))
+const PAYMENT_METHOD_IDS = new Set(PAYMENT_METHODS.map((method) => method.id))
+
+export function paymentMethodLabel(id) {
+  return PAYMENT_METHODS.find((method) => method.id === id)?.label || ''
+}
+
+export function normalizePaymentMethod(value) {
+  const id = String(value || '').trim()
+  return PAYMENT_METHOD_IDS.has(id) ? id : ''
+}
 
 export function emptyMesures() {
   return Object.fromEntries(PERSON_MEASUREMENTS.map((field) => [field.key, null]))
@@ -82,6 +100,7 @@ export function emptyPerson() {
     tags: [],
     anneeMembre: '',
     saisons: [],
+    adhesions: [],
     nouveau: null,
     telephone: '',
     email: '',
@@ -110,7 +129,9 @@ export function memberSelfProfile(person) {
     roles: normalizeRoles(person),
     tags: normalizeOrgTags(person),
     saisons: personSeasons(person),
+    adhesions: personAdhesions(person),
     nouveau: isNewMember(person),
+    actif: isActiveMember(person),
     photo: coverSrc(person) || '',
     images: person.images || [],
     mesures: { ...emptyMesures(), ...(person.mesures || {}) },
@@ -161,16 +182,23 @@ export function normalizeRoles(input = {}) {
 }
 
 export function personRoleLabels(person, now = new Date()) {
-  const labels = normalizeRoles(person)
-    .filter((id) => id !== 'membre')
-    .map((id) => roleLabel(id))
-  const membership = personMembershipLabel(person, now)
-  if (membership) labels.unshift(membership)
+  const labels = [...membershipLabels(person)]
+  const status = membershipStatusLabel(person, now)
+  if (status) labels.push(status)
+  labels.push(
+    ...normalizeRoles(person)
+      .filter((id) => id !== 'membre')
+      .map((id) => roleLabel(id)),
+  )
   if (isNewMember(person, now)) labels.push('NEW')
   return labels
 }
 
 export function personSeasons(person) {
+  const fromAdhesions = Array.isArray(person?.adhesions)
+    ? person.adhesions.map((row) => parseSeasonId(row?.seasonId || row)).filter(Boolean)
+    : []
+  if (fromAdhesions.length) return [...new Set(fromAdhesions)].sort((a, b) => a.localeCompare(b))
   return normalizeSeasons(person?.saisons, person?.anneeMembre)
 }
 
@@ -183,6 +211,68 @@ export function membershipLabels(person) {
   return personSeasons(person).map((id) => `Membre ${id}`)
 }
 
+export function normalizeAdhesions(input = {}, seasonsFallback = []) {
+  const map = new Map()
+  const raw = input.adhesions
+  if (Array.isArray(raw)) {
+    for (const row of raw) {
+      if (typeof row === 'string') {
+        const season = parseSeasonId(row)
+        if (season) map.set(season, { seasonId: season, methode: '' })
+        continue
+      }
+      const season = parseSeasonId(row?.seasonId || row?.saison)
+      if (!season) continue
+      map.set(season, { seasonId: season, methode: normalizePaymentMethod(row.methode) })
+    }
+  } else if (raw && typeof raw === 'object') {
+    for (const [key, value] of Object.entries(raw)) {
+      const season = parseSeasonId(key)
+      if (!season) continue
+      const methode =
+        typeof value === 'string' ? normalizePaymentMethod(value) : normalizePaymentMethod(value?.methode)
+      map.set(season, { seasonId: season, methode })
+    }
+  }
+  for (const season of seasonsFallback) {
+    const id = parseSeasonId(season)
+    if (id && !map.has(id)) map.set(id, { seasonId: id, methode: '' })
+  }
+  return [...map.values()].sort((a, b) => a.seasonId.localeCompare(b.seasonId))
+}
+
+export function personAdhesions(person) {
+  return normalizeAdhesions(person || {}, personSeasons(person))
+}
+
+export function personAdhesionMethod(person, seasonId) {
+  const season = parseSeasonId(seasonId) || String(seasonId || '').trim()
+  return personAdhesions(person).find((row) => row.seasonId === season)?.methode || ''
+}
+
+export function adhesionSummary(person) {
+  return personAdhesions(person)
+    .map((row) => {
+      const method = paymentMethodLabel(row.methode)
+      return method ? `Membre ${row.seasonId} (${method})` : `Membre ${row.seasonId}`
+    })
+    .join(', ')
+}
+
+export function setAdhesionRecord(person, seasonId, { paid, methode } = {}) {
+  const season = parseSeasonId(seasonId)
+  const current = personAdhesions(person)
+  if (!season) return current
+  const next = current.filter((row) => row.seasonId !== season)
+  if (!paid) return next
+  const previous = current.find((row) => row.seasonId === season)
+  next.push({
+    seasonId: season,
+    methode: normalizePaymentMethod(methode) || previous?.methode || '',
+  })
+  return next.sort((a, b) => a.seasonId.localeCompare(b.seasonId))
+}
+
 export function hasPaidSeason(person, seasonId) {
   const wanted = parseSeasonId(seasonId) || String(seasonId || '').trim()
   return Boolean(wanted) && personSeasons(person).includes(wanted)
@@ -190,6 +280,19 @@ export function hasPaidSeason(person, seasonId) {
 
 export function isCurrentMember(person, now = new Date()) {
   return hasPaidSeason(person, currentSeasonId(now))
+}
+
+export function isActiveMember(person, now = new Date()) {
+  if (!person || !canHaveSeasons(person)) return false
+  const current = currentSeasonId(now)
+  if (hasPaidSeason(person, current)) return true
+  const next = newSeasonId(now)
+  return next !== current && hasPaidSeason(person, next)
+}
+
+export function membershipStatusLabel(person, now = new Date()) {
+  if (!canHaveSeasons(person)) return ''
+  return isActiveMember(person, now) ? 'Actif' : 'Inactif'
 }
 
 export function personMembershipLabel(person, now = new Date()) {
@@ -203,12 +306,7 @@ export function personMembershipLabel(person, now = new Date()) {
 }
 
 export function setPaidSeason(person, seasonId, paid) {
-  const season = parseSeasonId(seasonId)
-  if (!season) return personSeasons(person)
-  const seasons = new Set(personSeasons(person))
-  if (paid) seasons.add(season)
-  else seasons.delete(season)
-  return [...seasons].sort((a, b) => a.localeCompare(b))
+  return setAdhesionRecord(person, seasonId, { paid }).map((row) => row.seasonId)
 }
 
 export function isInviteOnly(person) {
@@ -271,6 +369,8 @@ export function personSearchText(person) {
     personYear(person),
     ...(personSeasons(person) || []),
     isNewMember(person) ? 'NEW' : '',
+    membershipStatusLabel(person),
+    ...personAdhesions(person).map((row) => paymentMethodLabel(row.methode)),
   ]
     .filter(Boolean)
     .join(' ')
@@ -443,9 +543,28 @@ export function normalizePerson(input = {}, { id, now } = {}) {
   person.roles = normalizeRoles(person)
   person.tags = normalizeOrgTags(person)
   const eligible = canHaveSeasons(person)
-  const seasonsSource = Object.prototype.hasOwnProperty.call(input, 'saisons') ? input.saisons : undefined
-  person.saisons = eligible ? normalizeSeasons(seasonsSource, person.anneeMembre) : []
-  person.anneeMembre = person.saisons.at(-1) || ''
+  if (!eligible) {
+    person.adhesions = []
+    person.saisons = []
+    person.anneeMembre = ''
+  } else {
+    const seasonsSource = Object.prototype.hasOwnProperty.call(input, 'saisons') ? input.saisons : undefined
+    const seasons = normalizeSeasons(seasonsSource, person.anneeMembre)
+    let adhesions = normalizeAdhesions(input, seasons)
+    if (Object.prototype.hasOwnProperty.call(input, 'saisons')) {
+      const wanted = new Set(seasons)
+      adhesions = adhesions.filter((row) => wanted.has(row.seasonId))
+      for (const season of seasons) {
+        if (!adhesions.some((row) => row.seasonId === season)) {
+          adhesions.push({ seasonId: season, methode: '' })
+        }
+      }
+      adhesions.sort((a, b) => a.seasonId.localeCompare(b.seasonId))
+    }
+    person.adhesions = adhesions
+    person.saisons = adhesions.map((row) => row.seasonId)
+    person.anneeMembre = person.saisons.at(-1) || ''
+  }
   if (!eligible) person.nouveau = false
   else if (person.nouveau === true || person.nouveau === false) person.nouveau = Boolean(person.nouveau)
   else person.nouveau = isFirstYearOfSeason(person.saisons, newSeasonId())

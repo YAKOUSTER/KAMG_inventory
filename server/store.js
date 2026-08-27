@@ -22,9 +22,21 @@ import {
   normalizeSignup,
   passwordResetUrl,
   PASSWORD_RESET_MESSAGE,
+  accountDuesOverdue,
+  DUES_OVERDUE_MESSAGE,
   validatePassword,
 } from '../src/domain/memberAccount.js'
-import { groupLoansByYear, memberSelfProfile, normalizePerson, personDisplayName, canHaveSeasons, setPaidSeason } from '../src/domain/person.js'
+import {
+  groupLoansByYear,
+  memberSelfProfile,
+  normalizePerson,
+  personDisplayName,
+  canHaveSeasons,
+  setAdhesionRecord,
+  normalizePaymentMethod,
+  personAdhesions,
+  paymentMethodLabel,
+} from '../src/domain/person.js'
 import { parseSeasonId } from '../src/domain/seasons.js'
 import { todayLocal, formatDate } from '../src/domain/dates.js'
 import { normalizeEvent, filterPublishedEvents, upcomingEvents, pastEvents, sortEvents, applyEventOverlay, eventAcceptsInscriptions, publicEventSummary, eventLocalDay, assertCanMutateEvent } from '../src/domain/events.js'
@@ -545,19 +557,28 @@ export async function setPersonAdhesion(id, payload = {}, options = {}) {
     const season = parseSeasonId(payload.seasonId)
     if (!season) throw Object.assign(new Error('Saison d’adhésion invalide'), { status: 400 })
     const paid = Boolean(payload.paid)
+    const methode = normalizePaymentMethod(payload.methode)
+    if (paid) {
+      const existingMethod = personAdhesions(existing).find((row) => row.seasonId === season)?.methode
+      if (!methode && !existingMethod) {
+        throw Object.assign(new Error('Indiquez le moyen de paiement'), { status: 400 })
+      }
+    }
+    const adhesions = setAdhesionRecord(existing, season, { paid, methode })
     const person = runDomain(
       normalizePerson,
-      { ...existing, saisons: setPaidSeason(existing, season, paid), id },
+      { ...existing, adhesions, saisons: adhesions.map((row) => row.seasonId), id },
       { id },
     )
     db.people[index] = person
+    const methodLabel = paymentMethodLabel(personAdhesions(person).find((row) => row.seasonId === season)?.methode)
     appendAudit(db, options.actor, {
       action: 'person.adhesion',
       entityType: 'person',
       entityId: person.id,
       entityLabel: personLabel(person),
       summary: paid
-        ? `Adhésion ${season} payée — ${personLabel(person)}`
+        ? `Adhésion ${season} payée${methodLabel ? ` (${methodLabel})` : ''} — ${personLabel(person)}`
         : `Adhésion ${season} retirée — ${personLabel(person)}`,
     })
     return person
@@ -1042,13 +1063,22 @@ export async function getMemberSpace(user, options = {}) {
   if (isPendingPlacement(user)) {
     return { pending: true, user: publicUser(user) }
   }
+  const db = await readDb(options)
+  if (accountDuesOverdue(user, db.people || [])) {
+    return {
+      pending: false,
+      duesOverdue: true,
+      message: DUES_OVERDUE_MESSAGE,
+      user: publicUserWithMembership(db, user),
+    }
+  }
   const space = await getPublicMemberSpace(options)
   const allowed = new Set(normalizePersonIds(user.personIds))
-  const db = await readDb(options)
   const profiles = (db.people || []).map(memberSelfProfile).filter((person) => person && allowed.has(person.id))
   return {
     ...space,
     pending: false,
+    duesOverdue: false,
     profiles,
     tailles: Array.isArray(db.referentiels?.tailles) ? db.referentiels.tailles : [],
     loans: loansVisibleToMember(space.loans || [], space.people || [], [...allowed]),
@@ -1574,6 +1604,12 @@ async function defaultUsers() {
   )
 }
 
+function publicUserWithMembership(db, user) {
+  const safe = publicUser(user)
+  if (!safe) return null
+  return { ...safe, duesOverdue: accountDuesOverdue(safe, db.people || []) }
+}
+
 function issueSession(db, user) {
   const token = randomToken()
   const now = Date.now()
@@ -1584,7 +1620,7 @@ function issueSession(db, user) {
     createdAt: new Date(now).toISOString(),
     expiresAt: new Date(now + SESSION_MS).toISOString(),
   })
-  const safe = publicUser(user)
+  const safe = publicUserWithMembership(db, user)
   return { token, user: safe, ...publicSnapshot(db, safe) }
 }
 
@@ -1874,7 +1910,7 @@ export async function userFromToken(token, options = {}) {
   if (!session || new Date(session.expiresAt).getTime() < Date.now()) return null
   const user = db.users.find((u) => u.id === session.userId)
   if (!user || isDisabledUser(user)) return null
-  return publicUser(user)
+  return publicUserWithMembership(db, user)
 }
 
 export async function listUsers(options = {}) {

@@ -27,7 +27,13 @@
       </v-col>
       <v-col cols="12" md="8">
         <h1 class="text-h4 page-title">{{ personDisplayName(person) }}</h1>
-        <div v-if="roleChips.length || orgChips.length" class="d-flex flex-wrap ga-2 mb-4">
+        <div v-if="membershipChips.length || statusChip || roleChips.length || orgChips.length" class="d-flex flex-wrap ga-2 mb-4">
+          <v-chip v-for="label in membershipChips" :key="label" size="small" color="primary" variant="tonal">
+            {{ label }}
+          </v-chip>
+          <v-chip v-if="statusChip" size="small" :color="statusChip === 'Actif' ? 'success' : 'warning'" variant="tonal">
+            {{ statusChip }}
+          </v-chip>
           <v-chip v-for="label in roleChips" :key="label" size="small" variant="tonal">{{ label }}</v-chip>
           <v-chip v-for="label in orgChips" :key="`org-${label}`" size="small" color="primary" variant="tonal">
             {{ label }}
@@ -119,7 +125,7 @@ import { useRouter } from 'vue-router'
 import { api } from '@/services/api'
 import { useAuthStore } from '@/stores/auth'
 import { useInventoryStore } from '@/stores/inventory'
-import { PERSON_MEASUREMENTS, displayDate, personDisplayName, personLegalName, personRoleLabels, membershipLabels, isNewMember } from '@/domain/person'
+import { PERSON_MEASUREMENTS, displayDate, personDisplayName, personLegalName, roleLabel, normalizeRoles, membershipLabels, adhesionSummary, membershipStatusLabel, isNewMember } from '@/domain/person'
 import { personOrgTagLabels } from '@/domain/orgChart'
 import { itemsInPossession } from '@/domain/loans'
 import { useUiStore } from '@/stores/ui'
@@ -143,12 +149,20 @@ const filledMeasures = computed(() =>
   }),
 )
 
-const roleChips = computed(() => personRoleLabels(person.value))
+const membershipChips = computed(() => membershipLabels(person.value))
+const statusChip = computed(() => membershipStatusLabel(person.value))
+const roleChips = computed(() => {
+  const labels = normalizeRoles(person.value)
+    .filter((id) => id !== 'membre')
+    .map((id) => roleLabel(id))
+  if (isNewMember(person.value)) labels.push('NEW')
+  return labels
+})
 const orgChips = computed(() => personOrgTagLabels(person.value))
 const seasonLabel = computed(() => {
-  const labels = membershipLabels(person.value)
-  if (!labels.length) return isNewMember(person.value) ? 'NEW' : ''
-  return isNewMember(person.value) ? `${labels.join(', ')} · NEW` : labels.join(', ')
+  const summary = adhesionSummary(person.value)
+  if (!summary) return isNewMember(person.value) ? 'NEW' : ''
+  return isNewMember(person.value) ? `${summary} · NEW` : summary
 })
 
 const heldEntries = computed(() =>

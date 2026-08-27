@@ -1,4 +1,5 @@
 import { can, resolveUserAccess } from './auth.js'
+import { isActiveMember } from './person.js'
 
 export const USER_STATUSES = [
   { id: 'pending', label: 'En attente de rangement' },
@@ -71,8 +72,26 @@ export function canUseMemberSpace(user) {
   return Boolean(user) && !isDisabledUser(user)
 }
 
+export const DUES_OVERDUE_MESSAGE =
+  'Votre cotisation n’est plus à jour. Merci de reprendre une adhésion pour accéder aux groupes du cercle ainsi qu’à l’application'
+
+export function isStaffAccount(user) {
+  return user?.role === 'admin' || user?.role === 'gestion' || user?.role === 'lecteur'
+}
+
+export function accountDuesOverdue(user, people = [], now = new Date()) {
+  if (!user || isDisabledUser(user) || isPendingPlacement(user) || isStaffAccount(user)) return false
+  const ids = normalizePersonIds(user.personIds)
+  if (!ids.length) return true
+  return !ids.some((id) => {
+    const person = people.find((entry) => entry.id === id)
+    return person && isActiveMember(person, now)
+  })
+}
+
 export function homePath(user) {
   if (!canUseMemberSpace(user)) return '/connexion'
+  if (user.duesOverdue) return '/espace-membre'
   if (can(user, 'items.read')) return '/'
   return '/espace-membre'
 }
@@ -80,6 +99,7 @@ export function homePath(user) {
 export function canVisitAppRoute(user, meta = {}) {
   if (meta.public) return true
   if (!canUseMemberSpace(user)) return false
+  if (user.duesOverdue) return Boolean(meta.member)
   if (meta.member) return true
   if (Array.isArray(meta.permissionAny) && meta.permissionAny.length) {
     return meta.permissionAny.some((permission) => can(user, permission))
@@ -89,7 +109,7 @@ export function canVisitAppRoute(user, meta = {}) {
 }
 
 export function canRsvpAsPerson(user, personId) {
-  if (!user || isDisabledUser(user) || isPendingPlacement(user)) return false
+  if (!user || isDisabledUser(user) || isPendingPlacement(user) || user.duesOverdue) return false
   const id = String(personId || '').trim()
   if (!id) return false
   return normalizePersonIds(user.personIds).includes(id)

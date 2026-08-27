@@ -18,6 +18,9 @@ import {
   hasPaidSeason,
   canHaveSeasons,
   adhesionPeople,
+  isActiveMember,
+  personAdhesions,
+  setAdhesionRecord,
 } from './person.js'
 
 describe('normalizePerson', () => {
@@ -58,7 +61,7 @@ describe('normalizePerson', () => {
     assert.equal(person.nouveau, true)
     assert.equal(
       personRolesLabel(person, new Date('2026-08-25T12:00:00')),
-      'Membre 2026-2027 · Danseur loisir · Groupe Vêtement · NEW',
+      'Membre 2026-2027 · Actif · Danseur loisir · Groupe Vêtement · NEW',
     )
     assert.equal(isCurrentMember(person, new Date('2026-08-25T12:00:00')), false)
     assert.equal(isCurrentMember(person, new Date('2026-10-02T12:00:00')), true)
@@ -78,7 +81,7 @@ describe('normalizePerson', () => {
     assert.equal(person.anneeMembre, '2024-2025')
     assert.deepEqual(person.saisons, ['2024-2025'])
     assert.equal(person.nouveau, false)
-    assert.equal(personRolesLabel(person, new Date('2026-08-25T12:00:00')), 'Danseur concours')
+    assert.equal(personRolesLabel(person, new Date('2026-08-25T12:00:00')), 'Membre 2024-2025 · Inactif · Danseur concours')
     assert.equal(isCurrentMember(person, new Date('2026-08-25T12:00:00')), false)
   })
 
@@ -86,7 +89,7 @@ describe('normalizePerson', () => {
     assert.deepEqual(normalizeRoles({ role: 'Invité' }), ['invite'])
     const person = normalizePerson({ nom: 'Le Roux', prenom: 'Maïwenn', role: 'Couture' }, { id: 'p3' })
     assert.deepEqual(person.roles, ['couture'])
-    assert.equal(personRolesLabel(person), 'Groupe Vêtement')
+    assert.equal(personRolesLabel(person), 'Inactif · Groupe Vêtement')
     assert.deepEqual(person.saisons, [])
     assert.equal(person.nouveau, false)
   })
@@ -122,7 +125,7 @@ describe('normalizePerson', () => {
     assert.equal(isCurrentMember(couture, new Date('2026-08-25T12:00:00')), true)
     assert.equal(
       personRolesLabel(couture, new Date('2026-08-25T12:00:00')),
-      'Membre 2025-2026 · Groupe Vêtement',
+      'Membre 2025-2026 · Actif · Groupe Vêtement',
     )
     const sansRole = normalizePerson(
       { nom: 'Hamon', prenom: 'Nolwenn', saisons: ['2024-2025', '2025-2026'] },
@@ -137,6 +140,25 @@ describe('normalizePerson', () => {
     assert.deepEqual(setPaidSeason(person, '2025-2026', true), ['2024-2025', '2025-2026'])
     assert.deepEqual(setPaidSeason({ saisons: ['2025-2026'] }, '2025-2026', false), [])
     assert.equal(hasPaidSeason({ saisons: ['2025-2026'] }, '2025'), true)
+  })
+
+  it('enregistre le moyen de paiement d’une adhésion', () => {
+    const person = normalizePerson(
+      { nom: 'Le Gall', prenom: 'Anna', roles: ['danseur_loisir'], saisons: ['2024-2025'] },
+      { id: 'p-pay' },
+    )
+    const adhesions = setAdhesionRecord(person, '2025-2026', { paid: true, methode: 'hello_asso' })
+    const saved = normalizePerson({ ...person, adhesions, saisons: adhesions.map((row) => row.seasonId) }, { id: person.id })
+    assert.deepEqual(personAdhesions(saved), [
+      { seasonId: '2024-2025', methode: '' },
+      { seasonId: '2025-2026', methode: 'hello_asso' },
+    ])
+    assert.equal(isActiveMember(saved, new Date('2026-08-25T12:00:00')), true)
+    assert.equal(isActiveMember(saved, new Date('2026-11-10T12:00:00')), false)
+    assert.equal(
+      personRolesLabel(saved, new Date('2026-11-10T12:00:00')),
+      'Membre 2024-2025 · Membre 2025-2026 · Inactif · Danseur loisir',
+    )
   })
 
   it('liste les personnes éligibles à une adhésion, sans les invités', () => {

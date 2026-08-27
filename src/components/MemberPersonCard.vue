@@ -32,7 +32,13 @@
               <v-icon v-if="!person.photo" size="48" color="primary">mdi-account</v-icon>
             </div>
           </div>
-          <div v-if="groupLabels.length || person.nouveau" class="d-flex flex-wrap ga-1 mb-3">
+          <div v-if="groupLabels.length || person.nouveau || membershipChips.length" class="d-flex flex-wrap ga-1 mb-3">
+            <v-chip v-for="label in membershipChips" :key="label" size="small" color="primary" variant="tonal">
+              {{ label }}
+            </v-chip>
+            <v-chip v-if="statusChip" size="small" :color="statusChip === 'Actif' ? 'success' : 'warning'" variant="tonal">
+              {{ statusChip }}
+            </v-chip>
             <v-chip v-if="person.nouveau" size="small" color="primary" variant="tonal">NEW</v-chip>
             <v-chip v-for="label in groupLabels" :key="label" size="small" variant="tonal">
               {{ label }}
@@ -48,7 +54,7 @@
 
 <script setup>
 import { computed, ref } from 'vue'
-import { personDisplayName } from '@/domain/person'
+import { membershipLabels, membershipStatusLabel, personDisplayName } from '@/domain/person'
 import { eventGroupLabel, personDanceGroups } from '@/domain/eventGroups'
 import { personOrgTagLabels } from '@/domain/orgChart'
 
@@ -62,6 +68,8 @@ const groupLabels = computed(() => [
   ...personDanceGroups(props.person).map((id) => eventGroupLabel(id)),
   ...personOrgTagLabels(props.person),
 ])
+const membershipChips = computed(() => membershipLabels(props.person))
+const statusChip = computed(() => membershipStatusLabel(props.person))
 const excerpt = computed(() => {
   const text = String(props.person?.bio || '').trim()
   if (!text) return ''

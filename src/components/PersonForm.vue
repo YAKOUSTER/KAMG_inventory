@@ -42,7 +42,8 @@
           />
           <p class="text-caption text-medium-emphasis mt-1">
             L’adhésion court d’octobre à octobre (ex. Membre 2025-2026). La saison {{ newSeason }} sert
-            pour la rentrée. Les invités n’ont pas d’adhésion.
+            pour la rentrée. Le moyen de paiement se coche dans Gestion → Adhésions. Les invités n’ont
+            pas d’adhésion.
           </p>
         </FieldRow>
         <FieldRow label="Taille générale">

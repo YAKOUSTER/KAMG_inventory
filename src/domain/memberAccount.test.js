@@ -9,6 +9,8 @@ import {
   normalizeSignup,
   passwordResetUrl,
   validatePassword,
+  accountDuesOverdue,
+  DUES_OVERDUE_MESSAGE,
 } from './memberAccount.js'
 
 describe('inscription membres', () => {
@@ -41,6 +43,26 @@ describe('accès après connexion', () => {
     assert.equal(canVisitAppRoute({ role: 'membre' }, { member: true }), true)
     assert.equal(canVisitAppRoute({ role: 'membre' }, { permission: 'items.read' }), false)
     assert.equal(canVisitAppRoute({ role: 'admin' }, { permission: 'users.manage' }), true)
+  })
+
+  it('bloque l’application si la cotisation n’est plus à jour', () => {
+    const overdue = { role: 'membre', status: 'active', permissions: [], personIds: ['anna'], duesOverdue: true }
+    assert.equal(homePath(overdue), '/espace-membre')
+    assert.equal(canVisitAppRoute(overdue, { member: true }), true)
+    assert.equal(canVisitAppRoute(overdue, { permission: 'items.read' }), false)
+    assert.equal(canVisitAppRoute(overdue, { permissionAny: ['agenda.libre'] }), false)
+    const anna = { id: 'anna', roles: ['danseur_loisir'], saisons: ['2024-2025'] }
+    assert.equal(accountDuesOverdue({ role: 'membre', status: 'active', personIds: ['anna'] }, [anna], new Date('2026-11-10T12:00:00')), true)
+    assert.equal(
+      accountDuesOverdue(
+        { role: 'membre', status: 'active', personIds: ['anna'] },
+        [{ ...anna, saisons: ['2026-2027'] }],
+        new Date('2026-11-10T12:00:00'),
+      ),
+      false,
+    )
+    assert.equal(accountDuesOverdue({ role: 'admin', personIds: ['anna'] }, [anna]), false)
+    assert.match(DUES_OVERDUE_MESSAGE, /cotisation/)
   })
 
   it('n’autorise le sondage que pour les fiches liées, une fois rangé', () => {

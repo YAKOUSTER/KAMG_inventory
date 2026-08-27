@@ -66,10 +66,30 @@
           >
             {{ personDisplayName(person) }}
           </router-link>
-          <div v-if="personRolesLabel(person)" class="text-caption text-medium-emphasis">
-            {{ personRolesLabel(person) }}
+          <div class="d-flex flex-wrap align-center ga-1 mt-1">
+            <v-chip
+              size="x-small"
+              :color="isActiveMember(person) ? 'success' : 'warning'"
+              variant="tonal"
+            >
+              {{ membershipStatusLabel(person) }}
+            </v-chip>
+            <span v-if="membershipLabels(person).length" class="text-caption text-medium-emphasis">
+              {{ membershipLabels(person).join(' · ') }}
+            </span>
           </div>
         </div>
+        <v-select
+          :model-value="methodOf(person)"
+          :items="methodItems"
+          :disabled="!auth.can('people.write') || Boolean(saving[person.id])"
+          density="compact"
+          hide-details
+          label="Paiement"
+          class="adhesion-row__method"
+          clearable
+          @update:model-value="setMethod(person, $event)"
+        />
         <v-switch
           :model-value="isPaid(person)"
           :disabled="!auth.can('people.write') || Boolean(saving[person.id])"
@@ -94,12 +114,16 @@ import { useInventoryStore } from '@/stores/inventory'
 import { useAuthStore } from '@/stores/auth'
 import { api } from '@/services/api'
 import {
+  PAYMENT_METHODS,
   PERSON_ROLES,
   adhesionPeople,
   hasPaidSeason,
+  isActiveMember,
   matchesSearch,
+  membershipLabels,
+  membershipStatusLabel,
+  personAdhesionMethod,
   personDisplayName,
-  personRolesLabel,
   personSearchText,
   sortPeople,
 } from '@/domain/person'
@@ -110,6 +134,7 @@ const auth = useAuthStore()
 const error = ref('')
 const saving = reactive({})
 const paidOverrides = reactive({})
+const methodOverrides = reactive({})
 const search = ref('')
 const role = ref('Tous')
 const paidFilter = ref('tous')
@@ -131,6 +156,7 @@ const paidItems = [
   { title: 'Payé', value: 'paye' },
   { title: 'Non payé', value: 'non' },
 ]
+const methodItems = PAYMENT_METHODS.map((method) => ({ title: method.label, value: method.id }))
 
 const eligiblePeople = computed(() => adhesionPeople(inventory.people))
 
@@ -159,39 +185,78 @@ function isPaid(person) {
   return hasPaidSeason(person, seasonId.value)
 }
 
+function methodOf(person) {
+  if (Object.prototype.hasOwnProperty.call(methodOverrides, person.id)) return methodOverrides[person.id]
+  return personAdhesionMethod(person, seasonId.value)
+}
+
 function resetFilters() {
   search.value = ''
   role.value = 'Tous'
   paidFilter.value = 'tous'
 }
 
-async function setPaid(person, paid) {
+async function saveAdhesion(person, { paid, methode }) {
   if (!auth.can('people.write')) return
   error.value = ''
   paidOverrides[person.id] = Boolean(paid)
+  if (paid) methodOverrides[person.id] = methode || ''
+  else methodOverrides[person.id] = ''
   saving[person.id] = true
   try {
-    const saved = await api.setPersonAdhesion(person.id, { seasonId: seasonId.value, paid: Boolean(paid) })
+    const saved = await api.setPersonAdhesion(person.id, {
+      seasonId: seasonId.value,
+      paid: Boolean(paid),
+      methode: methode || '',
+    })
     inventory.upsertPerson(saved)
     delete paidOverrides[person.id]
+    delete methodOverrides[person.id]
   } catch (err) {
     delete paidOverrides[person.id]
+    delete methodOverrides[person.id]
     error.value = err.message || 'Impossible d’enregistrer l’adhésion.'
   } finally {
     delete saving[person.id]
   }
 }
 
+async function setPaid(person, paid) {
+  if (!paid) {
+    await saveAdhesion(person, { paid: false })
+    return
+  }
+  const methode = methodOf(person)
+  if (!methode) {
+    error.value = 'Choisissez un moyen de paiement.'
+    return
+  }
+  await saveAdhesion(person, { paid: true, methode })
+}
+
+async function setMethod(person, methode) {
+  const next = String(methode || '')
+  methodOverrides[person.id] = next
+  if (!next) {
+    if (isPaid(person)) await saveAdhesion(person, { paid: false })
+    else delete methodOverrides[person.id]
+    return
+  }
+  await saveAdhesion(person, { paid: true, methode: next })
+}
+
 onMounted(() => inventory.refresh().catch(() => {}))
 
 watch(seasonId, () => {
   for (const key of Object.keys(paidOverrides)) delete paidOverrides[key]
+  for (const key of Object.keys(methodOverrides)) delete methodOverrides[key]
 })
 </script>
 
 <style scoped>
 .adhesion-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 12px;
   padding: 10px 4px;
@@ -201,7 +266,7 @@ watch(seasonId, () => {
   border-bottom: 0;
 }
 .adhesion-row__identity {
-  flex: 1;
+  flex: 1 1 180px;
 }
 .adhesion-row__name {
   font-weight: 700;
@@ -210,6 +275,10 @@ watch(seasonId, () => {
 }
 .adhesion-row__name:hover {
   text-decoration: underline;
+}
+.adhesion-row__method {
+  flex: 1 1 180px;
+  max-width: 240px;
 }
 .adhesion-row__switch {
   flex: 0 0 auto;

@@ -70,7 +70,7 @@ import {
   dataPaths,
 } from './store.js'
 import { can, canReceivePushNotifications } from '../src/domain/auth.js'
-import { isDisabledUser, isPendingPlacement, normalizePersonIds } from '../src/domain/memberAccount.js'
+import { isDisabledUser, isPendingPlacement, normalizePersonIds, DUES_OVERDUE_MESSAGE } from '../src/domain/memberAccount.js'
 import { securityHeaders } from './security.js'
 import { createRateLimiter, loginRateLimitKey, resetRateLimits } from './rateLimit.js'
 import { clientIp, requestOrigin } from './requestMeta.js'
@@ -169,6 +169,10 @@ function authPlacedMember(req, res, next) {
   return authMember(req, res, () => {
     if (isPendingPlacement(req.user)) {
       res.status(403).json({ error: 'Votre inscription est en attente de rangement' })
+      return
+    }
+    if (req.user?.duesOverdue) {
+      res.status(403).json({ error: DUES_OVERDUE_MESSAGE })
       return
     }
     next()

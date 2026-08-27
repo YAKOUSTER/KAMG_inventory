@@ -51,6 +51,7 @@ import {
   updateMemberProfile,
 } from './store.js'
 import { todayLocal } from '../src/domain/dates.js'
+import { currentSeasonId } from '../src/domain/seasons.js'
 
 async function tmpOptions() {
   const dir = await mkdtemp(path.join(os.tmpdir(), 'patrimoine-'))
@@ -338,8 +339,13 @@ describe('json store', () => {
       { nom: 'Le Gall', prenom: 'Anna', roles: ['danseur_loisir'] },
       actorOptions,
     )
-    const paid = await setPersonAdhesion(person.id, { seasonId: '2025-2026', paid: true }, actorOptions)
+    const paid = await setPersonAdhesion(
+      person.id,
+      { seasonId: '2025-2026', paid: true, methode: 'cheque' },
+      actorOptions,
+    )
     assert.deepEqual(paid.saisons, ['2025-2026'])
+    assert.equal(paid.adhesions[0].methode, 'cheque')
     const audit = await listAudit({ action: 'person.adhesion', limit: 5 }, options)
     assert.equal(audit.entries[0].action, 'person.adhesion')
     assert.match(audit.entries[0].summary, /Adhésion 2025-2026 payée/)
@@ -350,8 +356,16 @@ describe('json store', () => {
       actorOptions,
     )
     await assert.rejects(
-      () => setPersonAdhesion(invite.id, { seasonId: '2025-2026', paid: true }, actorOptions),
+      () => setPersonAdhesion(invite.id, { seasonId: '2025-2026', paid: true, methode: 'espece' }, actorOptions),
       /invités/,
+    )
+    const missingMethod = await createPerson(
+      { nom: 'Prigent', prenom: 'Yann', roles: ['danseur_loisir'] },
+      actorOptions,
+    )
+    await assert.rejects(
+      () => setPersonAdhesion(missingMethod.id, { seasonId: '2025-2026', paid: true }, actorOptions),
+      /moyen de paiement/,
     )
   })
 
@@ -753,7 +767,10 @@ END:VCALENDAR`
       { code: 'GIL-CON', nom: 'Gilet concours', categorie: 'piece_costume', disponibilite: 'Disponible' },
       options,
     )
-    const ado = await createPerson({ nom: 'Ado', prenom: 'Léa', roles: ['danseur_ado'] }, options)
+    const ado = await createPerson(
+      { nom: 'Ado', prenom: 'Léa', roles: ['danseur_ado'], saisons: [currentSeasonId()] },
+      options,
+    )
     const concours = await createPerson(
       { nom: 'Concours', prenom: 'Yan', roles: ['danseur_concours'] },
       options,
@@ -796,7 +813,10 @@ END:VCALENDAR`
   })
 
   it('autorise un membre à mettre à jour uniquement sa fiche liée', async () => {
-    const person = await createPerson({ nom: 'Profil', prenom: 'Léa' }, options)
+    const person = await createPerson(
+      { nom: 'Profil', prenom: 'Léa', saisons: [currentSeasonId()] },
+      options,
+    )
     const other = await createPerson({ nom: 'Autre', prenom: 'Yan' }, options)
     const user = await createUser(
       {

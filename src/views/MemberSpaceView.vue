@@ -29,7 +29,7 @@
     <v-progress-linear v-if="loading" indeterminate color="primary" class="mb-3" />
       <v-alert v-if="error" type="error" variant="tonal" class="mb-3">{{ error }}</v-alert>
       <v-btn
-        v-if="!mdAndUp && canOpenGestion && !pending"
+        v-if="!mdAndUp && canOpenGestion && !pending && !duesOverdue"
         color="primary"
         class="text-none mb-3"
         block
@@ -49,6 +49,14 @@
       <p v-if="auth.user?.signup?.childrenNames" class="text-body-2">
         Enfant(s) indiqué(s) : {{ auth.user.signup.childrenNames }}
       </p>
+      <v-btn v-if="!mdAndUp" variant="tonal" class="text-none mt-2" @click="logout">
+        Déconnexion
+      </v-btn>
+    </section>
+
+    <section v-else-if="duesOverdue" class="member-waiting">
+      <h2>Cotisation à renouveler</h2>
+      <p>{{ duesMessage }}</p>
       <v-btn v-if="!mdAndUp" variant="tonal" class="text-none mt-2" @click="logout">
         Déconnexion
       </v-btn>
@@ -192,7 +200,7 @@
     </template>
 
     <BottomTabBar
-      v-if="!mdAndUp && !pending"
+      v-if="!mdAndUp && !pending && !duesOverdue"
       :items="memberTabs"
       :active-id="tab"
       label="Espace membres"
@@ -303,6 +311,7 @@ import SortieFiche from '@/components/SortieFiche.vue'
 import BottomTabBar from '@/components/BottomTabBar.vue'
 import { useAuthStore } from '@/stores/auth'
 import { canAccessGestion, gestionHomePath } from '@/domain/gestionNav'
+import { DUES_OVERDUE_MESSAGE } from '@/domain/memberAccount'
 import { memberSpaceQuery } from '@/domain/memberSpaceNav'
 
 const route = useRoute()
@@ -310,12 +319,14 @@ const router = useRouter()
 const auth = useAuthStore()
 const display = useDisplay()
 const mdAndUp = computed(() => display.mdAndUp.value)
-const canOpenGestion = computed(() => canAccessGestion(auth.user))
+const canOpenGestion = computed(() => canAccessGestion(auth.user) && !auth.user?.duesOverdue && !duesOverdue.value)
 const gestionHome = computed(() => gestionHomePath(auth.user))
 const memberDisplayName = computed(() => String(auth.user?.nom || auth.user?.login || '').trim())
 const loading = ref(true)
 const error = ref('')
 const pending = ref(false)
+const duesOverdue = ref(false)
+const duesMessage = ref(DUES_OVERDUE_MESSAGE)
 const data = ref(null)
 const tab = ref(route.query.onglet || 'accueil')
 const agendaMode = ref('events')
@@ -407,7 +418,9 @@ onMounted(async () => {
   try {
     const payload = await api.publicMemberSpace()
     pending.value = Boolean(payload.pending)
-    if (payload.pending) {
+    duesOverdue.value = Boolean(payload.duesOverdue || auth.user?.duesOverdue)
+    duesMessage.value = payload.message || DUES_OVERDUE_MESSAGE
+    if (payload.pending || payload.duesOverdue) {
       data.value = null
       return
     }

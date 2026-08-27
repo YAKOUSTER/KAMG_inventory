@@ -76,6 +76,7 @@ export function publicPerson(person) {
     roles: Array.isArray(person.roles) ? person.roles : [],
     tags: Array.isArray(person.tags) ? person.tags : [],
     saisons: personSeasons(person),
+    adhesions: Array.isArray(person.adhesions) ? person.adhesions : [],
     nouveau: isNewMember(person),
     photo: coverSrc(person) || '',
     bio: String(person.bio || '').trim(),

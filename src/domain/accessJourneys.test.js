@@ -36,6 +36,13 @@ describe('parcours selon les accès', () => {
     assert.deepEqual(visitable(user), ['/espace-membre'])
   })
 
+  it('garde l’espace membres mais ferme le reste si la cotisation est périmée', () => {
+    const user = publicUser({ role: 'membre', status: 'active', permissions: [], personIds: ['1'] })
+    user.duesOverdue = true
+    assert.equal(homePath(user), '/espace-membre')
+    assert.deepEqual(visitable(user), ['/espace-membre'])
+  })
+
   it('ouvre toute la Gestion à un Administrateur, y compris après un enregistrement incomplet', () => {
     const user = publicUser({
       role: 'admin',

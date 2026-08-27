@@ -239,7 +239,7 @@ const isLogin = computed(() =>
 const isMemberSpace = computed(() => route.meta.publicLayout === 'member')
 const isStandalonePublic = computed(() => isLogin.value || isMemberSpace.value)
 
-const areas = computed(() => visibleGestionAreas(auth.user))
+const areas = computed(() => (auth.user?.duesOverdue ? [] : visibleGestionAreas(auth.user)))
 const currentArea = computed(() => gestionAreaForPath(route.path, auth.user))
 const areaToolbarLinks = computed(() => toolbarLinksForArea(currentArea.value))
 const showAreaToolbar = computed(
