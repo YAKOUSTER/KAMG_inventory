@@ -3,7 +3,7 @@
     <div class="d-flex flex-wrap align-center ga-3 page-header">
       <h1 class="text-h5 text-md-h4 page-title">Contenus membres</h1>
       <v-spacer />
-      <v-btn v-if="auth.can('content.write')" color="primary" to="/contenus/nouveau" prepend-icon="mdi-plus">
+      <v-btn v-if="auth.can('content.write')" color="primary" to="/gestion/contenus/nouveau" prepend-icon="mdi-plus">
         Ajouter
       </v-btn>
     </div>

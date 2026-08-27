@@ -130,7 +130,7 @@
 
       <div class="d-flex ga-3 mt-6">
         <v-btn type="submit" color="primary" :loading="saving">Enregistrer</v-btn>
-        <v-btn variant="text" to="/contenus">Annuler</v-btn>
+        <v-btn variant="text" to="/gestion/contenus">Annuler</v-btn>
         <v-spacer />
         <v-btn
           v-if="isEdit && auth.can('content.write')"

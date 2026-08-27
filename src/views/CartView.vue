@@ -6,13 +6,13 @@
         {{ cart.items.length }} pièce{{ cart.items.length > 1 ? 's' : '' }}
       </v-chip>
       <v-spacer />
-      <v-btn variant="text" to="/inventaire">Continuer l’inventaire</v-btn>
+      <v-btn variant="text" to="/gestion/inventaire">Continuer l’inventaire</v-btn>
     </div>
 
     <v-alert v-if="!cart.items.length" type="info" variant="tonal">
       Le panier est vide. Parcourez l’inventaire et touchez « Emprunter » sur les pièces disponibles.
       <div class="mt-3">
-        <v-btn color="primary" to="/inventaire">Voir l’inventaire</v-btn>
+        <v-btn color="primary" to="/gestion/inventaire">Voir l’inventaire</v-btn>
       </div>
     </v-alert>
 
@@ -49,7 +49,7 @@
         </FieldRow>
         <p v-if="!inventory.people.length" class="text-body-2 mb-4">
           Aucune personne enregistrée.
-          <router-link v-if="auth.can('people.write')" to="/personnes/nouvelle">Créer une fiche personne</router-link>
+          <router-link v-if="auth.can('people.write')" to="/gestion/personnes/nouvelle">Créer une fiche personne</router-link>
         </p>
         <FieldRow label="Titre de l'emprunt" hint="spectacle, répétition…">
           <v-text-field v-model="titre" hide-details />

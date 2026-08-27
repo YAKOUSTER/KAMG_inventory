@@ -3,7 +3,7 @@
     <div class="d-flex flex-wrap align-center ga-3 mb-4">
       <h1 class="text-h5 text-md-h4 page-title">Emprunts</h1>
       <v-spacer />
-      <v-btn v-if="auth.can('loans.write')" color="primary" to="/panier" prepend-icon="mdi-cart-outline">
+      <v-btn v-if="auth.can('loans.write')" color="primary" to="/gestion/panier" prepend-icon="mdi-cart-outline">
         Nouveau
       </v-btn>
     </div>

@@ -121,7 +121,7 @@ async function submit() {
       childrenNames: childrenNames.value,
       message: message.value,
     })
-    router.replace('/espace-membre')
+    router.replace('/')
   } catch (err) {
     error.value = err.message
   } finally {

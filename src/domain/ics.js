@@ -170,6 +170,7 @@ export function eventIcsUid(event) {
   const googleUid = String(event?.googleUid || '').trim()
   if (googleUid) return googleUid
   const id = String(event?.id || 'event').replace(/[^a-zA-Z0-9._-]+/g, '-')
+  // UID laissé sur l’ancien hôte pour ne pas dupliquer les événements déjà abonnés.
   return `kamg-${id}@kamg.sterennfonseca.fr`
 }
 

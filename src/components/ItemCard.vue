@@ -95,7 +95,7 @@ const reconstitutionGood = computed(() => isReconstitutionGood(props.item))
 
 function add() {
   cart.add(props.item)
-  ui.notify(`${props.item.code} ajoutée au panier`, { to: '/panier', action: 'Panier' })
+  ui.notify(`${props.item.code} ajoutée au panier`, { to: '/gestion/panier', action: 'Panier' })
 }
 </script>
 

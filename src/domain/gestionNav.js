@@ -1,4 +1,5 @@
 import { can } from './auth.js'
+import { GESTION, MEMBER_HOME } from './paths.js'
 
 export const GESTION_AREAS = [
   {
@@ -9,27 +10,27 @@ export const GESTION_AREAS = [
     icon: 'mdi-hanger',
     activeIcon: 'mdi-hanger',
     links: [
-      { to: '/', title: 'Accueil', icon: 'mdi-home-outline', permission: 'items.read', exact: true },
+      { to: GESTION.home, title: 'Accueil', icon: 'mdi-home-outline', permission: 'items.read', exact: true },
       {
-        to: '/inventaire',
+        to: GESTION.inventory,
         title: 'Inventaire',
         icon: 'mdi-hanger',
         permission: 'items.read',
-        match: ['/inventaire', '/pieces'],
+        match: [GESTION.inventory, '/gestion/pieces'],
       },
       {
-        to: '/emprunts',
+        to: GESTION.loans,
         title: 'Emprunts',
         icon: 'mdi-swap-horizontal',
         permission: 'loans.read',
-        match: ['/emprunts'],
+        match: [GESTION.loans],
       },
       {
-        to: '/panier',
+        to: GESTION.cart,
         title: 'Panier',
         icon: 'mdi-cart-outline',
         permission: 'loans.write',
-        match: ['/panier'],
+        match: [GESTION.cart],
         toolbar: false,
       },
     ],
@@ -43,11 +44,11 @@ export const GESTION_AREAS = [
     activeIcon: 'mdi-calendar-month',
     links: [
       {
-        to: '/agenda',
+        to: GESTION.agenda,
         title: 'Agenda',
         icon: 'mdi-calendar-month-outline',
         permissionAny: ['agenda.read', 'agenda.write', 'agenda.libre'],
-        match: ['/agenda'],
+        match: [GESTION.agenda],
       },
     ],
   },
@@ -60,18 +61,18 @@ export const GESTION_AREAS = [
     activeIcon: 'mdi-account-group',
     links: [
       {
-        to: '/personnes',
+        to: GESTION.people,
         title: 'Personnes',
         icon: 'mdi-account-group-outline',
         permission: 'people.read',
-        match: ['/personnes'],
+        match: [GESTION.people],
       },
       {
-        to: '/a-ranger',
+        to: GESTION.placement,
         title: 'À ranger',
         icon: 'mdi-account-clock-outline',
         permission: 'people.write',
-        match: ['/a-ranger'],
+        match: [GESTION.placement],
       },
     ],
   },
@@ -84,11 +85,11 @@ export const GESTION_AREAS = [
     activeIcon: 'mdi-book-open-page-variant',
     links: [
       {
-        to: '/contenus',
+        to: GESTION.contents,
         title: 'Contenus',
         icon: 'mdi-book-open-page-variant-outline',
         permission: 'content.read',
-        match: ['/contenus'],
+        match: [GESTION.contents],
       },
     ],
   },
@@ -113,7 +114,7 @@ export function linkAllowed(link, user) {
 }
 
 export function gestionHomePath(user) {
-  return visibleGestionAreas(user)[0]?.home || '/espace-membre'
+  return visibleGestionAreas(user)[0]?.home || MEMBER_HOME
 }
 
 export function toolbarLinksForArea(area) {

@@ -35,8 +35,8 @@ describe('inscription membres', () => {
 
 describe('accès après connexion', () => {
   it('envoie les simples membres vers l’espace membres', () => {
-    assert.equal(homePath({ role: 'membre', status: 'pending', permissions: [] }), '/espace-membre')
-    assert.equal(homePath({ role: 'admin', status: 'active', permissions: ['items.read'] }), '/')
+    assert.equal(homePath({ role: 'membre', status: 'pending', permissions: [] }), '/')
+    assert.equal(homePath({ role: 'admin', status: 'active', permissions: ['items.read'] }), '/gestion')
   })
 
   it('n’autorise le sondage que pour les fiches liées, une fois rangé', () => {

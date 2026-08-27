@@ -8,7 +8,7 @@
       :items="inventory.items"
       :saving="saving"
       :submit-label="isEdit ? 'Enregistrer' : 'Créer'"
-      :cancel-to="isEdit ? { name: 'item-detail', params: { id } } : '/inventaire'"
+      :cancel-to="isEdit ? { name: 'item-detail', params: { id } } : '/gestion/inventaire'"
       @save="onSave"
     />
   </div>

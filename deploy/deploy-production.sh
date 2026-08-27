@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Déploie le code sur kamg.sterennfonseca.fr sans toucher AppMEUR.
+# Déploie le code sur kamg.fr sans toucher AppMEUR.
 # Ne remplace jamais data/db.json ni data/uploads/ (saisies prod).
 set -euo pipefail
 
@@ -96,5 +96,5 @@ print("OK : fiches, personnes et emprunts conservés.")
 PY
 REMOTE
 
-echo "Déploiement terminé sur https://kamg.sterennfonseca.fr"
+echo "Déploiement terminé sur https://kamg.fr"
 echo "Saisies prod : conservées (copie de sécurité dans /var/www/kamg/data/backups/)."

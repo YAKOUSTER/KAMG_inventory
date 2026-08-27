@@ -3,7 +3,7 @@
     <div class="d-flex flex-wrap align-center ga-3 page-header">
       <h1 class="text-h5 text-md-h4 page-title">À ranger</h1>
       <v-spacer />
-      <v-btn variant="text" class="text-none" to="/personnes">Personnes</v-btn>
+      <v-btn variant="text" class="text-none" to="/gestion/personnes">Personnes</v-btn>
     </div>
     <p class="text-body-2 text-medium-emphasis mb-4">
       Les inscriptions arrivent ici. Reliez chaque compte à une fiche danseur, ou aux enfants pour un parent.

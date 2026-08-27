@@ -1,12 +1,12 @@
 <template>
   <div v-if="person">
     <div class="d-flex flex-wrap align-center ga-3 page-header">
-      <v-btn variant="text" to="/personnes" prepend-icon="mdi-arrow-left">Personnes</v-btn>
+      <v-btn variant="text" to="/gestion/personnes" prepend-icon="mdi-arrow-left">Personnes</v-btn>
       <v-spacer />
       <v-btn
         v-if="auth.can('loans.write')"
         color="primary"
-        :to="{ path: '/panier', query: { person: person.id } }"
+        :to="{ path: '/gestion/panier', query: { person: person.id } }"
       >
         Nouvel emprunt
       </v-btn>
@@ -169,7 +169,7 @@ async function remove() {
     await api.deletePerson(props.id)
     inventory.removePerson(props.id)
     ui.notify('Personne supprimée')
-    router.push('/personnes')
+    router.push('/gestion/personnes')
   } catch (err) {
     error.value = err.message
   }

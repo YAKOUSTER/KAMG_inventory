@@ -7,7 +7,7 @@
         <v-btn value="liste" size="small">Liste</v-btn>
         <v-btn value="promotions" size="small">Promotions</v-btn>
       </v-btn-toggle>
-      <v-btn v-if="auth.can('people.write')" color="primary" to="/personnes/nouvelle" prepend-icon="mdi-plus">
+      <v-btn v-if="auth.can('people.write')" color="primary" to="/gestion/personnes/nouvelle" prepend-icon="mdi-plus">
         Ajouter
       </v-btn>
     </div>
@@ -19,7 +19,7 @@
       class="mb-4"
     >
       {{ inventory.stats.pendingMembers }} inscription(s) en attente de rangement.
-      <router-link to="/a-ranger">Ouvrir la file</router-link>
+      <router-link to="/gestion/a-ranger">Ouvrir la file</router-link>
     </v-alert>
 
     <v-row class="mb-4">
