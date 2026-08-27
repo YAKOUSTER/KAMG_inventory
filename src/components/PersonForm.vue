@@ -14,6 +14,15 @@
             @update:model-value="person.nom = String($event || '').toLocaleUpperCase('fr')"
           />
         </FieldRow>
+        <FieldRow label="Nom d’usage">
+          <v-text-field
+            :model-value="person.nomUsage"
+            hide-details
+            hint="Nom utilisé au cercle, si différent du nom d’état civil"
+            persistent-hint
+            @update:model-value="person.nomUsage = String($event || '').toLocaleUpperCase('fr')"
+          />
+        </FieldRow>
         <FieldRow v-if="showSeasons" label="Saisons" class="form-fields-grid__span-2">
           <v-select
             v-model="person.saisons"

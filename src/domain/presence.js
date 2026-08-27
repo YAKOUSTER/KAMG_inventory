@@ -66,11 +66,13 @@ export function publicPerson(person) {
   if (!person?.id) return null
   const prenom = String(person.prenom || '').trim()
   const nom = String(person.nom || '').trim()
+  const nomUsage = String(person.nomUsage || '').trim()
   if (!prenom && !nom) return null
   return {
     id: person.id,
     prenom,
     nom,
+    nomUsage,
     roles: Array.isArray(person.roles) ? person.roles : [],
     tags: Array.isArray(person.tags) ? person.tags : [],
     saisons: personSeasons(person),

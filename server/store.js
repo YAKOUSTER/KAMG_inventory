@@ -1046,6 +1046,7 @@ export async function updateMemberProfile(user, personId, payload = {}, options 
       tailleLettre: payload.tailleLettre != null ? payload.tailleLettre : current.tailleLettre,
       noteAtelier: payload.noteAtelier != null ? payload.noteAtelier : current.noteAtelier,
       bio: payload.bio != null ? payload.bio : current.bio,
+      nomUsage: payload.nomUsage != null ? payload.nomUsage : current.nomUsage,
     }
     const person = runDomain(normalizePerson, next, { id })
     db.people[index] = person

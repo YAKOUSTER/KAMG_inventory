@@ -34,6 +34,7 @@
           </v-chip>
         </div>
         <div class="detail-rows">
+          <DetailRow v-if="person.nomUsage" label="Nom d’état civil" :value="personLegalName(person)" />
           <DetailRow v-if="seasonLabel" label="Saisons" :value="seasonLabel" />
           <DetailRow v-if="person.telephone" label="Téléphone" :value="person.telephone" />
           <DetailRow v-if="person.email" label="Courriel" :value="person.email" />
@@ -118,7 +119,7 @@ import { useRouter } from 'vue-router'
 import { api } from '@/services/api'
 import { useAuthStore } from '@/stores/auth'
 import { useInventoryStore } from '@/stores/inventory'
-import { PERSON_MEASUREMENTS, displayDate, personDisplayName, personRoleLabels, personSeasons, isNewMember } from '@/domain/person'
+import { PERSON_MEASUREMENTS, displayDate, personDisplayName, personLegalName, personRoleLabels, personSeasons, isNewMember } from '@/domain/person'
 import { personOrgTagLabels } from '@/domain/orgChart'
 import { itemsInPossession } from '@/domain/loans'
 import { useUiStore } from '@/stores/ui'

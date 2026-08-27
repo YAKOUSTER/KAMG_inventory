@@ -9,6 +9,7 @@ import {
   normalizePerson,
   normalizeRoles,
   personDisplayName,
+  personLegalName,
   personRolesLabel,
   sortPeople,
   memberSelfProfile,
@@ -23,6 +24,7 @@ describe('normalizePerson', () => {
     assert.equal(person.nom, 'LE GALL')
     assert.equal(person.prenom, 'Anna')
     assert.equal(personDisplayName(person), 'Anna LE GALL')
+    assert.equal(person.nomUsage, '')
     assert.equal(person.mesures.tourTaille, 70)
     assert.equal(person.mesures.tourTete, null)
     assert.equal(person.images.length, 0)
@@ -201,5 +203,19 @@ describe('memberSelfProfile', () => {
     )
     assert.equal(person.bio, 'Danse depuis 2019.')
     assert.equal(memberSelfProfile(person).bio, 'Danse depuis 2019.')
+  })
+
+  it('affiche le nom d’usage à la place du nom d’état civil', () => {
+    const person = normalizePerson(
+      { nom: 'Dupont', prenom: 'Léa', nomUsage: 'Martin' },
+      { id: 'p-usage' },
+    )
+    assert.equal(person.nom, 'DUPONT')
+    assert.equal(person.nomUsage, 'MARTIN')
+    assert.equal(personDisplayName(person), 'Léa MARTIN')
+    assert.equal(personLegalName(person), 'Léa DUPONT')
+    assert.equal(memberSelfProfile(person).nomUsage, 'MARTIN')
+    assert.equal(filterPeople([person], { search: 'martin' }).length, 1)
+    assert.equal(filterPeople([person], { search: 'dupont' }).length, 1)
   })
 })

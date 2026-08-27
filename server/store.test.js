@@ -790,16 +790,24 @@ END:VCALENDAR`
     const updated = await updateMemberProfile(
       user,
       person.id,
-      { noteAtelier: 'Housse au local FLG', tailleLettre: 'M', bio: 'Danse depuis 2019.' },
+      {
+        noteAtelier: 'Housse au local FLG',
+        tailleLettre: 'M',
+        bio: 'Danse depuis 2019.',
+        nomUsage: 'Martin',
+      },
       options,
     )
     assert.equal(updated.noteAtelier, 'Housse au local FLG')
     assert.equal(updated.tailleLettre, 'M')
     assert.equal(updated.bio, 'Danse depuis 2019.')
+    assert.equal(updated.nomUsage, 'MARTIN')
     const space = await getMemberSpace(user, options)
     assert.equal(space.profiles[0].noteAtelier, 'Housse au local FLG')
     assert.equal(space.profiles[0].bio, 'Danse depuis 2019.')
+    assert.equal(space.profiles[0].nomUsage, 'MARTIN')
     assert.equal(space.people.find((entry) => entry.id === person.id)?.bio, 'Danse depuis 2019.')
+    assert.equal(space.people.find((entry) => entry.id === person.id)?.nomUsage, 'MARTIN')
   })
 
   it('copie l’e-mail du compte sur la fiche au rangement', async () => {

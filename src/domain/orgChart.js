@@ -1,5 +1,7 @@
 function personName(person) {
-  return [person?.prenom, person?.nom].map((part) => String(part || '').trim()).filter(Boolean).join(' ')
+  const prenom = String(person?.prenom || '').trim()
+  const nom = String(person?.nomUsage || person?.nom || '').trim()
+  return [prenom, nom].filter(Boolean).join(' ')
 }
 
 function sortPeople(people = []) {

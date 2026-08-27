@@ -76,6 +76,7 @@ export function emptyPerson() {
     id: '',
     nom: '',
     prenom: '',
+    nomUsage: '',
     roles: [],
     tags: [],
     anneeMembre: '',
@@ -98,11 +99,13 @@ export function memberSelfProfile(person) {
   if (!person?.id) return null
   const prenom = String(person.prenom || '').trim()
   const nom = String(person.nom || '').trim()
+  const nomUsage = String(person.nomUsage || '').trim()
   if (!prenom && !nom) return null
   return {
     id: person.id,
     prenom,
     nom,
+    nomUsage,
     roles: normalizeRoles(person),
     tags: normalizeOrgTags(person),
     saisons: personSeasons(person),
@@ -127,6 +130,13 @@ export function filledMeasurements(person) {
 }
 
 export function personDisplayName(person) {
+  if (!person) return ''
+  const prenom = String(person.prenom || '').trim()
+  const nom = String(person.nomUsage || person.nom || '').trim()
+  return [prenom, nom].filter(Boolean).join(' ')
+}
+
+export function personLegalName(person) {
   if (!person) return ''
   return [person.prenom, person.nom].map((part) => String(part || '').trim()).filter(Boolean).join(' ')
 }
@@ -211,6 +221,7 @@ export function personSearchText(person) {
   return [
     person?.prenom,
     person?.nom,
+    person?.nomUsage,
     personDisplayName(person),
     personRolesLabel(person),
     personOrgTagLabels(person).join(' '),
@@ -387,6 +398,7 @@ export function normalizePerson(input = {}, { id, now } = {}) {
   if (!person.prenom?.trim()) throw new Error('Le prénom est requis')
   person.nom = String(person.nom).trim().toLocaleUpperCase('fr')
   person.prenom = String(person.prenom).trim()
+  person.nomUsage = String(person.nomUsage || '').trim().toLocaleUpperCase('fr')
   person.roles = normalizeRoles(person)
   person.tags = normalizeOrgTags(person)
   const cohort = hasCohortRole(person)

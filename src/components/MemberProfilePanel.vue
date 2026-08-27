@@ -26,6 +26,7 @@
             </div>
             <div>
               <h2 class="member-profile__name">{{ personDisplayName(selected) }}</h2>
+              <p v-if="selected.nomUsage" class="member-profile__meta">État civil : {{ personLegalName(selected) }}</p>
               <p v-if="form.tailleLettre" class="member-profile__meta">Taille {{ form.tailleLettre }}</p>
               <p v-else class="member-profile__meta">Taille non renseignée</p>
             </div>
@@ -56,6 +57,19 @@
       </template>
 
       <template v-else>
+        <section class="member-section">
+          <h2 class="member-section__title">Identité</h2>
+          <FieldRow label="Nom d’usage">
+            <v-text-field
+              :model-value="form.nomUsage"
+              hide-details
+              hint="Nom utilisé au cercle, si différent du nom d’état civil"
+              persistent-hint
+              @update:model-value="form.nomUsage = String($event || '').toLocaleUpperCase('fr')"
+            />
+          </FieldRow>
+        </section>
+
         <section class="member-section">
           <h2 class="member-section__title">Photo</h2>
           <p class="member-section__intro">Une photo aide l’atelier costume et les membres de votre groupe à vous reconnaître.</p>
@@ -138,6 +152,7 @@ import {
   emptyMesures,
   filledMeasurements,
   personDisplayName,
+  personLegalName,
 } from '@/domain/person'
 import { displayDate } from '@/domain/dates'
 import { itemsInPossession } from '@/domain/loans'
@@ -164,6 +179,7 @@ const form = reactive({
   mesures: emptyMesures(),
   tailleLettre: '',
   bio: '',
+  nomUsage: '',
 })
 
 const canOpenGestion = computed(() => canAccessGestion(auth.user))
@@ -185,6 +201,7 @@ function applyProfile(person) {
   form.mesures = { ...emptyMesures(), ...(person?.mesures || {}) }
   form.tailleLettre = person?.tailleLettre || ''
   form.bio = person?.bio || ''
+  form.nomUsage = person?.nomUsage || ''
 }
 
 watch(
@@ -237,6 +254,7 @@ async function saveProfile() {
       mesures: form.mesures,
       tailleLettre: form.tailleLettre,
       bio: form.bio,
+      nomUsage: form.nomUsage,
     })
     emit('updated', updated)
     saved.value = true
