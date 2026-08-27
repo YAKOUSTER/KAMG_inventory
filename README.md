@@ -55,45 +55,69 @@ npm start
 
 Le serveur Express sert l’interface et l’API JSON (port `4173`, ou `PORT`).
 
-### Sur sterennfonseca.fr, sans casser AppMEUR
+### Sur kamg.fr, sans casser AppMEUR
 
-**Mille et une Reines** est déjà à la racine (`https://sterennfonseca.fr/`) avec son API sur `/api` (processus Node au port 8000). Cette appli utilise aussi `/api` et `/uploads` : la mettre à la place d’AppMEUR casserait les deux.
+**Mille et une Reines** reste à la racine de `https://sterennfonseca.fr/` (API sur `/api`, Node au port 8000). KAMG a son propre domaine, son propre nginx, son propre Node (port **4173**) et son propre `data/`.
 
-Le bon schéma est un **sous-domaine** sur le même VPS, par exemple `https://kamg.sterennfonseca.fr`. AppMEUR reste tel quel ; KAMG a son propre nginx, son propre Node (port **4173**), son propre `data/`.
+URLs une fois en ligne :
 
-1. Chez le registrar DNS, ajouter un enregistrement **A** : `kamg` → la même IP que `sterennfonseca.fr` (aujourd’hui `2.28.17.156`). Attendre la propagation.
-2. Sur le VPS, dans un dossier **séparé** d’AppMEUR :
+| URL | Contenu |
+| --- | --- |
+| `https://kamg.fr` | Espace membres |
+| `https://kamg.fr/gestion` | Back-office (costume, agenda, personnes, infos) |
+| `https://sterennfonseca.fr` | AppMEUR (inchangé) |
+
+L’IP du VPS Hetzner (la même que pour AppMEUR) est aujourd’hui **`2.28.17.156`**. Pour la retrouver :
+
+1. **Chez Hetzner** : [Cloud Console](https://console.hetzner.cloud/) → projet → serveur → **IPv4**.
+2. **Sans se connecter au serveur** : `dig +short sterennfonseca.fr A` (même machine).
+3. **Sur le VPS** : `hostname -I` ou `curl -4 ifconfig.me`.
+
+#### DNS de kamg.fr (registrar du nouveau nom)
+
+Ajouter, en **A** (et **AAAA** si tu as une IPv6) :
+
+- `@` (ou `kamg.fr`) → `2.28.17.156`
+- `www` → `2.28.17.156`
+
+Attendre la propagation (parfois quelques minutes, parfois quelques heures). Le registrar affiche souvent « en cours de construction » tant que le site n’est pas encore servi en HTTPS.
+
+#### Retirer KAMG de sterennfonseca.fr
+
+Ne touche **pas** au site AppMEUR. Seulement le sous-domaine KAMG s’il existe :
+
+1. Chez le registrar de **sterennfonseca.fr**, supprimer l’enregistrement **A** (et **AAAA**) du hôte `kamg` (`kamg.sterennfonseca.fr`).
+2. Sur le VPS, désactiver l’ancien vhost s’il est encore là :
 
 ```bash
-sudo mkdir -p /var/www/kamg
-sudo chown "$USER":www-data /var/www/kamg
-git clone https://github.com/YAKOUSTER/KAMG_inventory.git /var/www/kamg
-cd /var/www/kamg
-npm ci
-npm run build
-sudo chown -R www-data:www-data /var/www/kamg/data
+sudo rm -f /etc/nginx/sites-enabled/kamg.sterennfonseca.fr
+sudo nginx -t && sudo systemctl reload nginx
 ```
 
-3. Service systemd (modèle dans `deploy/kamg.service`) :
+Le modèle `deploy/nginx-kamg.conf` contient une redirection temporaire `kamg.sterennfonseca.fr` → `kamg.fr`. Tu peux la laisser le temps que d’éventuels favoris basculent, puis la retirer.
+
+#### Nginx et certificat pour kamg.fr
+
+Nouveau fichier, **sans éditer** le `server { }` d’AppMEUR :
+
+```bash
+sudo cp deploy/nginx-kamg.conf /etc/nginx/sites-available/kamg.fr
+sudo ln -sfn /etc/nginx/sites-available/kamg.fr /etc/nginx/sites-enabled/kamg.fr
+sudo nginx -t && sudo systemctl reload nginx
+sudo certbot --nginx -d kamg.fr -d www.kamg.fr
+```
+
+Puis recopier le service systemd (URL publique `https://kamg.fr`) :
 
 ```bash
 sudo cp deploy/kamg.service /etc/systemd/system/kamg.service
 sudo systemctl daemon-reload
-sudo systemctl enable --now kamg
+sudo systemctl restart kamg
 ```
 
-4. Nginx : **nouveau** fichier, ne pas éditer le `server { }` d’AppMEUR. Modèle : `deploy/nginx-kamg.conf`.
+**À éviter :** copier le `dist/` dans le dossier web d’AppMEUR, ou pointer nginx de `sterennfonseca.fr` vers le port 4173.
 
-```bash
-sudo cp deploy/nginx-kamg.conf /etc/nginx/sites-available/kamg.sterennfonseca.fr
-sudo ln -s /etc/nginx/sites-available/kamg.sterennfonseca.fr /etc/nginx/sites-enabled/
-sudo nginx -t && sudo systemctl reload nginx
-sudo certbot --nginx -d kamg.sterennfonseca.fr
-```
-
-Le certificat actuel ne couvre que `sterennfonseca.fr` et `www` : Certbot en crée un autre pour `kamg`.
-
-5. Changer tout de suite les mots de passe `admin` / `gestion` / `lecteur` via **Comptes et accès**.
+Changer tout de suite les mots de passe `admin` / `gestion` / `lecteur` via **Comptes et accès**.
 
 Mises à jour suivantes : `git pull && npm ci && npm run build && sudo systemctl restart kamg`. Le fichier `data/db.json` et `data/uploads/` restent sur le serveur (ils ne sont pas dans git). Le script `deploy/deploy-production.sh` en fait une copie dans `data/backups/` avant de changer le code.
 
@@ -112,8 +136,6 @@ bash deploy/deploy-production.sh
 ```
 
 Branche déployée : la branche git courante, ou `KAMG_DEPLOY_BRANCH` pour en forcer une. `data/db.json` et les photos ne sont jamais écrasés.
-
-**À éviter :** copier le `dist/` dans le dossier web d’AppMEUR, ou pointer nginx de `sterennfonseca.fr` vers le port 4173. Un chemin du type `sterennfonseca.fr/kamg` est possible mais plus fragile (conflit `/api`) : le sous-domaine est le plus sûr.
 
 ## Tests
 

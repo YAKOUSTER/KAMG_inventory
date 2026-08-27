@@ -16,7 +16,7 @@
         :extension-height="showAreaToolbar ? 44 : 0"
         class="app-bar app-bar--light"
       >
-        <router-link to="/" class="brand" :class="{ 'brand--mobile': !mdAndUp }" :title="GROUP_NAME">
+        <router-link to="/gestion" class="brand" :class="{ 'brand--mobile': !mdAndUp }" :title="GROUP_NAME">
           <img :src="LOGO_SRC" :alt="GROUP_NAME" class="brand-logo" />
           <span class="brand-name">{{ APP_TITLE }}</span>
         </router-link>
@@ -50,7 +50,7 @@
           variant="flat"
           size="small"
           class="text-none nav-member-btn"
-          to="/espace-membre"
+          to="/"
         >
           <v-icon :start="mdAndUp" size="20">mdi-account-heart-outline</v-icon>
           <span class="d-none d-md-inline">Espace membres</span>
@@ -61,7 +61,7 @@
           variant="text"
           size="small"
           class="nav-icon-btn d-none d-md-inline-flex"
-          to="/panier"
+          to="/gestion/panier"
           aria-label="Panier"
         >
           <v-badge :content="String(cart.count || 0)" color="warning" :model-value="cart.count > 0">
@@ -82,19 +82,19 @@
               v-if="auth.can('users.manage')"
               title="Comptes et accès"
               prepend-icon="mdi-account-key-outline"
-              to="/utilisateurs"
+              to="/gestion/utilisateurs"
             />
             <v-list-item
               v-if="auth.can('audit.read')"
               title="Journal d’activité"
               prepend-icon="mdi-history"
-              to="/journal"
+              to="/gestion/journal"
             />
             <v-list-item
               v-if="auth.can('settings.manage')"
               title="Paramètres"
               prepend-icon="mdi-cog-outline"
-              to="/parametres"
+              to="/gestion/parametres"
             />
             <v-list-item title="Déconnexion" prepend-icon="mdi-logout" @click="logout" />
             <PushNotificationsToggle />
@@ -147,7 +147,7 @@
           <v-list-item
             title="Espace membres"
             prepend-icon="mdi-account-heart-outline"
-            to="/espace-membre"
+            to="/"
             @click="moreOpen = false"
           />
           <template v-for="area in areas" :key="area.id">
@@ -160,7 +160,7 @@
               :prepend-icon="link.icon"
               @click="moreOpen = false"
             >
-              <template v-if="link.to === '/panier' && cart.count" #append>
+              <template v-if="link.to === '/gestion/panier' && cart.count" #append>
                 <v-chip size="x-small" color="warning" variant="flat">{{ cart.count }}</v-chip>
               </template>
             </v-list-item>
@@ -170,21 +170,21 @@
             v-if="auth.can('users.manage')"
             title="Comptes et accès"
             prepend-icon="mdi-account-key-outline"
-            to="/utilisateurs"
+            to="/gestion/utilisateurs"
             @click="moreOpen = false"
           />
           <v-list-item
             v-if="auth.can('audit.read')"
             title="Journal d’activité"
             prepend-icon="mdi-history"
-            to="/journal"
+            to="/gestion/journal"
             @click="moreOpen = false"
           />
           <v-list-item
             v-if="auth.can('settings.manage')"
             title="Paramètres"
             prepend-icon="mdi-cog-outline"
-            to="/parametres"
+            to="/gestion/parametres"
             @click="moreOpen = false"
           />
           <v-list-item title="Déconnexion" prepend-icon="mdi-logout" @click="onMoreLogout" />

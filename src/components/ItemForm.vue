@@ -322,7 +322,7 @@ const props = defineProps({
   items: { type: Array, default: () => [] },
   saving: { type: Boolean, default: false },
   submitLabel: { type: String, default: 'Enregistrer' },
-  cancelTo: { type: [String, Object], default: '/inventaire' },
+  cancelTo: { type: [String, Object], default: '/gestion/inventaire' },
 })
 
 const emit = defineEmits(['save'])

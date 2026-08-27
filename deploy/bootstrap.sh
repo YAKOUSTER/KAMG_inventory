@@ -2,7 +2,7 @@
 # Installe KAMG à côté d’AppMEUR. Ne touche pas au vhost sterennfonseca.fr.
 set -euo pipefail
 
-DOMAIN="${DOMAIN:-kamg.sterennfonseca.fr}"
+DOMAIN="${DOMAIN:-kamg.fr}"
 APP_DIR="${APP_DIR:-/var/www/kamg}"
 PORT="${PORT:-4173}"
 REPO="${REPO:-https://github.com/YAKOUSTER/KAMG_inventory.git}"
@@ -60,9 +60,9 @@ nginx -t
 systemctl reload nginx
 
 if command -v certbot >/dev/null; then
-  certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos --redirect \
+  certbot --nginx -d "$DOMAIN" -d "www.$DOMAIN" --non-interactive --agree-tos --redirect \
     --keep-until-expiring --register-unsafely-without-email || \
-    echo "Certbot n’a pas pu passer (DNS kamg pas encore propagé ?). Relancer plus tard : certbot --nginx -d $DOMAIN"
+    echo "Certbot n’a pas pu passer (DNS kamg.fr pas encore propagé ?). Relancer plus tard : certbot --nginx -d $DOMAIN -d www.$DOMAIN"
 fi
 
 sleep 1

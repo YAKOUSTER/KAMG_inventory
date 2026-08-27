@@ -6,7 +6,7 @@
       v-if="ready"
       :initial="initial"
       :saving="saving"
-      :cancel-to="isEdit ? { name: 'person-detail', params: { id } } : '/personnes'"
+      :cancel-to="isEdit ? { name: 'person-detail', params: { id } } : '/gestion/personnes'"
       @save="onSave"
     />
   </div>

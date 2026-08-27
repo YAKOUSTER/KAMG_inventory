@@ -20,7 +20,7 @@
       <v-btn
         v-if="canWriteEvents"
         color="primary"
-        to="/agenda/nouveau"
+        to="/gestion/agenda/nouveau"
         prepend-icon="mdi-plus"
       >
         Ajouter

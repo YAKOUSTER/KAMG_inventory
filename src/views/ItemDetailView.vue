@@ -1,7 +1,7 @@
 <template>
   <div v-if="item">
     <div class="d-flex flex-wrap align-center ga-3 page-header">
-      <v-btn variant="text" to="/inventaire" prepend-icon="mdi-arrow-left">Inventaire</v-btn>
+      <v-btn variant="text" to="/gestion/inventaire" prepend-icon="mdi-arrow-left">Inventaire</v-btn>
       <v-spacer />
       <v-btn
         v-if="canLoan"
@@ -308,7 +308,7 @@ function onStockUpdated(saved) {
 
 function addToCart() {
   cart.add(item.value)
-  ui.notify(`${item.value.code} ajoutée au panier`, { to: '/panier', action: 'Panier' })
+  ui.notify(`${item.value.code} ajoutée au panier`, { to: '/gestion/panier', action: 'Panier' })
 }
 
 async function remove() {
@@ -317,7 +317,7 @@ async function remove() {
     await api.deleteItem(props.id)
     inventory.removeItem(props.id)
     ui.notify('Fiche supprimée')
-    router.push('/inventaire')
+    router.push('/gestion/inventaire')
   } catch (err) {
     error.value = err.message
   }

@@ -9,7 +9,7 @@
       <v-btn
         v-if="auth.can('items.create')"
         color="primary"
-        to="/pieces/nouvelle"
+        to="/gestion/pieces/nouvelle"
         :prepend-icon="mdAndUp ? 'mdi-plus' : undefined"
         :icon="!mdAndUp"
         aria-label="Nouvelle fiche"
@@ -311,12 +311,12 @@ function canAddToCart(item) {
 function addToCart(item) {
   if (cart.isInCart(item.id)) return
   cart.add(item)
-  ui.notify(`${item.code} ajoutée au panier`, { to: '/panier', action: 'Panier' })
+  ui.notify(`${item.code} ajoutée au panier`, { to: '/gestion/panier', action: 'Panier' })
 }
 
 function resetFilters() {
   Object.assign(filters, defaultFilters(), { categorie: 'Tout' })
-  router.replace({ path: '/inventaire' })
+  router.replace({ path: '/gestion/inventaire' })
 }
 
 onMounted(() => inventory.refresh().catch(() => {}))

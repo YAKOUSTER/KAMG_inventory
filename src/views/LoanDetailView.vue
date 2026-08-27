@@ -1,7 +1,7 @@
 <template>
   <div v-if="loan">
     <div class="d-flex flex-wrap align-center ga-3 page-header">
-      <v-btn variant="text" to="/emprunts" prepend-icon="mdi-arrow-left">Emprunts</v-btn>
+      <v-btn variant="text" to="/gestion/emprunts" prepend-icon="mdi-arrow-left">Emprunts</v-btn>
     </div>
 
     <h1 class="text-h5 text-md-h4 page-title">{{ loan.titre }}</h1>

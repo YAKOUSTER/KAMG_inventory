@@ -1,4 +1,5 @@
 import { ROLE_PRESETS, can } from './auth.js'
+import { GESTION, LOGIN_PATH, MEMBER_HOME } from './paths.js'
 
 export const USER_STATUSES = [
   { id: 'pending', label: 'En attente de rangement' },
@@ -72,9 +73,9 @@ export function canUseMemberSpace(user) {
 }
 
 export function homePath(user) {
-  if (!canUseMemberSpace(user)) return '/connexion'
-  if (can(user, 'items.read')) return '/'
-  return '/espace-membre'
+  if (!canUseMemberSpace(user)) return LOGIN_PATH
+  if (can(user, 'items.read')) return GESTION.home
+  return MEMBER_HOME
 }
 
 export function canRsvpAsPerson(user, personId) {

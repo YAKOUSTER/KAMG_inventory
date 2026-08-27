@@ -135,7 +135,7 @@ const props = defineProps({
   initial: { type: Object, default: null },
   saving: { type: Boolean, default: false },
   submitLabel: { type: String, default: 'Enregistrer' },
-  cancelTo: { type: [String, Object], default: '/personnes' },
+  cancelTo: { type: [String, Object], default: '/gestion/personnes' },
 })
 const emit = defineEmits(['save'])
 const form = ref(null)

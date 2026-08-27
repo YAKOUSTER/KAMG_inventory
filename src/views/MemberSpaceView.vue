@@ -1,7 +1,7 @@
 <template>
   <div class="member-space" :class="{ 'member-space--mobile': !mdAndUp }">
     <header v-if="mdAndUp" class="member-space__header">
-      <router-link to="/espace-membre" class="member-space__brand">
+      <router-link to="/" class="member-space__brand">
         <img :src="LOGO_SRC" :alt="GROUP_NAME" class="member-space__logo" />
         <div>
           <div class="member-space__eyebrow">{{ GROUP_NAME }}</div>

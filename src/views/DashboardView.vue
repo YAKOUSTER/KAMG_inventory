@@ -3,7 +3,7 @@
     <div class="d-flex flex-wrap align-center ga-3 page-header">
       <h1 class="text-h4 page-title">Accueil</h1>
       <v-spacer />
-      <v-btn v-if="auth.can('items.create')" color="primary" to="/pieces/nouvelle" prepend-icon="mdi-plus">
+      <v-btn v-if="auth.can('items.create')" color="primary" to="/gestion/pieces/nouvelle" prepend-icon="mdi-plus">
         Nouvelle fiche
       </v-btn>
     </div>
@@ -94,13 +94,13 @@ onMounted(() => inventory.refresh().catch(() => {}))
 const cards = computed(() => {
   const stats = inventory.stats || { byCategory: {}, totalItems: 0, activeLoans: 0, lowStock: 0 }
   const list = [
-    { label: 'Fiches', value: stats.totalItems, to: '/inventaire' },
+    { label: 'Fiches', value: stats.totalItems, to: '/gestion/inventaire' },
     ...categories.value.map((cat) => {
       const value = stats.byCategory?.[cat.id] || 0
       return {
         label: value === 1 ? cat.label : cat.plural,
         value,
-        to: { path: '/inventaire', query: { categorie: cat.id } },
+        to: { path: '/gestion/inventaire', query: { categorie: cat.id } },
       }
     }),
   ]
@@ -108,21 +108,21 @@ const cards = computed(() => {
     list.push({
       label: 'Stock bas',
       value: stats.lowStock,
-      to: { path: '/inventaire', query: { stockBas: '1' } },
+      to: { path: '/gestion/inventaire', query: { stockBas: '1' } },
     })
   }
   if (stats.pendingMembers) {
     list.unshift({
       label: stats.pendingMembers === 1 ? 'Inscription à ranger' : 'Inscriptions à ranger',
       value: stats.pendingMembers,
-      to: '/a-ranger',
+      to: '/gestion/a-ranger',
     })
   }
   if (stats.openTasks) {
     list.push({
       label: 'Actions à faire',
       value: stats.openTasks,
-      to: { path: '/', hash: '#a-faire' },
+      to: { path: '/gestion', hash: '#a-faire' },
     })
   }
   return list

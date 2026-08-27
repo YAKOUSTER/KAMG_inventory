@@ -9,6 +9,7 @@ import { isLoanable, normalizeItem } from '../src/domain/item.js'
 import { appendStockMovement, countLowStock } from '../src/domain/stock.js'
 import { applyReturnUpdate, countOpenTasks } from '../src/domain/itemTasks.js'
 import { ROLE_PRESETS, can, publicUser } from '../src/domain/auth.js'
+import { GESTION, MEMBER_AGENDA } from '../src/domain/paths.js'
 import {
   canRsvpAsPerson,
   displayNameFromSignup,
@@ -714,7 +715,7 @@ export async function createLoan(payload, options = {}) {
         {
           title: 'Nouvel emprunt',
           body: `${result.loan.personName} — ${result.loan.titre}`,
-          url: `/emprunts/${result.loan.id}`,
+          url: GESTION.loan(result.loan.id),
         },
         options,
       ).catch(() => {})
@@ -776,7 +777,7 @@ export async function returnLoanItems(loanId, itemIds, options = {}) {
       {
         title: loan.statut === 'retourne' ? 'Emprunt clôturé' : 'Retour de pièce(s)',
         body: `${loan.personName} — ${loan.titre}`,
-        url: `/emprunts/${loan.id}`,
+        url: GESTION.loan(loan.id),
       },
       options,
     ).catch(() => {})
@@ -1199,7 +1200,7 @@ export async function importGoogleCalendarEvents(options = {}) {
         await notifyManagers(db, {
           title: 'Nouvelle date au calendrier',
           body: `${event.titre} — ${event.lieu || 'lieu à préciser'}`,
-          url: '/espace-membre?onglet=agenda',
+          url: MEMBER_AGENDA,
         })
       }
     }
@@ -1265,7 +1266,7 @@ export async function createEvent(payload, options = {}) {
         {
           title: event.createdCount > 1 ? 'Nouvelles dates au calendrier' : 'Nouvelle date au calendrier',
           body: `${event.titre}${event.lieu ? ` — ${event.lieu}` : ''}`,
-          url: '/agenda',
+          url: GESTION.agenda,
         },
         options,
       ).catch(() => {})
@@ -1741,7 +1742,7 @@ export async function requestPasswordReset(identifiant, options = {}) {
     await notifyManagers(db, {
       title: 'Mot de passe oublié',
       body: `${userLabel(user)} a demandé une réinitialisation.`,
-      url: '/utilisateurs',
+      url: GESTION.users,
     }).catch(() => {})
     appendAudit(db, { id: user.id, login: user.login, nom: user.nom }, {
       action: 'user.password-reset-request',
