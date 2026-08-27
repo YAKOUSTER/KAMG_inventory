@@ -33,10 +33,11 @@ describe('permissions', () => {
     assert.deepEqual(effectivePermissions(custom), ['items.read', 'items.create', 'loans.read'])
   })
 
-  it('réserve les notifications push aux gestionnaires', () => {
+  it('réserve les notifications push à l’administrateur pour le moment', () => {
     assert.equal(canReceivePushNotifications(publicUser({ role: 'admin' })), true)
-    assert.equal(canReceivePushNotifications(publicUser({ role: 'gestion' })), true)
+    assert.equal(canReceivePushNotifications(publicUser({ role: 'gestion' })), false)
     assert.equal(canReceivePushNotifications(publicUser({ role: 'lecteur' })), false)
+    assert.equal(canReceivePushNotifications(publicUser({ role: 'membre' })), false)
   })
 
   it('retire le mot de passe du profil public', () => {

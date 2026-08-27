@@ -4,19 +4,20 @@ import { canReceivePushNotifications, publicUser } from '../src/domain/auth.js'
 import { managerSubscriptions, normalizePushSubscription } from './push.js'
 
 describe('canReceivePushNotifications', () => {
-  it('autorise admin et gestion seulement', () => {
+  it('autorise seulement l’administrateur pour le moment', () => {
     assert.equal(canReceivePushNotifications(publicUser({ role: 'admin' })), true)
-    assert.equal(canReceivePushNotifications(publicUser({ role: 'gestion' })), true)
+    assert.equal(canReceivePushNotifications(publicUser({ role: 'gestion' })), false)
     assert.equal(canReceivePushNotifications(publicUser({ role: 'lecteur' })), false)
   })
 })
 
 describe('managerSubscriptions', () => {
-  it('ne retient que les gestionnaires abonnés', () => {
+  it('ne retient que les administrateurs abonnés', () => {
     const db = {
       users: [
-        { id: 'u1', role: 'gestion', login: 'g' },
-        { id: 'u2', role: 'lecteur', login: 'l' },
+        { id: 'u1', role: 'admin', login: 'a' },
+        { id: 'u2', role: 'gestion', login: 'g' },
+        { id: 'u3', role: 'lecteur', login: 'l' },
       ],
       pushSubscriptions: [
         {
@@ -29,6 +30,12 @@ describe('managerSubscriptions', () => {
           id: 's2',
           userId: 'u2',
           endpoint: 'https://example.com/2',
+          keys: { p256dh: 'a', auth: 'b' },
+        },
+        {
+          id: 's3',
+          userId: 'u3',
+          endpoint: 'https://example.com/3',
           keys: { p256dh: 'a', auth: 'b' },
         },
       ],

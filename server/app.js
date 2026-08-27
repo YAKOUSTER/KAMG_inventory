@@ -132,7 +132,7 @@ function bearer(req) {
 function authManagerPush(req, res, next) {
   return auth()(req, res, () => {
     if (!canReceivePushNotifications(req.user)) {
-      res.status(403).json({ error: 'Réservé aux gestionnaires' })
+      res.status(403).json({ error: 'Réservé à l’administrateur pour le moment' })
       return
     }
     next()

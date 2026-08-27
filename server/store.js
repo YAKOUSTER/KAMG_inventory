@@ -665,7 +665,7 @@ async function deliverManagerNotification(payload, options = {}) {
 
 export async function getPushConfig(user, options = {}) {
   if (!canReceivePushNotifications(user)) {
-    throw Object.assign(new Error('Réservé aux gestionnaires'), { status: 403 })
+    throw Object.assign(new Error('Réservé à l’administrateur pour le moment'), { status: 403 })
   }
   const db = await readDb(options)
   const subscribed = (db.pushSubscriptions || []).some((entry) => entry.userId === user.id)
@@ -679,7 +679,7 @@ export async function getPushConfig(user, options = {}) {
 
 export async function subscribePush(user, payload, options = {}) {
   if (!canReceivePushNotifications(user)) {
-    throw Object.assign(new Error('Réservé aux gestionnaires'), { status: 403 })
+    throw Object.assign(new Error('Réservé à l’administrateur pour le moment'), { status: 403 })
   }
   if (!isPushEnabled()) {
     throw Object.assign(new Error('Notifications non configurées sur le serveur'), { status: 503 })
@@ -699,7 +699,7 @@ export async function subscribePush(user, payload, options = {}) {
 
 export async function unsubscribePush(user, payload, options = {}) {
   if (!canReceivePushNotifications(user)) {
-    throw Object.assign(new Error('Réservé aux gestionnaires'), { status: 403 })
+    throw Object.assign(new Error('Réservé à l’administrateur pour le moment'), { status: 403 })
   }
   const endpoint = String(payload?.endpoint || '').trim()
   return withDb((db) => {

@@ -31,7 +31,7 @@ const visible = computed(() => canReceivePushNotifications(auth.user))
 const subtitle = computed(() => {
   if (!supported.value) return 'Non supporté sur ce navigateur'
   if (!enabled.value) return 'Serveur non configuré (VAPID)'
-  return subscribed.value ? 'Emprunts, retours et sorties' : 'Réservé aux gestionnaires'
+  return subscribed.value ? 'Emprunts, retours et sorties' : 'Réservé à l’administrateur pour le moment'
 })
 
 onMounted(refresh)

@@ -96,7 +96,7 @@ export function isLibreAgendaUser(user) {
 }
 
 export function canReceivePushNotifications(user) {
-  return Boolean(user && (user.role === 'admin' || user.role === 'gestion'))
+  return Boolean(user && user.role === 'admin')
 }
 
 export function publicUser(user) {
