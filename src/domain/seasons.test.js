@@ -34,9 +34,11 @@ describe('saisons du cercle', () => {
     assert.deepEqual(normalizeSeasons(['2024-2025', '2025-2026']), ['2024-2025', '2025-2026'])
   })
 
-  it('propose une liste de saisons', () => {
+  it('propose une liste de saisons depuis 2000', () => {
     const list = membershipSeasons(new Date('2026-08-25T12:00:00'))
     assert.ok(list.includes('2026-2027'))
     assert.ok(list.includes('2025-2026'))
+    assert.equal(list.at(-1), '2000-2001')
+    assert.ok(!list.includes('1999-2000'))
   })
 })

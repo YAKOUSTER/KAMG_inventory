@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { ROLE_PRESETS, can, canReceivePushNotifications, canSeeAgenda, canWriteLibreEvents, effectivePermissions, isLibreAgendaUser, PERMISSIONS, publicUser } from './auth.js'
+import { ROLE_PRESETS, can, canReceivePushNotifications, canSeeAgenda, canWriteLibreEvents, effectivePermissions, isLibreAgendaUser, PERMISSIONS, publicUser, resolveUserAccess } from './auth.js'
 
 const admin = { role: 'admin' }
 const gestion = { role: 'gestion' }
@@ -83,5 +83,30 @@ describe('agenda.libre', () => {
     assert.equal(isLibreAgendaUser({ role: 'gestion' }), false)
     assert.equal(isLibreAgendaUser({ role: 'admin' }), false)
     assert.equal(can(libre, 'agenda.write'), false)
+  })
+})
+
+describe('resolveUserAccess', () => {
+  it('donne le preset Administrateur même si les cases personnalisées sont vides', () => {
+    const access = resolveUserAccess({
+      role: 'admin',
+      custom: true,
+      permissions: [],
+    })
+    assert.equal(access.role, 'admin')
+    assert.equal(access.custom, false)
+    assert.equal(can(access, 'users.manage'), true)
+    assert.equal(can(access, 'items.read'), true)
+  })
+
+  it('garde un accès sorties libres sur un compte membre', () => {
+    const access = resolveUserAccess({
+      role: 'membre',
+      custom: true,
+      permissions: ['agenda.libre'],
+    })
+    assert.equal(access.custom, true)
+    assert.deepEqual(access.permissions, ['agenda.libre'])
+    assert.equal(can(access, 'items.read'), false)
   })
 })

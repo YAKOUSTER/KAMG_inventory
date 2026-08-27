@@ -36,6 +36,10 @@ describe('navigation gestion', () => {
       areas.find((area) => area.id === 'membres').links.map((link) => link.title),
       ['Personnes', 'À ranger'],
     )
+    assert.deepEqual(
+      areas.find((area) => area.id === 'calendrier').links.map((link) => link.title),
+      ['Gestion des événements', 'Liste des présences'],
+    )
     assert.equal(canAccessGestion(admin), true)
   })
 
@@ -65,6 +69,9 @@ describe('navigation gestion', () => {
     assert.equal(gestionAreaForPath('/emprunts/1', admin)?.id, 'costume')
     assert.equal(gestionAreaForPath('/panier', admin)?.id, 'costume')
     assert.equal(gestionAreaForPath('/agenda/nouveau', admin)?.id, 'calendrier')
+    assert.equal(gestionAreaForPath('/agenda/presences', admin)?.id, 'calendrier')
+    assert.equal(linkMatchesPath({ to: '/agenda', match: ['/agenda'], exclude: ['/agenda/presences'] }, '/agenda/presences'), false)
+    assert.equal(linkMatchesPath({ to: '/agenda', match: ['/agenda'], exclude: ['/agenda/presences'] }, '/agenda/nouveau'), true)
     assert.equal(gestionAreaForPath('/a-ranger', admin)?.id, 'membres')
     assert.equal(gestionAreaForPath('/contenus/nouveau', admin)?.id, 'infos')
     assert.equal(gestionAreaForPath('/utilisateurs', admin), null)

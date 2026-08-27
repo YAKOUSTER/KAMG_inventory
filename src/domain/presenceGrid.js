@@ -71,3 +71,82 @@ export function presenceColumnMeta(event) {
 export function cellShortLabel(statut) {
   return presenceStatutMeta(statut)?.short || ''
 }
+
+function escapeHtml(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+}
+
+export function buildPresenceSheetPrintHtml({
+  title = 'Feuille de présences',
+  groupLabel = 'Tous',
+  generatedAt = '',
+  columns = [],
+  rows = [],
+  cells = {},
+} = {}) {
+  const header = columns
+    .map((column) => {
+      const when = [column.weekday, column.dateLabel, column.timeLabel].filter(Boolean).join(' ')
+      return `<th><div>${escapeHtml(when)}</div><div>${escapeHtml(column.titre)}</div></th>`
+    })
+    .join('')
+  const body = rows
+    .map((row) => {
+      const tds = columns
+        .map((column) => `<td>${escapeHtml(cells[presenceCellKey(column.id, row.id)] || '')}</td>`)
+        .join('')
+      return `<tr><th>${escapeHtml(row.name)}</th>${tds}</tr>`
+    })
+    .join('')
+  return `<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <title>${escapeHtml(title)}</title>
+  <style>
+    @page { size: A4 landscape; margin: 10mm; }
+    body { font-family: "Segoe UI", system-ui, sans-serif; color: #2c332c; margin: 16px; }
+    h1 { font-size: 18px; margin: 0 0 4px; }
+    p { margin: 0 0 12px; font-size: 12px; }
+    table { border-collapse: collapse; width: 100%; font-size: 11px; }
+    th, td { border: 1px solid #c5c9be; padding: 4px 6px; text-align: center; }
+    th:first-child, td:first-child { text-align: left; white-space: nowrap; }
+    thead th { background: #eef1ea; }
+  </style>
+</head>
+<body>
+  <h1>${escapeHtml(title)}</h1>
+  <p>${escapeHtml(groupLabel)}${generatedAt ? ` · ${escapeHtml(generatedAt)}` : ''}</p>
+  <table>
+    <thead><tr><th>Personne</th>${header}</tr></thead>
+    <tbody>${body}</tbody>
+  </table>
+</body>
+</html>`
+}
+
+export function openPresenceSheetPrint(html) {
+  if (typeof document === 'undefined') return
+  const frame = document.createElement('iframe')
+  frame.setAttribute('aria-hidden', 'true')
+  frame.style.position = 'fixed'
+  frame.style.right = '0'
+  frame.style.bottom = '0'
+  frame.style.width = '0'
+  frame.style.height = '0'
+  frame.style.border = '0'
+  document.body.appendChild(frame)
+  const doc = frame.contentDocument
+  doc.open()
+  doc.write(html)
+  doc.close()
+  setTimeout(() => {
+    frame.contentWindow?.focus()
+    frame.contentWindow?.print()
+    setTimeout(() => frame.remove(), 1500)
+  }, 250)
+}

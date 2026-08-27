@@ -44,10 +44,38 @@ export const ROLE_PRESETS = {
   membre: [],
 }
 
+const KNOWN_PERMISSIONS = new Set(PERMISSIONS.map((permission) => permission.id))
+
+export function normalizeAccountRole(role) {
+  return Object.hasOwn(ROLE_PRESETS, String(role || '')) ? role : 'lecteur'
+}
+
+export function permissionsForRole(role) {
+  return [...(ROLE_PRESETS[normalizeAccountRole(role)] || [])]
+}
+
+export function resolveUserAccess({ role, custom, permissions } = {}) {
+  const nextRole = normalizeAccountRole(role)
+  const preset = permissionsForRole(nextRole)
+  const requested = Array.isArray(permissions)
+    ? [...new Set(permissions.map(String).filter((id) => KNOWN_PERMISSIONS.has(id)))]
+    : null
+  if (!custom) {
+    return { role: nextRole, custom: false, permissions: preset }
+  }
+  const nextPerms = requested ?? preset
+  if (!nextPerms.length && preset.length) {
+    return { role: nextRole, custom: false, permissions: preset }
+  }
+  if (samePermissions(nextPerms, preset)) {
+    return { role: nextRole, custom: false, permissions: preset }
+  }
+  return { role: nextRole, custom: true, permissions: nextPerms }
+}
+
 export function effectivePermissions(user) {
   if (!user) return []
-  if (user.custom && Array.isArray(user.permissions)) return [...user.permissions]
-  return [...(ROLE_PRESETS[user.role] || ROLE_PRESETS.lecteur)]
+  return resolveUserAccess(user).permissions
 }
 
 export function can(user, permission) {
@@ -73,14 +101,15 @@ export function canReceivePushNotifications(user) {
 
 export function publicUser(user) {
   if (!user) return null
+  const access = resolveUserAccess(user)
   return {
     id: user.id,
     login: user.login,
     email: user.email || '',
     nom: user.nom || user.login,
-    role: user.role,
-    custom: Boolean(user.custom),
-    permissions: effectivePermissions(user),
+    role: access.role,
+    custom: access.custom,
+    permissions: access.permissions,
     status: user.status || 'active',
     personIds: Array.isArray(user.personIds) ? [...user.personIds] : [],
     signup: user.signup && typeof user.signup === 'object' ? { ...user.signup } : null,

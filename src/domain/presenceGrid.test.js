@@ -9,6 +9,7 @@ import {
   presenceCellKey,
   presenceColumnMeta,
   statutFromGridKey,
+  buildPresenceSheetPrintHtml,
 } from './presenceGrid.js'
 
 describe('cyclePresenceStatut', () => {
@@ -73,5 +74,27 @@ describe('indexPresences', () => {
     ])
     assert.equal(map.get(presenceCellKey('e1', 'p1')).statut, 'present')
     assert.equal(map.has(presenceCellKey('e2', 'p1')), false)
+  })
+})
+
+describe('export PDF feuille de présences', () => {
+  it('inclut les noms, les réponses et échappe le HTML', () => {
+    const html = buildPresenceSheetPrintHtml({
+      title: 'Feuille <test>',
+      groupLabel: 'Tous',
+      generatedAt: '27/08/2026',
+      columns: [{ id: 'e1', weekday: 'sam.', dateLabel: '12/12', timeLabel: '18:00', titre: 'Fest-noz' }],
+      rows: [{ id: 'p1', name: 'Léa <script>' }, { id: 'p2', name: 'Yan' }],
+      cells: {
+        [presenceCellKey('e1', 'p1')]: '1',
+        [presenceCellKey('e1', 'p2')]: '0',
+      },
+    })
+    assert.match(html, /Léa &lt;script&gt;/)
+    assert.match(html, /Feuille &lt;test&gt;/)
+    assert.match(html, />1</)
+    assert.match(html, />0</)
+    assert.match(html, /Fest-noz/)
+    assert.ok(!html.includes('<script>'))
   })
 })

@@ -241,6 +241,17 @@ export function kindsAreRepetition(kinds = []) {
   return normalizeEventKinds(kinds).some((id) => String(id).startsWith('repetition_'))
 }
 
+export function kindsAreAtelier(kinds = []) {
+  return normalizeEventKinds(kinds).some((id) => {
+    const family = eventKindMeta(id)?.family
+    return family === 'atelier' || String(id).startsWith('atelier_')
+  })
+}
+
+export function kindsAllowRecurrence(kinds = []) {
+  return kindsAreRepetition(kinds) || kindsAreAtelier(kinds)
+}
+
 export function groupesFromKinds(kinds = []) {
   const groups = []
   for (const id of normalizeEventKinds(kinds)) {

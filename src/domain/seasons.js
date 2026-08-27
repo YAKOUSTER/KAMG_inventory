@@ -37,10 +37,11 @@ export function newSeasonId(now = new Date()) {
   return currentSeasonId(now)
 }
 
-export function membershipSeasons(now = new Date(), span = 12) {
+export function membershipSeasons(now = new Date(), fromYear = 2000) {
   const newest = now.getFullYear() + 1
+  const startYear = Number.isFinite(fromYear) ? fromYear : 2000
   const list = []
-  for (let start = newest; start >= newest - span; start -= 1) list.push(seasonIdFromStartYear(start))
+  for (let start = newest; start >= startYear; start -= 1) list.push(seasonIdFromStartYear(start))
   return list
 }
 

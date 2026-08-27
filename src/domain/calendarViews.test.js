@@ -72,11 +72,18 @@ describe('événements', () => {
 
   it('garde deux événements distincts le même jour dans la liste', () => {
     const groups = listGroupsByDay(events)
-    assert.equal(groups[0].events.length, 2)
+    const sameDay = groups.find((group) => group.events.length === 2)
+    assert.ok(sameDay)
     assert.deepEqual(
-      groups[0].events.map((event) => event.id),
+      sameDay.events.map((event) => event.id),
       ['b', 'a'],
     )
+  })
+
+  it('classe les jours du plus récent au plus ancien', () => {
+    const groups = listGroupsByDay(events)
+    assert.equal(groups[0].events[0].id, 'c')
+    assert.equal(listGroupsByDay(events, { newestFirst: false })[0].events.length, 2)
   })
 
   it('regroupe la liste par mois', () => {

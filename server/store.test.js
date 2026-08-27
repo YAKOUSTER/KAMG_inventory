@@ -23,6 +23,7 @@ import {
   createUser,
   updateUser,
   userFromToken,
+  placeMember,
   requestPasswordReset,
   createPasswordResetLink,
   resetPassword,
@@ -47,6 +48,7 @@ import {
   getMemberSpace,
   updateMemberProfile,
 } from './store.js'
+import { todayLocal } from '../src/domain/dates.js'
 
 async function tmpOptions() {
   const dir = await mkdtemp(path.join(os.tmpdir(), 'patrimoine-'))
@@ -696,6 +698,24 @@ END:VCALENDAR`
     assert.equal(updated.lieu, 'Moulin Vert')
     const others = events.filter((event) => event.id !== created.id)
     assert.ok(others.every((event) => !event.lieu))
+  })
+
+  it('saute les dates exclues d’une récurrence d’atelier', async () => {
+    const start = new Date(2026, 8, 4, 18, 0, 0).toISOString()
+    const skipDay = todayLocal(new Date(2026, 8, 11, 18, 0, 0))
+    const created = await createEvent(
+      {
+        kinds: ['atelier_couture'],
+        titre: 'Local FLG',
+        debut: start,
+        recurrence: { freq: 'weekly', until: '2026-09-18', except: [skipDay] },
+      },
+      options,
+    )
+    assert.equal(created.createdCount, 2)
+    const events = (await listEvents(options)).filter((event) => event.kinds.includes('atelier_couture'))
+    assert.equal(events.length, 2)
+    assert.ok(!events.some((event) => todayLocal(new Date(event.debut)) === skipDay))
   })
 
   it('filtre les emprunts du groupe du membre', async () => {

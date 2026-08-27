@@ -51,8 +51,19 @@
             :label="editing.id ? 'Nouveau mot de passe (laisser vide pour ne pas changer)' : 'Mot de passe'"
             type="password"
           />
-          <v-select v-model="editing.role" :items="roleItems" label="Profil" @update:model-value="onRole" />
-          <v-switch v-model="editing.custom" label="Personnaliser les accès de ce compte" color="primary" hide-details />
+          <p class="text-body-2 text-medium-emphasis mb-3">
+            Le profil du compte (Administrateur, Gestion, Lecteur, Membre) ouvre ou ferme la Gestion.
+            Ce n’est pas le même réglage que les rôles de la fiche personne (danseur, groupe vêtement…).
+          </p>
+          <v-select v-model="editing.role" :items="roleItems" label="Profil d’accès" @update:model-value="onRole" />
+          <v-switch
+            :model-value="editing.custom"
+            label="Personnaliser les accès de ce compte"
+            color="primary"
+            hide-details
+            class="mb-2"
+            @update:model-value="onCustom"
+          />
           <v-checkbox
             v-for="perm in PERMISSIONS"
             :key="perm.id"
@@ -80,9 +91,11 @@ import { onMounted, reactive, ref } from 'vue'
 import { useDisplay } from 'vuetify'
 import { api } from '@/services/api'
 import { PERMISSIONS, ROLE_PRESETS, ROLES } from '@/domain/auth'
+import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
 
 const { smAndDown } = useDisplay()
+const auth = useAuthStore()
 const ui = useUiStore()
 const users = ref([])
 const dialog = ref(false)
@@ -139,7 +152,14 @@ function openEdit(user) {
 }
 
 function onRole(role) {
-  if (!editing.custom) editing.permissions = [...ROLE_PRESETS[role]]
+  editing.role = role
+  editing.permissions = [...(ROLE_PRESETS[role] || [])]
+  editing.custom = false
+}
+
+function onCustom(value) {
+  editing.custom = Boolean(value)
+  if (!editing.custom) editing.permissions = [...(ROLE_PRESETS[editing.role] || [])]
 }
 
 function toggle(id, checked) {
@@ -164,8 +184,8 @@ async function save() {
       permissions: editing.permissions,
     }
     if (editing.password) payload.password = editing.password
-    if (editing.id) await api.updateUser(editing.id, payload)
-    else await api.createUser(payload)
+    const saved = editing.id ? await api.updateUser(editing.id, payload) : await api.createUser(payload)
+    if (saved?.id && saved.id === auth.user?.id) auth.setUser(saved)
     dialog.value = false
     await load()
   } catch (err) {

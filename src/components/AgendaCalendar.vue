@@ -281,10 +281,7 @@ const year = computed(() => {
   const parsed = parsedCursor.value
   return parsed ? yearMonths(parsed.year) : []
 })
-const listEvents = computed(() =>
-  [...props.events].sort((a, b) => String(a.debut || '').localeCompare(String(b.debut || ''))),
-)
-const listGroups = computed(() => listGroupsByDay(listEvents.value))
+const listGroups = computed(() => listGroupsByDay(props.events))
 const dayOpen = ref(false)
 const selectedDay = ref('')
 const dayEvents = computed(() => (selectedDay.value ? eventsFor(selectedDay.value) : []))

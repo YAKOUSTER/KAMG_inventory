@@ -8,6 +8,7 @@ import {
   eventMatchesKindFilter,
   inferEventKinds,
   kindsAreRepetition,
+  kindsAllowRecurrence,
 } from './eventKinds.js'
 
 describe('eventTitlePrefix', () => {
@@ -93,5 +94,8 @@ describe('eventKindsOf / filtre', () => {
   it('reconnaît une répétition', () => {
     assert.equal(kindsAreRepetition(['repetition_ado']), true)
     assert.equal(kindsAreRepetition(['sortie']), false)
+    assert.equal(kindsAllowRecurrence(['atelier_couture']), true)
+    assert.equal(kindsAllowRecurrence(['atelier_broderie']), true)
+    assert.equal(kindsAllowRecurrence(['sortie']), false)
   })
 })

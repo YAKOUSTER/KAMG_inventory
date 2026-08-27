@@ -44,10 +44,18 @@ export const GESTION_AREAS = [
     links: [
       {
         to: '/agenda',
-        title: 'Agenda',
+        title: 'Gestion des événements',
         icon: 'mdi-calendar-month-outline',
         permissionAny: ['agenda.read', 'agenda.write', 'agenda.libre'],
         match: ['/agenda'],
+        exclude: ['/agenda/presences'],
+      },
+      {
+        to: '/agenda/presences',
+        title: 'Liste des présences',
+        icon: 'mdi-table',
+        permissionAny: ['agenda.read', 'agenda.write', 'agenda.libre'],
+        match: ['/agenda/presences'],
       },
     ],
   },
@@ -96,6 +104,8 @@ export const GESTION_AREAS = [
 
 export function linkMatchesPath(link, path) {
   const current = String(path || '')
+  const excluded = link.exclude || []
+  if (excluded.some((prefix) => current === prefix || current.startsWith(`${prefix}/`))) return false
   if (link.exact) return current === link.to
   const prefixes = link.match || [link.to]
   return prefixes.some((prefix) => current === prefix || current.startsWith(`${prefix}/`))
@@ -113,7 +123,12 @@ export function linkAllowed(link, user) {
 }
 
 export function gestionHomePath(user) {
-  return visibleGestionAreas(user)[0]?.home || '/espace-membre'
+  const home = visibleGestionAreas(user)[0]?.home
+  if (home) return home
+  if (can(user, 'users.manage')) return '/utilisateurs'
+  if (can(user, 'settings.manage')) return '/parametres'
+  if (can(user, 'audit.read')) return '/journal'
+  return '/espace-membre'
 }
 
 export function toolbarLinksForArea(area) {
@@ -133,5 +148,6 @@ export function gestionAreaForPath(path, user) {
 }
 
 export function canAccessGestion(user) {
-  return visibleGestionAreas(user).length > 0
+  if (visibleGestionAreas(user).length > 0) return true
+  return can(user, 'users.manage') || can(user, 'settings.manage') || can(user, 'audit.read')
 }

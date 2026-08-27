@@ -28,13 +28,29 @@ export const useAuthStore = defineStore('auth', {
       this.ready = true
       if (payload) useInventoryStore().hydrate(payload)
     },
+    setUser(user) {
+      this.user = user || null
+    },
+    async refreshUser() {
+      if (!getToken()) return null
+      try {
+        const me = await api.me()
+        if (me) this.user = me
+        return this.user
+      } catch {
+        return this.user
+      }
+    },
     async hydrate() {
       this.bindUnauthorized()
-      if (this.ready) return this.user
       if (!getToken()) {
         this.user = null
         this.ready = true
         return null
+      }
+      if (this.ready) {
+        await this.refreshUser()
+        return this.user
       }
       try {
         this.applySession(await api.bootstrap())

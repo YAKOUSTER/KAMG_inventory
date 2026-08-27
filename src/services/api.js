@@ -25,6 +25,12 @@ async function request(path, options = {}) {
     ...options,
     headers,
     body: options.body && typeof options.body !== 'string' ? JSON.stringify(options.body) : options.body,
+  }).catch((err) => {
+    throw new Error(
+      err?.message === 'Failed to fetch' || err?.name === 'TypeError'
+        ? 'Le serveur ne répond pas. Réessayez dans un instant.'
+        : err.message || 'Connexion impossible',
+    )
   })
   const data = await response.json().catch(() => ({}))
   if (response.status === 401 && token) {

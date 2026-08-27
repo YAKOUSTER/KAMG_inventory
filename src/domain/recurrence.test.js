@@ -7,6 +7,7 @@ import {
   recurrenceWeekdayLabel,
   shiftEventTimes,
 } from './recurrence.js'
+import { todayLocal } from './dates.js'
 
 describe('recurrence', () => {
   const friday = new Date(2026, 8, 4, 18, 0, 0).toISOString()
@@ -22,6 +23,21 @@ describe('recurrence', () => {
     assert.equal(dates.length, 3)
     assert.equal(recurrenceWeekdayLabel(dates[1]), 'vendredi')
     assert.equal(recurrenceWeekdayLabel(dates[2]), 'vendredi')
+  })
+
+  it('saute les dates exclues', () => {
+    const all = expandRecurringDates(friday, { freq: 'weekly', until: '2026-09-18' })
+    const skipDay = todayLocal(new Date(all[1]))
+    const dates = expandRecurringDates(friday, {
+      freq: 'weekly',
+      until: '2026-09-18',
+      except: [skipDay],
+    })
+    assert.equal(dates.length, 2)
+    assert.equal(recurrenceWeekdayLabel(dates[0]), 'vendredi')
+    assert.equal(recurrenceWeekdayLabel(dates[1]), 'vendredi')
+    assert.ok(!dates.some((iso) => todayLocal(new Date(iso)) === skipDay))
+    assert.match(recurrenceSummary(friday, { freq: 'weekly', except: [skipDay] }), /sauf le /)
   })
 
   it('étend 1 semaine sur 2', () => {

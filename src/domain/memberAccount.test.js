@@ -2,6 +2,7 @@ import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import {
   canRsvpAsPerson,
+  canVisitAppRoute,
   findUserByIdentifiant,
   homePath,
   isValidEmail,
@@ -37,6 +38,9 @@ describe('accès après connexion', () => {
   it('envoie les simples membres vers l’espace membres', () => {
     assert.equal(homePath({ role: 'membre', status: 'pending', permissions: [] }), '/espace-membre')
     assert.equal(homePath({ role: 'admin', status: 'active', permissions: ['items.read'] }), '/')
+    assert.equal(canVisitAppRoute({ role: 'membre' }, { member: true }), true)
+    assert.equal(canVisitAppRoute({ role: 'membre' }, { permission: 'items.read' }), false)
+    assert.equal(canVisitAppRoute({ role: 'admin' }, { permission: 'users.manage' }), true)
   })
 
   it('n’autorise le sondage que pour les fiches liées, une fois rangé', () => {

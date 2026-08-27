@@ -84,7 +84,7 @@
 
     <section class="form-block form-section">
       <h2 class="section-label">Photo</h2>
-      <ItemPhotos v-model="person.images" :code="photoCode" />
+      <ItemPhotos v-model="person.images" :code="photoCode" variant="avatar" />
     </section>
 
     <v-expansion-panels class="form-block form-section form-section--flat" variant="accordion">

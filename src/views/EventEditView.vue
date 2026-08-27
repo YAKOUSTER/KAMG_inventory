@@ -86,6 +86,41 @@
           <FieldRow v-if="form.recurrenceFreq" label="Jusqu’au">
             <v-text-field v-model="form.recurrenceUntil" type="date" hide-details="auto" />
           </FieldRow>
+          <FieldRow v-if="form.recurrenceFreq" label="Sauf le" class="form-fields-grid__span-2">
+            <p class="text-caption text-medium-emphasis mb-2">
+              Décochez les dates à ne pas créer (vacances, jours fériés…). Vous pouvez aussi ajouter une
+              date ci-dessous.
+            </p>
+            <div v-if="recurrencePreview.length" class="recurrence-dates">
+              <v-checkbox
+                v-for="item in recurrencePreview"
+                :key="item.day"
+                :model-value="!form.recurrenceExcept.includes(item.day)"
+                :label="item.label"
+                hide-details
+                density="compact"
+                @update:model-value="toggleOccurrence(item.day, $event)"
+              />
+            </div>
+            <div class="d-flex flex-wrap ga-2 align-end mt-2">
+              <v-text-field
+                v-model="exceptDraft"
+                type="date"
+                hide-details
+                density="compact"
+                label="Date à sauter"
+                class="recurrence-except-date"
+              />
+              <v-btn
+                variant="tonal"
+                class="text-none"
+                :disabled="!exceptDraft"
+                @click="addExceptDate"
+              >
+                Sauf cette date
+              </v-btn>
+            </div>
+          </FieldRow>
         </template>
         <FieldRow label="Lieu" class="form-fields-grid__span-2">
           <v-text-field v-model="form.lieu" hide-details />
@@ -159,6 +194,7 @@ import {
   eventTitlePrefix,
   eventTitleRest,
   groupesFromKinds,
+  kindsAllowRecurrence,
   kindsAreRepetition,
   primaryTypeFromKinds,
 } from '@/domain/eventKinds'
@@ -167,9 +203,13 @@ import { emptySortie, normalizeSortie } from '@/domain/sortie'
 import { assertCanMutateEvent, eventIsPast } from '@/domain/events'
 import {
   defaultRecurrenceUntil,
+  expandRecurringDates,
+  normalizeSkipDates,
   RECURRENCE_FREQS,
   recurrenceSummary,
+  recurrenceWeekdayLabel,
 } from '@/domain/recurrence'
+import { displayDate, todayLocal } from '@/domain/dates'
 
 const props = defineProps({ id: { type: String, default: '' } })
 const router = useRouter()
@@ -200,6 +240,7 @@ const recurrenceItems = [
   ...RECURRENCE_FREQS.map((entry) => ({ title: entry.label, value: entry.id })),
 ]
 
+const exceptDraft = ref('')
 const form = reactive({
   kinds: [],
   groupes: [],
@@ -213,6 +254,7 @@ const form = reactive({
   horsCercle: false,
   recurrenceFreq: '',
   recurrenceUntil: '',
+  recurrenceExcept: [],
   sortie: emptySortie(),
 })
 
@@ -226,10 +268,28 @@ const isPast = computed(() =>
     fin: fromLocalInput(form.fin),
   }),
 )
-const showRecurrence = computed(() => !isEdit.value && isRepetition.value)
+const showRecurrence = computed(() => !isEdit.value && kindsAllowRecurrence(form.kinds))
 const recurrenceCaption = computed(() =>
-  recurrenceSummary(fromLocalInput(form.debut), { freq: form.recurrenceFreq }),
+  recurrenceSummary(fromLocalInput(form.debut), {
+    freq: form.recurrenceFreq,
+    except: form.recurrenceExcept,
+  }),
 )
+const recurrencePreview = computed(() => {
+  if (!form.recurrenceFreq || !form.debut) return []
+  return expandRecurringDates(fromLocalInput(form.debut), {
+    freq: form.recurrenceFreq,
+    until: form.recurrenceUntil || defaultRecurrenceUntil(fromLocalInput(form.debut)),
+  }).map((iso) => {
+    const day = todayLocal(new Date(iso))
+    const weekday = recurrenceWeekdayLabel(iso)
+    return {
+      iso,
+      day,
+      label: weekday ? `${weekday} ${displayDate(day)}` : displayDate(day),
+    }
+  })
+})
 const pasDeSondage = computed({
   get: () => !form.inscriptionsOuvertes,
   set: (value) => {
@@ -263,8 +323,9 @@ watch(
           groupItems.value.some((item) => item.value === id),
         )
       }
-      if (!isRepetition.value) {
+      if (!showRecurrence.value) {
         form.recurrenceFreq = ''
+        form.recurrenceExcept = []
       }
     }
   },
@@ -273,7 +334,7 @@ watch(
 watch(
   () => form.debut,
   (value) => {
-    if (!isEdit.value && isRepetition.value && form.recurrenceFreq && value) {
+    if (!isEdit.value && showRecurrence.value && form.recurrenceFreq && value) {
       if (!form.recurrenceUntil) form.recurrenceUntil = defaultRecurrenceUntil(fromLocalInput(value))
     }
   },
@@ -310,6 +371,23 @@ function fromLocalInput(value) {
   return Number.isNaN(date.getTime()) ? value : date.toISOString()
 }
 
+function toggleOccurrence(day, keep) {
+  const id = String(day || '').slice(0, 10)
+  if (!id) return
+  if (keep) {
+    form.recurrenceExcept = form.recurrenceExcept.filter((entry) => entry !== id)
+    return
+  }
+  if (!form.recurrenceExcept.includes(id)) form.recurrenceExcept = [...form.recurrenceExcept, id]
+}
+
+function addExceptDate() {
+  const day = String(exceptDraft.value || '').slice(0, 10)
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return
+  if (!form.recurrenceExcept.includes(day)) form.recurrenceExcept = [...form.recurrenceExcept, day]
+  exceptDraft.value = ''
+}
+
 function applyFormFromEvent(event) {
   originalType.value = event.type || 'autre'
   groupesTouched.value = Array.isArray(event.groupes)
@@ -328,6 +406,7 @@ function applyFormFromEvent(event) {
     horsCercle: event.horsCercle === true,
     recurrenceFreq: '',
     recurrenceUntil: '',
+    recurrenceExcept: [],
     sortie: normalizeSortie(event.sortie),
   })
 }
@@ -396,6 +475,7 @@ async function submit() {
       payload.recurrence = {
         freq: form.recurrenceFreq,
         until: form.recurrenceUntil || defaultRecurrenceUntil(payload.debut),
+        except: normalizeSkipDates(form.recurrenceExcept),
       }
     }
     const saved = props.id ? await api.updateEvent(props.id, payload) : await api.createEvent(payload)
@@ -406,7 +486,7 @@ async function submit() {
     }
     success.value =
       createdCount > 1
-        ? `${createdCount} répétitions créées. Chaque date peut être modifiée séparément.`
+        ? `${createdCount} dates créées. Chaque date peut être modifiée séparément.`
         : 'Événement enregistré.'
     window.scrollTo({ top: 0, behavior: 'smooth' })
   } catch (err) {
@@ -451,5 +531,18 @@ async function remove() {
 
 .event-title-field .v-text-field {
   flex: 1;
+}
+
+.recurrence-dates {
+  max-height: 240px;
+  overflow: auto;
+  padding: 4px 8px;
+  border: 1px solid var(--kamg-border, #d5d8cf);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.recurrence-except-date {
+  max-width: 220px;
 }
 </style>

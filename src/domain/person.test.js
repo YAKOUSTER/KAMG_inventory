@@ -48,7 +48,7 @@ describe('normalizePerson', () => {
     assert.equal(person.nouveau, true)
     assert.equal(
       personRolesLabel(person),
-      'Membre 2026-2027 · Danseur loisir 2026-2027 · Couture · NEW',
+      'Membre 2026-2027 · Danseur loisir 2026-2027 · Groupe Vêtement · NEW',
     )
     assert.equal(person.role, undefined)
   })
@@ -73,6 +73,7 @@ describe('normalizePerson', () => {
     assert.deepEqual(normalizeRoles({ role: 'Invité' }), ['invite'])
     const person = normalizePerson({ nom: 'Le Roux', prenom: 'Maïwenn', role: 'Couture' }, { id: 'p3' })
     assert.deepEqual(person.roles, ['couture'])
+    assert.equal(personRolesLabel(person), 'Groupe Vêtement')
     assert.deepEqual(person.saisons, [])
     assert.equal(person.nouveau, false)
   })

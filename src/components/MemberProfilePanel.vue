@@ -18,7 +18,7 @@
       <section class="member-section">
         <h2 class="member-section__title">Photo</h2>
         <p class="member-section__intro">Une photo aide l’atelier costume à vous reconnaître.</p>
-        <ItemPhotos v-model="form.images" :code="photoCode" @change="savePhotos" />
+        <ItemPhotos v-model="form.images" :code="photoCode" variant="avatar" @change="savePhotos" />
       </section>
 
       <section class="member-section">

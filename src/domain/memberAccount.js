@@ -1,4 +1,4 @@
-import { ROLE_PRESETS, can } from './auth.js'
+import { can, resolveUserAccess } from './auth.js'
 
 export const USER_STATUSES = [
   { id: 'pending', label: 'En attente de rangement' },
@@ -77,6 +77,17 @@ export function homePath(user) {
   return '/espace-membre'
 }
 
+export function canVisitAppRoute(user, meta = {}) {
+  if (meta.public) return true
+  if (!canUseMemberSpace(user)) return false
+  if (meta.member) return true
+  if (Array.isArray(meta.permissionAny) && meta.permissionAny.length) {
+    return meta.permissionAny.some((permission) => can(user, permission))
+  }
+  if (meta.permission) return can(user, meta.permission)
+  return true
+}
+
 export function canRsvpAsPerson(user, personId) {
   if (!user || isDisabledUser(user) || isPendingPlacement(user)) return false
   const id = String(personId || '').trim()
@@ -87,14 +98,16 @@ export function canRsvpAsPerson(user, personId) {
 export function normalizeAccountRecord(user = {}) {
   const login = String(user.login || user.email || '').trim().toLowerCase()
   const email = normalizeEmail(user.email || (login.includes('@') ? login : ''))
-  const role = user.role === 'membre' || ROLE_PRESETS[user.role] ? user.role : 'lecteur'
   const status = STATUS_IDS.has(user.status) ? user.status : 'active'
+  const access = resolveUserAccess(user)
   return {
     ...user,
     login: login || email,
     email,
     status,
-    role,
+    role: access.role,
+    custom: access.custom,
+    permissions: access.permissions,
     personIds: normalizePersonIds(user.personIds),
     signup: user.signup && typeof user.signup === 'object' ? user.signup : null,
   }

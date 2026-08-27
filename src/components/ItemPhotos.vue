@@ -1,14 +1,33 @@
 <template>
-  <div>
+  <div :class="{ 'item-photos--avatar': isAvatar }">
     <input
       ref="fileInput"
       type="file"
       accept="image/*"
-      multiple
+      :multiple="!isAvatar"
       hidden
       @change="onInput"
     />
 
+    <div v-if="isAvatar" class="profile-photo">
+      <button type="button" class="profile-photo__frame" :disabled="uploading" @click="fileInput.click()">
+        <img v-if="cover" :src="cover.src" alt="" class="profile-photo__img" />
+        <span v-else class="profile-photo__placeholder">
+          <v-icon size="36" color="primary">mdi-camera-plus-outline</v-icon>
+        </span>
+      </button>
+      <div class="profile-photo__actions">
+        <v-btn size="small" variant="tonal" class="text-none" :loading="uploading" @click="fileInput.click()">
+          {{ cover ? 'Changer la photo' : 'Ajouter une photo' }}
+        </v-btn>
+        <v-btn v-if="cover" size="small" variant="text" class="text-none" @click="remove(cover.id)">
+          Retirer
+        </v-btn>
+      </div>
+      <v-alert v-if="error" type="error" class="mt-3" density="compact">{{ error }}</v-alert>
+    </div>
+
+    <template v-else>
     <div
       class="dropzone mb-4"
       :class="{ 'dropzone-active': dragging, 'dropzone-busy': uploading }"
@@ -80,6 +99,7 @@
         </div>
       </v-col>
     </v-row>
+    </template>
   </div>
 </template>
 
@@ -92,6 +112,7 @@ import { createImage, moveImage, normalizeImages, setPrincipal } from '@/domain/
 const props = defineProps({
   modelValue: { type: Array, default: () => [] },
   code: { type: String, default: '' },
+  variant: { type: String, default: 'gallery' },
 })
 
 const emit = defineEmits(['update:modelValue', 'change'])
@@ -101,7 +122,9 @@ const dragging = ref(false)
 const uploading = ref(false)
 const error = ref('')
 
+const isAvatar = computed(() => props.variant === 'avatar')
 const images = computed(() => normalizeImages(props.modelValue))
+const cover = computed(() => images.value.find((img) => img.principale) || images.value[0] || null)
 let saveTimer
 
 function commit(next, immediate = false) {
@@ -160,7 +183,7 @@ async function addFiles(fileList) {
         }),
       )
     }
-    commit([...images.value, ...added], true)
+    commit(isAvatar.value ? added.map((img, index) => ({ ...img, principale: index === 0 })) : [...images.value, ...added], true)
   } catch (err) {
     error.value = err.message || 'Impossible d’ajouter la photo.'
   } finally {
@@ -184,5 +207,48 @@ async function addFiles(fileList) {
 .dropzone-busy {
   opacity: 0.7;
   pointer-events: none;
+}
+
+.profile-photo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.profile-photo__frame {
+  width: 168px;
+  height: 168px;
+  padding: 0;
+  border: 2px dashed var(--kamg-border, #d5d8cf);
+  border-radius: 50%;
+  overflow: hidden;
+  background: #f4f6f4;
+  cursor: pointer;
+}
+
+.profile-photo__frame:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.profile-photo__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-photo__placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-photo__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 </style>

@@ -8,7 +8,7 @@ import { normalizeReferentiels, validateReferentiels, categoryIds, mergeReferent
 import { isLoanable, normalizeItem } from '../src/domain/item.js'
 import { appendStockMovement, countLowStock } from '../src/domain/stock.js'
 import { applyReturnUpdate, countOpenTasks } from '../src/domain/itemTasks.js'
-import { ROLE_PRESETS, can, publicUser } from '../src/domain/auth.js'
+import { ROLE_PRESETS, can, publicUser, resolveUserAccess } from '../src/domain/auth.js'
 import {
   canRsvpAsPerson,
   displayNameFromSignup,
@@ -27,7 +27,7 @@ import {
 import { groupLoansByYear, memberSelfProfile, normalizePerson, personDisplayName } from '../src/domain/person.js'
 import { todayLocal, formatDate } from '../src/domain/dates.js'
 import { normalizeEvent, filterPublishedEvents, upcomingEvents, pastEvents, sortEvents, applyEventOverlay, eventAcceptsInscriptions, publicEventSummary, eventLocalDay, assertCanMutateEvent } from '../src/domain/events.js'
-import { kindsAreRepetition } from '../src/domain/eventKinds.js'
+import { kindsAllowRecurrence } from '../src/domain/eventKinds.js'
 import { personCanRsvpToEvent, loansVisibleToMember } from '../src/domain/eventGroups.js'
 import { loansOfPeople } from '../src/domain/loans.js'
 import { expandRecurringDates, shiftEventTimes } from '../src/domain/recurrence.js'
@@ -1225,11 +1225,16 @@ export async function getEvent(id, options = {}) {
 export async function createEvent(payload, options = {}) {
   const { recurrence, ...rest } = payload && typeof payload === 'object' ? payload : {}
   const shouldExpand =
-    kindsAreRepetition(rest.kinds) &&
+    kindsAllowRecurrence(rest.kinds) &&
     recurrence &&
     (recurrence.freq === 'weekly' || recurrence.freq === 'biweekly')
-  const dates = shouldExpand ? expandRecurringDates(rest.debut, recurrence) : [rest.debut]
-  const starts = dates.length ? dates : [rest.debut]
+  const dates = shouldExpand ? expandRecurringDates(rest.debut, recurrence) : rest.debut ? [rest.debut] : []
+  if (!dates.length) {
+    throw Object.assign(new Error('Aucune date à créer. Vérifiez la récurrence et les dates exclues.'), {
+      status: 400,
+    })
+  }
+  const starts = dates
   const preview = runDomain(normalizeEvent, { ...rest, source: 'local' }, { id: 'preview' })
   assertCanMutateEvent(options.actor, preview)
 
@@ -1255,7 +1260,7 @@ export async function createEvent(payload, options = {}) {
       entityLabel: first.titre,
       summary:
         created.length > 1
-          ? `Création de ${created.length} répétitions « ${first.titre} »`
+          ? `Création de ${created.length} dates « ${first.titre} »`
           : `Création de l’événement « ${first.titre} »`,
     })
     return { ...first, createdCount: created.length, createdIds: created.map((event) => event.id) }
@@ -1681,8 +1686,14 @@ export async function placeMember(id, payload = {}, options = {}) {
 
     user.status = 'active'
     user.personIds = uniqueIds
-    user.role = user.role === 'admin' || user.role === 'gestion' ? user.role : 'membre'
-    if (!user.custom) user.permissions = [...(ROLE_PRESETS[user.role] || [])]
+    const access = resolveUserAccess({
+      role: user.role,
+      custom: user.custom,
+      permissions: user.permissions,
+    })
+    user.role = access.role
+    user.custom = access.custom
+    user.permissions = access.permissions
     appendAudit(db, options.actor, {
       action: 'user.place',
       entityType: 'user',
@@ -1826,8 +1837,11 @@ export async function createUser(payload, options = {}) {
     if (db.users.some((u) => u.login.toLowerCase() === loginName)) {
       throw Object.assign(new Error('Cet identifiant existe déjà'), { status: 409 })
     }
-    const role = ROLE_PRESETS[payload.role] || payload.role === 'membre' ? payload.role : 'lecteur'
-    const custom = Boolean(payload.custom)
+    const access = resolveUserAccess({
+      role: payload.role,
+      custom: payload.custom,
+      permissions: payload.permissions,
+    })
     const email = normalizeEmail(payload.email || (loginName.includes('@') ? loginName : ''))
     if (email && db.users.some((entry) => normalizeEmail(entry.email) === email)) {
       throw Object.assign(new Error('Cet e-mail existe déjà'), { status: 409 })
@@ -1837,11 +1851,11 @@ export async function createUser(payload, options = {}) {
       login: loginName,
       email,
       nom: (payload.nom || loginName).trim(),
-      role,
+      role: access.role,
       status: payload.status === 'pending' ? 'pending' : 'active',
       personIds: normalizePersonIds(payload.personIds),
-      custom,
-      permissions: custom && Array.isArray(payload.permissions) ? payload.permissions : [...(ROLE_PRESETS[role] || [])],
+      custom: access.custom,
+      permissions: access.permissions,
       passwordHash: await hashPassword(payload.password),
       createdAt: new Date().toISOString(),
     }
@@ -1875,14 +1889,18 @@ export async function updateUser(id, payload, options = {}) {
       }
       user.email = email
     }
-    if (payload.role && (ROLE_PRESETS[payload.role] || payload.role === 'membre')) user.role = payload.role
     if (payload.status === 'pending' || payload.status === 'active' || payload.status === 'disabled') {
       user.status = payload.status
     }
     if (Array.isArray(payload.personIds)) user.personIds = normalizePersonIds(payload.personIds)
-    if (payload.custom != null) user.custom = Boolean(payload.custom)
-    if (Array.isArray(payload.permissions)) user.permissions = payload.permissions
-    if (!user.custom) user.permissions = [...(ROLE_PRESETS[user.role] || [])]
+    const access = resolveUserAccess({
+      role: payload.role || user.role,
+      custom: payload.custom != null ? payload.custom : user.custom,
+      permissions: Array.isArray(payload.permissions) ? payload.permissions : user.permissions,
+    })
+    user.role = access.role
+    user.custom = access.custom
+    user.permissions = access.permissions
     if (payload.password) user.passwordHash = await hashPassword(payload.password)
     if (user.status === 'disabled' || payload.password) {
       revokeUserSessions(db, user.id)

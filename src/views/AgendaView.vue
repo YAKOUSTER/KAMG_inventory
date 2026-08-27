@@ -6,7 +6,7 @@
     </v-alert>
 
     <div class="d-flex flex-wrap align-center ga-3 page-header">
-      <h1 class="text-h5 text-md-h4 page-title">Agenda</h1>
+      <h1 class="text-h5 text-md-h4 page-title">Gestion des événements</h1>
       <v-spacer />
       <v-btn
         v-if="auth.can('agenda.write')"
@@ -25,16 +25,9 @@
       >
         Ajouter
       </v-btn>
-      <v-btn
-        v-if="gridEvents.length && people.length"
-        variant="text"
-        class="text-none"
-        prepend-icon="mdi-table"
-        @click="scrollToGrid"
-      >
-        Feuille de présences
-      </v-btn>
     </div>
+
+    <CalendrierSubnav />
 
     <v-alert v-if="importMessage" :type="importOk ? 'success' : 'error'" variant="tonal" class="mb-4">
       {{ importMessage }}
@@ -54,21 +47,6 @@
       @select="openEvent"
       @create="createOnDay"
     />
-
-    <section v-if="gridEvents.length && people.length" id="feuille-presences" class="presence-sheet">
-      <h2 class="text-subtitle-1 font-weight-bold mb-2">Feuille de présences</h2>
-      <p class="text-body-2 text-medium-emphasis mb-3">
-        Toutes les sorties à venir, une colonne par événement — y compris s’il y en a plusieurs le même jour.
-        La feuille se consulte ici ; les réponses se font depuis l’espace membres ou la fiche événement.
-      </p>
-      <PresenceGrid
-        :events="gridEvents"
-        :people="people"
-        :presences="presences"
-        :readonly="true"
-        @updated="onPresenceUpdated"
-      />
-    </section>
   </div>
 </template>
 
@@ -79,17 +57,13 @@ import { useAuthStore } from '@/stores/auth'
 import { api } from '@/services/api'
 import { eventMatchesKindFilter, eventIsHorsCercle } from '@/domain/events'
 import { eventKindFilterItems } from '@/domain/eventKinds'
-import { applyPresenceUpdate } from '@/domain/presence'
-import { inscriptionEventsForGrid } from '@/domain/presenceGrid'
 import { canWriteLibreEvents } from '@/domain/auth'
 import AgendaCalendar from '@/components/AgendaCalendar.vue'
-import PresenceGrid from '@/components/PresenceGrid.vue'
+import CalendrierSubnav from '@/components/CalendrierSubnav.vue'
 
 const auth = useAuthStore()
 const router = useRouter()
 const events = ref([])
-const people = ref([])
-const presences = ref([])
 const typeFilter = ref('Tout')
 const importing = ref(false)
 const importMessage = ref('')
@@ -102,18 +76,8 @@ const filtered = computed(() =>
   events.value.filter((event) => eventMatchesKindFilter(event, typeFilter.value)),
 )
 
-const gridEvents = computed(() => inscriptionEventsForGrid(events.value))
-
 onMounted(async () => {
   events.value = await api.events()
-  const extras = []
-  if (auth.can('people.read')) extras.push(api.people().catch(() => []))
-  else extras.push(Promise.resolve([]))
-  if (auth.can('agenda.read')) extras.push(api.presences().catch(() => []))
-  else extras.push(Promise.resolve([]))
-  const [peopleList, presenceList] = await Promise.all(extras)
-  people.value = peopleList
-  presences.value = presenceList
 })
 
 async function importGoogle() {
@@ -141,18 +105,4 @@ function openEvent(event) {
 function createOnDay(isoDay) {
   router.push({ name: 'event-create', query: { debut: isoDay } })
 }
-
-function scrollToGrid() {
-  document.getElementById('feuille-presences')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-}
-
-function onPresenceUpdated(record) {
-  presences.value = applyPresenceUpdate(presences.value, record)
-}
 </script>
-
-<style scoped>
-.presence-sheet {
-  margin-top: 32px;
-}
-</style>

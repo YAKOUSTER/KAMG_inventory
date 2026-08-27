@@ -27,7 +27,17 @@
     </header>
 
     <v-progress-linear v-if="loading" indeterminate color="primary" class="mb-3" />
-    <v-alert v-if="error" type="error" variant="tonal" class="mb-3">{{ error }}</v-alert>
+      <v-alert v-if="error" type="error" variant="tonal" class="mb-3">{{ error }}</v-alert>
+      <v-btn
+        v-if="!mdAndUp && canOpenGestion && !pending"
+        color="primary"
+        class="text-none mb-3"
+        block
+        prepend-icon="mdi-briefcase-outline"
+        :to="gestionHome"
+      >
+        Ouvrir la gestion
+      </v-btn>
 
     <section v-if="pending" class="member-waiting">
       <h2>Demande reçue</h2>
@@ -391,6 +401,7 @@ watch(
 watch(selectedPersonId, (value) => storePresencePersonId(value))
 
 onMounted(async () => {
+  await auth.refreshUser()
   try {
     const payload = await api.publicMemberSpace()
     pending.value = Boolean(payload.pending)

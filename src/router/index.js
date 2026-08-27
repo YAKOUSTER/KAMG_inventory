@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { canUseMemberSpace, homePath } from '@/domain/memberAccount'
+import { canUseMemberSpace, canVisitAppRoute, homePath } from '@/domain/memberAccount'
 import DashboardView from '@/views/DashboardView.vue'
 import InventoryView from '@/views/InventoryView.vue'
 import LoansView from '@/views/LoansView.vue'
@@ -50,6 +50,7 @@ const routes = [
   { path: '/personnes/:id/modifier', name: 'person-edit', component: () => import('@/views/PersonEditView.vue'), props: true, meta: { permission: 'people.write' } },
   { path: '/agenda', name: 'agenda', component: () => import('@/views/AgendaView.vue'), meta: { permissionAny: ['agenda.read', 'agenda.write', 'agenda.libre'] } },
   { path: '/agenda/nouveau', name: 'event-create', component: () => import('@/views/EventEditView.vue'), meta: { permissionAny: ['agenda.write', 'agenda.libre'] } },
+  { path: '/agenda/presences', name: 'agenda-presences', component: () => import('@/views/PresenceSheetView.vue'), meta: { permissionAny: ['agenda.read', 'agenda.write', 'agenda.libre'] } },
   { path: '/agenda/:id/modifier', name: 'event-edit', component: () => import('@/views/EventEditView.vue'), props: true, meta: { permissionAny: ['agenda.write', 'agenda.libre'] } },
   { path: '/contenus', name: 'contents', component: () => import('@/views/ContentsView.vue'), meta: { permission: 'content.read' } },
   { path: '/contenus/nouveau', name: 'content-create', component: () => import('@/views/ContentEditView.vue'), meta: { permission: 'content.write' } },
@@ -82,17 +83,8 @@ router.beforeEach(async (to) => {
   if (!auth.user || !canUseMemberSpace(auth.user)) {
     return { name: 'login', query: { redirect: to.fullPath } }
   }
-  if (to.meta.member) return true
-  if (Array.isArray(to.meta.permissionAny) && to.meta.permissionAny.length) {
-    if (!to.meta.permissionAny.some((permission) => auth.can(permission))) {
-      return { path: homePath(auth.user) }
-    }
-    return true
-  }
-  if (to.meta.permission && !auth.can(to.meta.permission)) {
-    return { path: homePath(auth.user) }
-  }
-  return true
+  if (canVisitAppRoute(auth.user, to.meta)) return true
+  return { path: homePath(auth.user) }
 })
 
 export default router

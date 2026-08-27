@@ -108,10 +108,13 @@
               v-for="link in areaToolbarLinks"
               :key="link.to"
               :to="link.to"
-              :exact="link.exact"
+              exact
               variant="text"
               size="small"
               class="area-toolbar__link text-none"
+              active-class=""
+              exact-active-class=""
+              :class="{ 'v-btn--active': linkMatchesPath(link, route.path) }"
             >
               {{ link.title }}
             </v-btn>
@@ -214,7 +217,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
 import { ROLES, canReceivePushNotifications } from '@/domain/auth'
 import { APP_TITLE, GROUP_NAME, LOGO_SRC } from '@/domain/brand'
-import { gestionAreaForPath, toolbarLinksForArea, visibleGestionAreas } from '@/domain/gestionNav'
+import { gestionAreaForPath, linkMatchesPath, toolbarLinksForArea, visibleGestionAreas } from '@/domain/gestionNav'
 import PushNotificationsToggle from '@/components/PushNotificationsToggle.vue'
 import BottomTabBar from '@/components/BottomTabBar.vue'
 import { registerPushServiceWorker } from '@/services/pushNotifications'

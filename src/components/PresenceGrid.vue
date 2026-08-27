@@ -27,13 +27,17 @@
       />
     </div>
 
-    <p class="presence-grid__legend">
+    <p v-if="!readonly" class="presence-grid__legend">
       Comme un tableur : une colonne par événement (même s’il y en a plusieurs le même jour),
       une ligne par personne. Touchez une case pour cycler <strong>1</strong> (présent),
       <strong>0</strong> (absent), <strong>?</strong> (peut-être), vide.
       <span class="presence-grid__legend-desktop">
         Sur ordinateur : flèches puis 1 / 0 / ? / Suppr.
       </span>
+    </p>
+    <p v-else class="presence-grid__legend">
+      Une colonne par événement à venir, une ligne par personne.
+      <strong>1</strong> = présent, <strong>0</strong> = absent, <strong>?</strong> = peut-être.
     </p>
 
     <v-alert v-if="publicMode && !selectedPersonId" type="info" variant="tonal" class="mb-3" density="compact">
@@ -283,6 +287,8 @@ function onKeydown(event) {
   if (!person || !column) return
   saveCell(person.id, column.event, statut)
 }
+
+defineExpose({ groupFilter })
 </script>
 
 <style scoped>

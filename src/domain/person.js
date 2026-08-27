@@ -32,7 +32,7 @@ export const PERSON_ROLES = [
   { id: 'danseur_tremplin', label: 'Danseurs tremplin' },
   { id: 'danseur_concours', label: 'Danseur concours' },
   { id: 'danseur_loisir', label: 'Danseur loisir' },
-  { id: 'couture', label: 'Couture' },
+  { id: 'couture', label: 'Groupe Vêtement', aliases: ['Couture'] },
   { id: 'invite', label: 'Invité' },
 ]
 
@@ -126,9 +126,11 @@ export function normalizeRoles(input = {}) {
   if (known.length) return [...new Set(known)]
   const legacy = String(input.role || '').trim()
   if (!legacy) return []
-  const match = PERSON_ROLES.find(
-    (role) => role.id === legacy || role.label.toLowerCase() === legacy.toLowerCase(),
-  )
+  const match = PERSON_ROLES.find((role) => {
+    const needle = legacy.toLowerCase()
+    if (role.id === legacy || role.label.toLowerCase() === needle) return true
+    return (role.aliases || []).some((alias) => String(alias).toLowerCase() === needle)
+  })
   return match ? [match.id] : []
 }
 
