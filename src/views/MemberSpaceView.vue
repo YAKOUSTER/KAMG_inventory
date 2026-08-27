@@ -57,10 +57,11 @@
     <template v-else-if="data">
       <v-tabs v-if="mdAndUp" v-model="tab" color="primary" class="member-space__tabs" density="compact">
         <v-tab value="accueil" class="text-none">Accueil</v-tab>
+        <v-tab value="groupe" class="text-none">Groupe</v-tab>
         <v-tab value="agenda" class="text-none">Agenda</v-tab>
         <v-tab value="infos" class="text-none">Infos & tutos</v-tab>
         <v-tab value="emprunts" class="text-none">Emprunts</v-tab>
-        <v-tab value="profil" class="text-none">Moi</v-tab>
+        <v-tab value="profil" class="text-none">Mon profil</v-tab>
       </v-tabs>
 
       <div v-show="tab === 'accueil'" class="member-space__panel">
@@ -152,7 +153,15 @@
         <MemberBlogPanel :pages="data.pages" :article-id="pendingArticleId" />
       </div>
 
+      <div v-show="tab === 'groupe'" class="member-space__panel">
+        <MemberGroupPanel
+          :people="data.people || []"
+          :person-ids="(data.profiles || []).map((person) => person.id)"
+        />
+      </div>
+
       <div v-if="empruntsVisited" v-show="tab === 'emprunts'" class="member-space__panel">
+        <MemberClothingMemo :profiles="data.profiles || []" @updated="onProfileUpdated" />
         <section class="member-section">
           <h2 class="member-section__title">Emprunts en cours</h2>
           <p class="member-section__intro">
@@ -293,6 +302,8 @@ import { personDisplayName } from '@/domain/person'
 import CalendarSubscribePanel from '@/components/CalendarSubscribePanel.vue'
 import MemberBlogPanel from '@/components/MemberBlogPanel.vue'
 import MemberHomePanel from '@/components/MemberHomePanel.vue'
+import MemberClothingMemo from '@/components/MemberClothingMemo.vue'
+import MemberGroupPanel from '@/components/MemberGroupPanel.vue'
 import MemberProfilePanel from '@/components/MemberProfilePanel.vue'
 import AgendaCalendar from '@/components/AgendaCalendar.vue'
 import EventKindChips from '@/components/EventKindChips.vue'
@@ -332,10 +343,11 @@ const eventGroups = computed(() => activeEventGroups())
 const canSubscribe = computed(() => Boolean(data.value))
 const memberTabs = [
   { id: 'accueil', label: 'Accueil', icon: 'mdi-home-outline', activeIcon: 'mdi-home' },
+  { id: 'groupe', label: 'Groupe', icon: 'mdi-account-group-outline', activeIcon: 'mdi-account-group' },
   { id: 'agenda', label: 'Agenda', icon: 'mdi-calendar-month-outline', activeIcon: 'mdi-calendar-month' },
   { id: 'infos', label: 'Infos', icon: 'mdi-book-open-page-variant-outline', activeIcon: 'mdi-book-open-page-variant' },
   { id: 'emprunts', label: 'Emprunts', icon: 'mdi-swap-horizontal' },
-  { id: 'profil', label: 'Moi', icon: 'mdi-account-outline', activeIcon: 'mdi-account' },
+  { id: 'profil', label: 'Mon profil', icon: 'mdi-account-outline', activeIcon: 'mdi-account' },
 ]
 
 const allEvents = computed(() => [
@@ -435,6 +447,15 @@ function onProfileUpdated(updated) {
     ...data.value,
     profiles: (data.value.profiles || []).map((person) =>
       person.id === updated.id ? { ...person, ...updated } : person,
+    ),
+    people: (data.value.people || []).map((person) =>
+      person.id === updated.id
+        ? {
+            ...person,
+            photo: updated.photo != null ? updated.photo : person.photo,
+            bio: updated.bio != null ? updated.bio : person.bio,
+          }
+        : person,
     ),
   }
 }

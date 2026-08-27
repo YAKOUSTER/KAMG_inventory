@@ -24,6 +24,7 @@ import {
   updateUser,
   userFromToken,
   placeMember,
+  registerMember,
   requestPasswordReset,
   createPasswordResetLink,
   resetPassword,
@@ -789,13 +790,54 @@ END:VCALENDAR`
     const updated = await updateMemberProfile(
       user,
       person.id,
-      { noteAtelier: 'Housse au local FLG', tailleLettre: 'M' },
+      { noteAtelier: 'Housse au local FLG', tailleLettre: 'M', bio: 'Danse depuis 2019.' },
       options,
     )
     assert.equal(updated.noteAtelier, 'Housse au local FLG')
     assert.equal(updated.tailleLettre, 'M')
+    assert.equal(updated.bio, 'Danse depuis 2019.')
     const space = await getMemberSpace(user, options)
     assert.equal(space.profiles[0].noteAtelier, 'Housse au local FLG')
+    assert.equal(space.profiles[0].bio, 'Danse depuis 2019.')
+    assert.equal(space.people.find((entry) => entry.id === person.id)?.bio, 'Danse depuis 2019.')
+  })
+
+  it('copie l’e-mail du compte sur la fiche au rangement', async () => {
+    const person = await createPerson({ nom: 'Le Gall', prenom: 'Léa', roles: ['danseur_ado'] }, options)
+    assert.equal(person.email, '')
+    const signup = await registerMember(
+      {
+        prenom: 'Léa',
+        nom: 'Le Gall',
+        email: 'lea.fiche@cercle.test',
+        password: 'motdepasse',
+        relation: 'danseur',
+      },
+      options,
+    )
+    await placeMember(signup.user.id, { personIds: [person.id] }, options)
+    const linked = await getPerson(person.id, options)
+    assert.equal(linked.email, 'lea.fiche@cercle.test')
+  })
+
+  it('copie l’e-mail du compte quand on lie une fiche ensuite', async () => {
+    const person = await createPerson(
+      { nom: 'Prigent', prenom: 'Yan', email: 'ancien@cercle.test', roles: ['danseur_concours'] },
+      options,
+    )
+    const user = await createUser(
+      {
+        login: 'yan.lien@cercle.test',
+        password: 'motdepasse',
+        nom: 'Yan',
+        role: 'membre',
+        email: 'yan.lien@cercle.test',
+      },
+      options,
+    )
+    await updateUser(user.id, { personIds: [person.id] }, options)
+    const linked = await getPerson(person.id, options)
+    assert.equal(linked.email, 'yan.lien@cercle.test')
   })
 
   it('interdit à un accès sorties libres de créer une répétition officielle', async () => {

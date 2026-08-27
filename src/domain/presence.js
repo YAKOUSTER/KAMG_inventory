@@ -75,6 +75,7 @@ export function publicPerson(person) {
     saisons: personSeasons(person),
     nouveau: isNewMember(person),
     photo: coverSrc(person) || '',
+    bio: String(person.bio || '').trim(),
   }
 }
 

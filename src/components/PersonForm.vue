@@ -67,8 +67,22 @@
         <v-textarea v-model="person.notes" hide-details rows="3" placeholder="Contact, remarques…" />
       </FieldRow>
       <FieldRow
-        label="Note atelier vêtement"
-        hint="Visible par l’atelier, aussi saisissable depuis l’espace membre"
+        label="Biographie"
+        hint="Quelques mots visibles par les membres du même groupe de danse"
+        align-top
+        class="mt-5"
+      >
+        <v-textarea
+          v-model="person.bio"
+          hide-details
+          rows="3"
+          :maxlength="PERSON_BIO_MAX"
+          placeholder="Danse depuis…, ce que j’aime au cercle…"
+        />
+      </FieldRow>
+      <FieldRow
+        label="Mémo au Groupe Vêtement"
+        hint="Visible par l’atelier costume, aussi saisissable depuis l’onglet Emprunts"
         align-top
         class="mt-5"
       >
@@ -118,6 +132,7 @@ import { useInventoryStore } from '@/stores/inventory'
 import {
   PERSON_MEASUREMENTS,
   PERSON_ROLES,
+  PERSON_BIO_MAX,
   COHORT_ROLES,
   emptyPerson,
   membershipSeasons,

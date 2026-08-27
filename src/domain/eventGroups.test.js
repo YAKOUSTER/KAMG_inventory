@@ -7,6 +7,7 @@ import {
   loansVisibleToMember,
   peopleForEventRsvp,
   personCanRsvpToEvent,
+  peopleGroupedForMember,
   personDanceGroups,
 } from './eventGroups.js'
 
@@ -53,5 +54,17 @@ describe('eventGroups', () => {
       loansVisibleToMember(loans, people, ['z']).map((loan) => loan.id),
       [],
     )
+  })
+
+  it('liste les membres des mêmes groupes de danse', () => {
+    const people = [
+      { id: 'a', prenom: 'Léa', nom: 'A', roles: ['danseur_ado'] },
+      { id: 'b', prenom: 'Yan', nom: 'B', roles: ['danseur_ado'] },
+      { id: 'c', prenom: 'Nora', nom: 'C', roles: ['danseur_concours'] },
+    ]
+    const groups = peopleGroupedForMember(people, ['a'])
+    assert.deepEqual(groups.map((group) => group.id), ['ado'])
+    assert.deepEqual(groups[0].people.map((person) => person.id), ['a', 'b'])
+    assert.deepEqual(peopleGroupedForMember(people, ['z']), [])
   })
 })

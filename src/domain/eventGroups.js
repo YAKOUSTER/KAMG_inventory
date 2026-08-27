@@ -1,3 +1,5 @@
+import { sortPeople } from './person.js'
+
 export const EVENT_GROUPS = [
   { id: 'tous', label: 'Tous', icon: 'mdi-calendar-multiselect' },
   { id: 'korrigan', label: 'Korrigan', icon: 'mdi-star-outline' },
@@ -79,6 +81,17 @@ export function eventRsvpReservedLabel(event) {
   if (!labels.length) return ''
   if (labels.length === 1) return `Sondage réservé au groupe ${labels[0]}`
   return `Sondage réservé aux groupes ${labels.join(', ')}`
+}
+
+export function peopleGroupedForMember(people = [], memberPersonIds = []) {
+  const allowed = new Set(memberPersonIds)
+  const mine = people.filter((person) => allowed.has(person.id))
+  const groups = [...new Set(mine.flatMap((person) => personDanceGroups(person)))]
+  return groups.map((id) => ({
+    id,
+    label: eventGroupLabel(id),
+    people: sortPeople(people.filter((person) => personDanceGroups(person).includes(id))),
+  }))
 }
 
 export function loansVisibleToMember(loans = [], people = [], memberPersonIds = []) {

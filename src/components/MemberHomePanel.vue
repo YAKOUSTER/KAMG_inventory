@@ -75,18 +75,12 @@
         <div v-for="group in newcomers.groups" :key="group.role" class="member-home__category">
           <h3 class="member-home__category-title">{{ group.label }}</h3>
           <div class="member-home__people">
-            <article v-for="person in group.people" :key="person.id" class="member-home-person">
-              <div
-                class="member-home-person__photo"
-                :style="person.photo ? { backgroundImage: `url(${person.photo})` } : undefined"
-              >
-                <v-icon v-if="!person.photo" size="28" color="primary">mdi-account</v-icon>
-              </div>
-              <div>
-                <div class="member-home-person__name">{{ personDisplayName(person) }}</div>
-                <div class="member-home-person__meta">NEW</div>
-              </div>
-            </article>
+            <MemberPersonCard
+              v-for="person in group.people"
+              :key="person.id"
+              :person="person"
+              show-new
+            />
           </div>
         </div>
       </div>
@@ -127,8 +121,8 @@
 import { computed } from 'vue'
 import EventPollCard from '@/components/EventPollCard.vue'
 import CoverImage from '@/components/CoverImage.vue'
+import MemberPersonCard from '@/components/MemberPersonCard.vue'
 import { contentCoverMedia } from '@/domain/content'
-import { personDisplayName } from '@/domain/person'
 import {
   memberHomeNews,
   memberHomeNewcomers,
@@ -279,39 +273,5 @@ function coverOf(page) {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 10px;
-}
-
-.member-home-person {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: #fff;
-  border: 1px solid var(--kamg-border);
-  border-radius: 16px;
-  box-shadow: var(--kamg-shadow);
-  padding: 10px;
-}
-
-.member-home-person__photo {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  background: var(--kamg-linen) center/cover no-repeat;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.member-home-person__name {
-  font-weight: 700;
-  font-size: 0.9rem;
-}
-
-.member-home-person__meta {
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: var(--kamg-deep);
 }
 </style>

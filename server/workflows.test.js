@@ -16,6 +16,7 @@ import {
   setEventPresence,
   listPresences,
   getPublicMemberSpace,
+  getPerson,
   login,
   registerMember,
   placeMember,
@@ -227,5 +228,7 @@ describe('workflows métier', () => {
     const placed = await placeMember(signup.user.id, { personIds: [child.id] }, { actor: admin.user, ...options })
     assert.equal(placed.status, 'active')
     assert.deepEqual(placed.personIds, [child.id])
+    const linked = await getPerson(child.id, options)
+    assert.equal(linked.email, 'marie.workflow@cercle.test')
   })
 })

@@ -20,8 +20,8 @@
         <v-btn size="small" variant="tonal" class="text-none" :loading="uploading" @click="fileInput.click()">
           {{ cover ? 'Changer la photo' : 'Ajouter une photo' }}
         </v-btn>
-        <v-btn v-if="cover" size="small" variant="text" class="text-none" @click="remove(cover.id)">
-          Retirer
+        <v-btn v-if="cover" size="small" variant="text" class="text-none" color="error" @click="remove(cover.id)">
+          Supprimer
         </v-btn>
       </div>
       <v-alert v-if="error" type="error" class="mt-3" density="compact">{{ error }}</v-alert>
@@ -54,7 +54,13 @@
             <div class="d-flex justify-space-between pa-1">
               <v-chip v-if="img.principale" size="x-small" color="primary">Photo principale</v-chip>
               <v-spacer />
-              <v-btn icon size="x-small" variant="text" @click.stop="remove(img.id)">
+              <v-btn
+                icon
+                size="x-small"
+                variant="text"
+                aria-label="Supprimer la photo"
+                @click.stop="remove(img.id)"
+              >
                 <v-icon>mdi-close</v-icon>
               </v-btn>
             </div>
@@ -140,6 +146,10 @@ function patch(id, fields) {
 }
 
 function remove(id) {
+  if (isAvatar.value) {
+    commit([], true)
+    return
+  }
   commit(images.value.filter((img) => img.id !== id), true)
 }
 

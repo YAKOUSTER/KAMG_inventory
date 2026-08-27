@@ -83,6 +83,7 @@ export function emptyPerson() {
     email: '',
     notes: '',
     noteAtelier: '',
+    bio: '',
     tailleLettre: '',
     images: [],
     mesures: emptyMesures(),
@@ -108,7 +109,18 @@ export function memberSelfProfile(person) {
     mesures: { ...emptyMesures(), ...(person.mesures || {}) },
     tailleLettre: String(person.tailleLettre || '').trim(),
     noteAtelier: String(person.noteAtelier || '').trim(),
+    bio: String(person.bio || '').trim(),
   }
+}
+
+export const PERSON_BIO_MAX = 400
+
+export function filledMeasurements(person) {
+  const mesures = person?.mesures || {}
+  return PERSON_MEASUREMENTS.filter((field) => {
+    const value = mesures[field.key]
+    return value != null && value !== ''
+  }).map((field) => ({ ...field, value: mesures[field.key] }))
 }
 
 export function personDisplayName(person) {
@@ -377,7 +389,9 @@ export function normalizePerson(input = {}, { id, now } = {}) {
   else person.nouveau = isFirstYearOfSeason(person.saisons, newSeasonId())
   delete person.role
   person.images = normalizeImages(person.images)
+  person.email = String(person.email || '').trim()
   person.noteAtelier = String(person.noteAtelier || '').trim().slice(0, 1000)
+  person.bio = String(person.bio || '').trim().slice(0, PERSON_BIO_MAX)
   const stamp = now || new Date().toISOString()
   person.createdAt = person.createdAt || stamp
   person.updatedAt = stamp

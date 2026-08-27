@@ -1045,6 +1045,7 @@ export async function updateMemberProfile(user, personId, payload = {}, options 
       mesures: payload.mesures != null ? { ...current.mesures, ...payload.mesures } : current.mesures,
       tailleLettre: payload.tailleLettre != null ? payload.tailleLettre : current.tailleLettre,
       noteAtelier: payload.noteAtelier != null ? payload.noteAtelier : current.noteAtelier,
+      bio: payload.bio != null ? payload.bio : current.bio,
     }
     const person = runDomain(normalizePerson, next, { id })
     db.people[index] = person
@@ -1634,6 +1635,25 @@ export async function listPendingMembers(options = {}) {
   return db.users.filter((user) => user.status === 'pending').map(publicUser)
 }
 
+function accountEmail(user) {
+  const email = normalizeEmail(user?.email || '')
+  if (email) return email
+  const login = String(user?.login || '').trim()
+  return login.includes('@') ? normalizeEmail(login) : ''
+}
+
+function applyAccountEmailToPeople(db, user, personIds) {
+  const email = accountEmail(user)
+  if (!email) return
+  for (const personId of personIds) {
+    const index = (db.people || []).findIndex((person) => person.id === personId)
+    if (index === -1) continue
+    const current = db.people[index]
+    if (normalizeEmail(current.email) === email) continue
+    db.people[index] = runDomain(normalizePerson, { ...current, email }, { id: current.id })
+  }
+}
+
 export async function placeMember(id, payload = {}, options = {}) {
   return withDb(async (db) => {
     const user = db.users.find((entry) => entry.id === id)
@@ -1686,6 +1706,7 @@ export async function placeMember(id, payload = {}, options = {}) {
 
     user.status = 'active'
     user.personIds = uniqueIds
+    applyAccountEmailToPeople(db, user, uniqueIds)
     const access = resolveUserAccess({
       role: user.role,
       custom: user.custom,
@@ -1860,6 +1881,7 @@ export async function createUser(payload, options = {}) {
       createdAt: new Date().toISOString(),
     }
     db.users.push(user)
+    applyAccountEmailToPeople(db, user, user.personIds)
     appendAudit(db, options.actor, {
       action: 'user.create',
       entityType: 'user',
@@ -1892,7 +1914,10 @@ export async function updateUser(id, payload, options = {}) {
     if (payload.status === 'pending' || payload.status === 'active' || payload.status === 'disabled') {
       user.status = payload.status
     }
-    if (Array.isArray(payload.personIds)) user.personIds = normalizePersonIds(payload.personIds)
+    if (Array.isArray(payload.personIds)) {
+      user.personIds = normalizePersonIds(payload.personIds)
+      applyAccountEmailToPeople(db, user, user.personIds)
+    }
     const access = resolveUserAccess({
       role: payload.role || user.role,
       custom: payload.custom != null ? payload.custom : user.custom,

@@ -181,4 +181,13 @@ describe('memberSelfProfile', () => {
     assert.equal(profile.mesures.pointure, 38)
     assert.equal(profile.id, 'p-note')
   })
+
+  it('normalise la biographie', () => {
+    const person = normalizePerson(
+      { nom: 'Le Gall', prenom: 'Anna', bio: '  Danse depuis 2019.  ' },
+      { id: 'p-bio' },
+    )
+    assert.equal(person.bio, 'Danse depuis 2019.')
+    assert.equal(memberSelfProfile(person).bio, 'Danse depuis 2019.')
+  })
 })
