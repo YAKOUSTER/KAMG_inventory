@@ -11,6 +11,7 @@ const ROUTES = [
   { path: '/emprunts', permission: 'loans.read' },
   { path: '/panier', permission: 'loans.write' },
   { path: '/personnes', permission: 'people.read' },
+  { path: '/adhesions', permission: 'people.read' },
   { path: '/a-ranger', permission: 'people.write' },
   { path: '/agenda', permissionAny: ['agenda.read', 'agenda.write', 'agenda.libre'] },
   { path: '/agenda/presences', permissionAny: ['agenda.read', 'agenda.write', 'agenda.libre'] },
@@ -67,6 +68,7 @@ describe('parcours selon les accès', () => {
     assert.equal(canVisitAppRoute(user, { permissionAny: ['agenda.write', 'agenda.libre'] }), true)
     assert.ok(!visitable(user).includes('/utilisateurs'))
     assert.ok(visitable(user).includes('/personnes'))
+    assert.ok(visitable(user).includes('/adhesions'))
     assert.ok(visitable(user).includes('/agenda/presences'))
   })
 

@@ -35,7 +35,7 @@
         </div>
         <div class="detail-rows">
           <DetailRow v-if="person.nomUsage" label="Nom d’état civil" :value="personLegalName(person)" />
-          <DetailRow v-if="seasonLabel" label="Saisons" :value="seasonLabel" />
+          <DetailRow v-if="seasonLabel" label="Adhésions" :value="seasonLabel" />
           <DetailRow v-if="person.telephone" label="Téléphone" :value="person.telephone" />
           <DetailRow v-if="person.email" label="Courriel" :value="person.email" />
           <DetailRow v-if="person.tailleLettre" label="Taille générale" :value="person.tailleLettre" />
@@ -119,7 +119,7 @@ import { useRouter } from 'vue-router'
 import { api } from '@/services/api'
 import { useAuthStore } from '@/stores/auth'
 import { useInventoryStore } from '@/stores/inventory'
-import { PERSON_MEASUREMENTS, displayDate, personDisplayName, personLegalName, personRoleLabels, personSeasons, isNewMember } from '@/domain/person'
+import { PERSON_MEASUREMENTS, displayDate, personDisplayName, personLegalName, personRoleLabels, membershipLabels, isNewMember } from '@/domain/person'
 import { personOrgTagLabels } from '@/domain/orgChart'
 import { itemsInPossession } from '@/domain/loans'
 import { useUiStore } from '@/stores/ui'
@@ -146,9 +146,9 @@ const filledMeasures = computed(() =>
 const roleChips = computed(() => personRoleLabels(person.value))
 const orgChips = computed(() => personOrgTagLabels(person.value))
 const seasonLabel = computed(() => {
-  const seasons = personSeasons(person.value)
-  if (!seasons.length) return isNewMember(person.value) ? 'NEW' : ''
-  return isNewMember(person.value) ? `${seasons.join(', ')} · NEW` : seasons.join(', ')
+  const labels = membershipLabels(person.value)
+  if (!labels.length) return isNewMember(person.value) ? 'NEW' : ''
+  return isNewMember(person.value) ? `${labels.join(', ')} · NEW` : labels.join(', ')
 })
 
 const heldEntries = computed(() =>

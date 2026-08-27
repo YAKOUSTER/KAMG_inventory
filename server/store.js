@@ -24,7 +24,8 @@ import {
   PASSWORD_RESET_MESSAGE,
   validatePassword,
 } from '../src/domain/memberAccount.js'
-import { groupLoansByYear, memberSelfProfile, normalizePerson, personDisplayName } from '../src/domain/person.js'
+import { groupLoansByYear, memberSelfProfile, normalizePerson, personDisplayName, canHaveSeasons, setPaidSeason } from '../src/domain/person.js'
+import { parseSeasonId } from '../src/domain/seasons.js'
 import { todayLocal, formatDate } from '../src/domain/dates.js'
 import { normalizeEvent, filterPublishedEvents, upcomingEvents, pastEvents, sortEvents, applyEventOverlay, eventAcceptsInscriptions, publicEventSummary, eventLocalDay, assertCanMutateEvent } from '../src/domain/events.js'
 import { kindsAllowRecurrence } from '../src/domain/eventKinds.js'
@@ -528,6 +529,36 @@ export async function updatePerson(id, payload, options = {}) {
       entityId: person.id,
       entityLabel: personLabel(person),
       summary: `Modification de la personne ${personLabel(person)}`,
+    })
+    return person
+  }, options)
+}
+
+export async function setPersonAdhesion(id, payload = {}, options = {}) {
+  return withDb((db) => {
+    const index = db.people.findIndex((p) => p.id === id)
+    if (index === -1) throw Object.assign(new Error('Personne introuvable'), { status: 404 })
+    const existing = db.people[index]
+    if (!canHaveSeasons(existing)) {
+      throw Object.assign(new Error('Les invités n’ont pas d’adhésion'), { status: 400 })
+    }
+    const season = parseSeasonId(payload.seasonId)
+    if (!season) throw Object.assign(new Error('Saison d’adhésion invalide'), { status: 400 })
+    const paid = Boolean(payload.paid)
+    const person = runDomain(
+      normalizePerson,
+      { ...existing, saisons: setPaidSeason(existing, season, paid), id },
+      { id },
+    )
+    db.people[index] = person
+    appendAudit(db, options.actor, {
+      action: 'person.adhesion',
+      entityType: 'person',
+      entityId: person.id,
+      entityLabel: personLabel(person),
+      summary: paid
+        ? `Adhésion ${season} payée — ${personLabel(person)}`
+        : `Adhésion ${season} retirée — ${personLabel(person)}`,
     })
     return person
   }, options)

@@ -580,4 +580,35 @@ describe('API HTTP', () => {
     assert.equal(after.body.total, 1)
     assert.equal(after.body.entries[0].action, 'audit.clear')
   })
+
+  it('enregistre une adhésion depuis Gestion', async () => {
+    const app = createApiApp()
+    const login = await request(app, 'POST', '/api/auth/login', {
+      body: { login: 'admin', password: 'admin' },
+    })
+    const person = await request(app, 'POST', '/api/people', {
+      token: login.body.token,
+      body: { nom: 'Le Gall', prenom: 'Anna', roles: ['danseur_loisir'] },
+    })
+    const paid = await request(app, 'PUT', `/api/people/${person.body.id}/adhesion`, {
+      token: login.body.token,
+      body: { seasonId: '2025-2026', paid: true },
+    })
+    assert.equal(paid.status, 200)
+    assert.deepEqual(paid.body.saisons, ['2025-2026'])
+
+    const lecteur = await request(app, 'POST', '/api/users', {
+      token: login.body.token,
+      body: { login: 'lecteur.adhesion', password: 'motdepasse', nom: 'Lecteur', role: 'lecteur' },
+    })
+    const lecteurLogin = await request(app, 'POST', '/api/auth/login', {
+      body: { login: 'lecteur.adhesion', password: 'motdepasse' },
+    })
+    assert.equal(lecteur.status, 200)
+    const forbidden = await request(app, 'PUT', `/api/people/${person.body.id}/adhesion`, {
+      token: lecteurLogin.body.token,
+      body: { seasonId: '2026-2027', paid: true },
+    })
+    assert.equal(forbidden.status, 403)
+  })
 })

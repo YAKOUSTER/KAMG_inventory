@@ -32,10 +32,11 @@ describe('sortieHasContent', () => {
 })
 
 describe('seasonLabel', () => {
-  it('coupe la saison en septembre', () => {
-    assert.equal(seasonLabel('2025-10-08T18:00:00.000Z'), '2025-2026')
-    assert.equal(seasonLabel('2026-08-20T18:00:00.000Z'), '2025-2026')
-    assert.equal(seasonLabel('2026-09-01T18:00:00.000Z'), '2026-2027')
+  it('coupe la saison en octobre', () => {
+    assert.equal(seasonLabel('2025-10-08T12:00:00'), '2025-2026')
+    assert.equal(seasonLabel('2026-08-20T12:00:00'), '2025-2026')
+    assert.equal(seasonLabel('2026-09-15T12:00:00'), '2025-2026')
+    assert.equal(seasonLabel('2026-10-01T12:00:00'), '2026-2027')
   })
 })
 

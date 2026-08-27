@@ -68,6 +68,13 @@ export const GESTION_AREAS = [
     activeIcon: 'mdi-account-group',
     links: [
       {
+        to: '/adhesions',
+        title: 'Adhésions',
+        icon: 'mdi-account-check-outline',
+        permission: 'people.read',
+        match: ['/adhesions'],
+      },
+      {
         to: '/personnes',
         title: 'Personnes',
         icon: 'mdi-account-group-outline',

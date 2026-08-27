@@ -10,6 +10,7 @@ import {
   getItem,
   createPerson,
   getPerson,
+  setPersonAdhesion,
   createLoan,
   returnLoanItems,
   updateLoan,
@@ -328,6 +329,30 @@ describe('json store', () => {
     assert.deepEqual(person.roles, ['membre', 'danseur_enfant', 'couture'])
     assert.equal(person.anneeMembre, '2026-2027')
     assert.deepEqual(person.saisons, ['2026-2027'])
+  })
+
+  it('enregistre une adhésion payée puis la retire', async () => {
+    const session = await login('admin', 'admin', options)
+    const actorOptions = { ...options, actor: session.user }
+    const person = await createPerson(
+      { nom: 'Le Gall', prenom: 'Anna', roles: ['danseur_loisir'] },
+      actorOptions,
+    )
+    const paid = await setPersonAdhesion(person.id, { seasonId: '2025-2026', paid: true }, actorOptions)
+    assert.deepEqual(paid.saisons, ['2025-2026'])
+    const audit = await listAudit({ action: 'person.adhesion', limit: 5 }, options)
+    assert.equal(audit.entries[0].action, 'person.adhesion')
+    assert.match(audit.entries[0].summary, /Adhésion 2025-2026 payée/)
+    const removed = await setPersonAdhesion(person.id, { seasonId: '2025-2026', paid: false }, actorOptions)
+    assert.deepEqual(removed.saisons, [])
+    const invite = await createPerson(
+      { nom: 'Hamon', prenom: 'Loeiza', roles: ['invite'] },
+      actorOptions,
+    )
+    await assert.rejects(
+      () => setPersonAdhesion(invite.id, { seasonId: '2025-2026', paid: true }, actorOptions),
+      /invités/,
+    )
   })
 
   it('regroupe l’historique d’emprunts d’une personne par année', async () => {

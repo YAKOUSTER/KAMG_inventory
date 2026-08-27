@@ -40,6 +40,12 @@ const routes = [
   { path: '/panier', name: 'cart', component: CartView, meta: { permission: 'loans.write' } },
   { path: '/personnes', name: 'people', component: PeopleView, meta: { permission: 'people.read' } },
   {
+    path: '/adhesions',
+    name: 'adhesions',
+    component: () => import('@/views/AdhesionsView.vue'),
+    meta: { permission: 'people.read' },
+  },
+  {
     path: '/a-ranger',
     name: 'member-placement',
     component: () => import('@/views/MemberPlacementView.vue'),

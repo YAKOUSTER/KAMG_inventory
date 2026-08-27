@@ -63,6 +63,7 @@ export const api = {
   person: (id) => request(`/api/people/${id}`),
   createPerson: (body) => request('/api/people', { method: 'POST', body }),
   updatePerson: (id, body) => request(`/api/people/${id}`, { method: 'PUT', body }),
+  setPersonAdhesion: (id, body) => request(`/api/people/${id}/adhesion`, { method: 'PUT', body }),
   updateMemberProfile: (id, body) =>
     request(`/api/public/profile/${encodeURIComponent(id)}`, { method: 'PUT', body }),
   deletePerson: (id) => request(`/api/people/${id}`, { method: 'DELETE' }),

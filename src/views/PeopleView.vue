@@ -101,6 +101,7 @@ import {
   groupPeopleByPromotion,
   sortPeople,
 } from '@/domain/person'
+import { currentSeasonId, newSeasonId } from '@/domain/seasons'
 import { ORG_TAGS } from '@/domain/orgChart'
 import PersonCard from '@/components/PersonCard.vue'
 
@@ -157,11 +158,20 @@ function updateQuery(patch) {
   router.replace({ query })
 }
 
-const yearItems = computed(() => [
-  { title: 'Toutes les saisons', value: 'Toutes' },
-  { title: 'NEW (rentrée)', value: 'NEW' },
-  ...availablePersonYears(inventory.people).map((year) => ({ title: year, value: year })),
-])
+const yearItems = computed(() => {
+  const current = currentSeasonId()
+  const next = newSeasonId()
+  return [
+    { title: 'Toutes les saisons', value: 'Toutes' },
+    { title: 'NEW (rentrée)', value: 'NEW' },
+    ...availablePersonYears(inventory.people).map((year) => {
+      let title = year
+      if (year === current) title = `${year} · en cours`
+      else if (year === next && next !== current) title = `${year} · rentrée`
+      return { title, value: year }
+    }),
+  ]
+})
 
 const roleItems = computed(() => [
   { title: 'Tous les groupes', value: 'Tous' },

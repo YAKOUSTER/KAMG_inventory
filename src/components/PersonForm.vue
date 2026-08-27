@@ -23,7 +23,7 @@
             @update:model-value="person.nomUsage = String($event || '').toLocaleUpperCase('fr')"
           />
         </FieldRow>
-        <FieldRow v-if="showSeasons" label="Saisons" class="form-fields-grid__span-2">
+        <FieldRow v-if="showSeasons" label="Adhésions" class="form-fields-grid__span-2">
           <v-select
             v-model="person.saisons"
             :items="seasonItems"
@@ -31,7 +31,7 @@
             chips
             closable-chips
             hide-details
-            label="Saisons au cercle"
+            label="Années d’adhésion payées"
           />
           <v-checkbox
             :model-value="nouveauChecked"
@@ -41,8 +41,8 @@
             @update:model-value="person.nouveau = $event"
           />
           <p class="text-caption text-medium-emphasis mt-1">
-            Cochez les saisons déjà réalisées (ex. 2025-2026). La saison {{ newSeason }} sert pour la
-            rentrée. Les invités n’ont pas de saison.
+            L’adhésion court d’octobre à octobre (ex. Membre 2025-2026). La saison {{ newSeason }} sert
+            pour la rentrée. Les invités n’ont pas d’adhésion.
           </p>
         </FieldRow>
         <FieldRow label="Taille générale">
@@ -201,13 +201,13 @@ import {
   PERSON_MEASUREMENTS,
   PERSON_ROLES,
   PERSON_BIO_MAX,
-  COHORT_ROLES,
   emptyPerson,
   membershipSeasons,
   normalizeRoles,
   personDisplayName,
   personSeasons,
   isNewMember,
+  canHaveSeasons,
 } from '@/domain/person'
 import { newSeasonId } from '@/domain/seasons'
 import { normalizeImages } from '@/domain/images'
@@ -226,7 +226,7 @@ const form = ref(null)
 const person = reactive(emptyPerson())
 const inventory = useInventoryStore()
 const tailleItems = computed(() => ['', ...inventory.resolvedReferentiels.tailles])
-const showSeasons = computed(() => person.roles.some((role) => COHORT_ROLES.includes(role)))
+const showSeasons = computed(() => canHaveSeasons(person))
 const newSeason = newSeasonId()
 const seasonItems = membershipSeasons()
 const nouveauChecked = computed(() => isNewMember(person))

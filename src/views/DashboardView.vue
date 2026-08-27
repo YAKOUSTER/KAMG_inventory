@@ -82,6 +82,8 @@ import { categoriesWithMeta } from '@/domain/referentiels'
 import { displayDate } from '@/domain/dates'
 import { isOverdue } from '@/domain/loans'
 import { itemsWithOpenTasks } from '@/domain/itemTasks'
+import { isCurrentMember } from '@/domain/person'
+import { currentSeasonId } from '@/domain/seasons'
 import StatusChip from '@/components/StatusChip.vue'
 
 const inventory = useInventoryStore()
@@ -116,6 +118,14 @@ const cards = computed(() => {
       label: stats.pendingMembers === 1 ? 'Inscription à ranger' : 'Inscriptions à ranger',
       value: stats.pendingMembers,
       to: '/a-ranger',
+    })
+  }
+  if (auth.can('people.read')) {
+    const season = currentSeasonId()
+    list.push({
+      label: `Membres ${season}`,
+      value: inventory.people.filter((person) => isCurrentMember(person)).length,
+      to: '/adhesions',
     })
   }
   if (stats.openTasks) {

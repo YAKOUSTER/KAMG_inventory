@@ -10,6 +10,7 @@ import {
   getPerson,
   createPerson,
   updatePerson,
+  setPersonAdhesion,
   updateMemberProfile,
   deletePerson,
   listLoans,
@@ -350,6 +351,11 @@ export function createApiApp() {
     '/api/people/:id',
     auth('people.write'),
     handle((req) => updatePerson(req.params.id, req.body, { actor: req.user })),
+  )
+  app.put(
+    '/api/people/:id/adhesion',
+    auth('people.write'),
+    handle((req) => setPersonAdhesion(req.params.id, req.body, { actor: req.user })),
   )
   app.delete(
     '/api/people/:id',

@@ -23,7 +23,7 @@ export function parseSeasonId(value) {
 export function seasonLabel(value, now = new Date()) {
   const date = value ? new Date(value) : now
   const source = Number.isNaN(date.getTime()) ? now : date
-  const year = source.getMonth() >= 8 ? source.getFullYear() : source.getFullYear() - 1
+  const year = source.getMonth() >= 9 ? source.getFullYear() : source.getFullYear() - 1
   return seasonIdFromStartYear(year)
 }
 
@@ -33,8 +33,19 @@ export function currentSeasonId(now = new Date()) {
 
 export function newSeasonId(now = new Date()) {
   const month = now.getMonth()
-  if (month >= 6 && month < 8) return seasonIdFromStartYear(now.getFullYear())
+  if (month >= 6 && month < 9) return seasonIdFromStartYear(now.getFullYear())
   return currentSeasonId(now)
+}
+
+export function adhesionSeasonItems(now = new Date()) {
+  const current = currentSeasonId(now)
+  const next = newSeasonId(now)
+  return membershipSeasons(now).map((id) => {
+    let title = `Membre ${id}`
+    if (id === current) title += ' · en cours'
+    else if (id === next && next !== current) title += ' · rentrée'
+    return { title, value: id }
+  })
 }
 
 export function membershipSeasons(now = new Date(), fromYear = 2000) {
@@ -46,13 +57,11 @@ export function membershipSeasons(now = new Date(), fromYear = 2000) {
 }
 
 export function normalizeSeasons(input, fallbackYear) {
-  const fromArray = Array.isArray(input) ? input : []
-  const values = fromArray.map(parseSeasonId).filter(Boolean)
-  if (!values.length) {
-    const migrated = parseSeasonId(fallbackYear)
-    if (migrated) values.push(migrated)
+  if (Array.isArray(input)) {
+    return [...new Set(input.map(parseSeasonId).filter(Boolean))].sort((a, b) => a.localeCompare(b))
   }
-  return [...new Set(values)].sort((a, b) => a.localeCompare(b))
+  const migrated = parseSeasonId(fallbackYear)
+  return migrated ? [migrated] : []
 }
 
 export function hasEarlierSeasonThan(saisons, seasonId) {

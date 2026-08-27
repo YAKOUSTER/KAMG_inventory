@@ -1,6 +1,7 @@
 import { coverSrc, normalizeImages } from './images.js'
 import { displayDate, formatDate } from './dates.js'
 import {
+  currentSeasonId,
   membershipSeasons,
   newSeasonId,
   normalizeSeasons,
@@ -159,14 +160,13 @@ export function normalizeRoles(input = {}) {
   return match ? [match.id] : []
 }
 
-export function personRoleLabels(person) {
-  const season = personYear(person)
-  const labels = normalizeRoles(person).map((id) => {
-    const label = roleLabel(id)
-    if (season && (id === 'membre' || COHORT_ROLES.includes(id))) return `${label} ${season}`
-    return label
-  })
-  if (isNewMember(person)) labels.push('NEW')
+export function personRoleLabels(person, now = new Date()) {
+  const labels = normalizeRoles(person)
+    .filter((id) => id !== 'membre')
+    .map((id) => roleLabel(id))
+  const membership = personMembershipLabel(person, now)
+  if (membership) labels.unshift(membership)
+  if (isNewMember(person, now)) labels.push('NEW')
   return labels
 }
 
@@ -179,8 +179,49 @@ export function personYear(person) {
   return seasons.at(-1) || ''
 }
 
+export function membershipLabels(person) {
+  return personSeasons(person).map((id) => `Membre ${id}`)
+}
+
+export function hasPaidSeason(person, seasonId) {
+  const wanted = parseSeasonId(seasonId) || String(seasonId || '').trim()
+  return Boolean(wanted) && personSeasons(person).includes(wanted)
+}
+
+export function isCurrentMember(person, now = new Date()) {
+  return hasPaidSeason(person, currentSeasonId(now))
+}
+
+export function personMembershipLabel(person, now = new Date()) {
+  const seasons = personSeasons(person)
+  if (!seasons.length) return ''
+  const current = currentSeasonId(now)
+  if (seasons.includes(current)) return `Membre ${current}`
+  const next = newSeasonId(now)
+  if (next !== current && seasons.includes(next)) return `Membre ${next}`
+  return ''
+}
+
+export function setPaidSeason(person, seasonId, paid) {
+  const season = parseSeasonId(seasonId)
+  if (!season) return personSeasons(person)
+  const seasons = new Set(personSeasons(person))
+  if (paid) seasons.add(season)
+  else seasons.delete(season)
+  return [...seasons].sort((a, b) => a.localeCompare(b))
+}
+
+export function isInviteOnly(person) {
+  const roles = normalizeRoles(person)
+  return roles.includes('invite') && !roles.some((id) => id !== 'invite')
+}
+
 export function canHaveSeasons(person) {
-  return hasCohortRole(person)
+  return !isInviteOnly(person)
+}
+
+export function adhesionPeople(people = []) {
+  return people.filter((person) => canHaveSeasons(person))
 }
 
 export function isNewMember(person, now = new Date()) {
@@ -351,8 +392,8 @@ export function groupPeopleByPromotion(people = [], { annee } = {}) {
     })
 }
 
-export function personRolesLabel(person) {
-  return personRoleLabels(person).join(' · ')
+export function personRolesLabel(person, now = new Date()) {
+  return personRoleLabels(person, now).join(' · ')
 }
 
 export function membershipYears(now = new Date()) {
@@ -401,10 +442,11 @@ export function normalizePerson(input = {}, { id, now } = {}) {
   person.nomUsage = String(person.nomUsage || '').trim().toLocaleUpperCase('fr')
   person.roles = normalizeRoles(person)
   person.tags = normalizeOrgTags(person)
-  const cohort = hasCohortRole(person)
-  person.saisons = cohort ? normalizeSeasons(person.saisons, person.anneeMembre) : []
+  const eligible = canHaveSeasons(person)
+  const seasonsSource = Object.prototype.hasOwnProperty.call(input, 'saisons') ? input.saisons : undefined
+  person.saisons = eligible ? normalizeSeasons(seasonsSource, person.anneeMembre) : []
   person.anneeMembre = person.saisons.at(-1) || ''
-  if (!cohort) person.nouveau = false
+  if (!eligible) person.nouveau = false
   else if (person.nouveau === true || person.nouveau === false) person.nouveau = Boolean(person.nouveau)
   else person.nouveau = isFirstYearOfSeason(person.saisons, newSeasonId())
   delete person.role
