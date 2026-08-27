@@ -48,9 +48,9 @@ const routes = [
   { path: '/personnes/nouvelle', name: 'person-create', component: () => import('@/views/PersonEditView.vue'), meta: { permission: 'people.write' } },
   { path: '/personnes/:id', name: 'person-detail', component: () => import('@/views/PersonDetailView.vue'), props: true, meta: { permission: 'people.read' } },
   { path: '/personnes/:id/modifier', name: 'person-edit', component: () => import('@/views/PersonEditView.vue'), props: true, meta: { permission: 'people.write' } },
-  { path: '/agenda', name: 'agenda', component: () => import('@/views/AgendaView.vue'), meta: { permission: 'agenda.read' } },
-  { path: '/agenda/nouveau', name: 'event-create', component: () => import('@/views/EventEditView.vue'), meta: { permission: 'agenda.write' } },
-  { path: '/agenda/:id/modifier', name: 'event-edit', component: () => import('@/views/EventEditView.vue'), props: true, meta: { permission: 'agenda.write' } },
+  { path: '/agenda', name: 'agenda', component: () => import('@/views/AgendaView.vue'), meta: { permissionAny: ['agenda.read', 'agenda.write', 'agenda.libre'] } },
+  { path: '/agenda/nouveau', name: 'event-create', component: () => import('@/views/EventEditView.vue'), meta: { permissionAny: ['agenda.write', 'agenda.libre'] } },
+  { path: '/agenda/:id/modifier', name: 'event-edit', component: () => import('@/views/EventEditView.vue'), props: true, meta: { permissionAny: ['agenda.write', 'agenda.libre'] } },
   { path: '/contenus', name: 'contents', component: () => import('@/views/ContentsView.vue'), meta: { permission: 'content.read' } },
   { path: '/contenus/nouveau', name: 'content-create', component: () => import('@/views/ContentEditView.vue'), meta: { permission: 'content.write' } },
   { path: '/contenus/:id/modifier', name: 'content-edit', component: () => import('@/views/ContentEditView.vue'), props: true, meta: { permission: 'content.write' } },
@@ -83,6 +83,12 @@ router.beforeEach(async (to) => {
     return { name: 'login', query: { redirect: to.fullPath } }
   }
   if (to.meta.member) return true
+  if (Array.isArray(to.meta.permissionAny) && to.meta.permissionAny.length) {
+    if (!to.meta.permissionAny.some((permission) => auth.can(permission))) {
+      return { path: homePath(auth.user) }
+    }
+    return true
+  }
   if (to.meta.permission && !auth.can(to.meta.permission)) {
     return { path: homePath(auth.user) }
   }

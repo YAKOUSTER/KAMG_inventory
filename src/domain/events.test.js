@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { applyEventOverlay, eventIsPast, normalizeEvent, upcomingEvents, pastEvents, publicEventSummary } from './events.js'
+import { applyEventOverlay, assertCanMutateEvent, eventIsPast, normalizeEvent, upcomingEvents, pastEvents, publicEventSummary } from './events.js'
 import { eventIsHorsCercle } from './eventKinds.js'
 
 describe('normalizeEvent', () => {
@@ -164,5 +164,23 @@ describe('event lists', () => {
     assert.equal(eventIsPast({ debut: '2026-08-21T18:00:00.000Z', fin: '2026-08-21T20:00:00.000Z' }, now), true)
     assert.equal(eventIsPast({ debut: '2026-08-22T18:00:00.000Z', fin: '2026-08-22T20:00:00.000Z' }, now), false)
     assert.equal(eventIsPast({ debut: '2026-08-22T10:00:00.000Z', fin: '2026-08-22T11:00:00.000Z' }, now), true)
+  })
+})
+
+describe('assertCanMutateEvent', () => {
+  const officiel = { horsCercle: false, kinds: ['repetition_ado'], titre: 'Répétition' }
+  const hors = { horsCercle: true, kinds: ['fest_noz'], titre: 'Fest-noz' }
+  const write = { role: 'gestion' }
+  const libre = { role: 'membre', custom: true, permissions: ['agenda.libre'] }
+
+  it('laisse agenda.write tout modifier', () => {
+    assert.doesNotThrow(() => assertCanMutateEvent(write, officiel))
+    assert.doesNotThrow(() => assertCanMutateEvent(write, hors))
+  })
+
+  it('autorise agenda.libre seulement hors cercle', () => {
+    assert.doesNotThrow(() => assertCanMutateEvent(libre, hors))
+    assert.doesNotThrow(() => assertCanMutateEvent(libre, { kinds: ['fest_noz'], titre: 'Fest' }))
+    assert.throws(() => assertCanMutateEvent(libre, officiel), /non officielles/)
   })
 })

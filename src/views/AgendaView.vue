@@ -17,11 +17,16 @@
       >
         Importer Google
       </v-btn>
-      <v-btn v-if="auth.can('agenda.write')" color="primary" to="/agenda/nouveau" prepend-icon="mdi-plus">
+      <v-btn
+        v-if="canWriteEvents"
+        color="primary"
+        to="/agenda/nouveau"
+        prepend-icon="mdi-plus"
+      >
         Ajouter
       </v-btn>
       <v-btn
-        v-if="gridEvents.length"
+        v-if="gridEvents.length && people.length"
         variant="text"
         class="text-none"
         prepend-icon="mdi-table"
@@ -43,7 +48,7 @@
 
     <AgendaCalendar
       :events="filtered"
-      :can-write="auth.can('agenda.write')"
+      :can-write="canWriteEvents"
       mark-past
       storage-key="kamg-agenda-gestion"
       @select="openEvent"
@@ -72,10 +77,11 @@ import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { api } from '@/services/api'
-import { eventMatchesKindFilter } from '@/domain/events'
+import { eventMatchesKindFilter, eventIsHorsCercle } from '@/domain/events'
 import { eventKindFilterItems } from '@/domain/eventKinds'
 import { applyPresenceUpdate } from '@/domain/presence'
 import { inscriptionEventsForGrid } from '@/domain/presenceGrid'
+import { canWriteLibreEvents } from '@/domain/auth'
 import AgendaCalendar from '@/components/AgendaCalendar.vue'
 import PresenceGrid from '@/components/PresenceGrid.vue'
 
@@ -90,6 +96,7 @@ const importMessage = ref('')
 const importOk = ref(false)
 
 const typeItems = eventKindFilterItems()
+const canWriteEvents = computed(() => canWriteLibreEvents(auth.user))
 
 const filtered = computed(() =>
   events.value.filter((event) => eventMatchesKindFilter(event, typeFilter.value)),
@@ -126,7 +133,7 @@ async function importGoogle() {
 }
 
 function openEvent(event) {
-  if (auth.can('agenda.write')) {
+  if (auth.can('agenda.write') || (auth.can('agenda.libre') && eventIsHorsCercle(event))) {
     router.push({ name: 'event-edit', params: { id: event.id } })
   }
 }

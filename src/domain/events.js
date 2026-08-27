@@ -1,4 +1,5 @@
 import { todayLocal } from './dates.js'
+import { can } from './auth.js'
 import {
   applyEventTitlePrefix,
   inferEventKinds,
@@ -260,4 +261,13 @@ export function publicEventSummary(event, { includeDescription = false } = {}) {
     horsCercle: eventIsHorsCercle(event),
     sortie: event.sortie || null,
   }
+}
+
+export function assertCanMutateEvent(user, event) {
+  if (!user) return
+  if (can(user, 'agenda.write')) return
+  if (can(user, 'agenda.libre') && eventIsHorsCercle(event)) return
+  const error = new Error('Vous ne pouvez gérer que les sorties non officielles')
+  error.status = 403
+  throw error
 }

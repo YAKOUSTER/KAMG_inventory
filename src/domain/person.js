@@ -1,4 +1,4 @@
-import { normalizeImages } from './images.js'
+import { coverSrc, normalizeImages } from './images.js'
 import { displayDate, formatDate } from './dates.js'
 import {
   membershipSeasons,
@@ -82,11 +82,32 @@ export function emptyPerson() {
     telephone: '',
     email: '',
     notes: '',
+    noteAtelier: '',
     tailleLettre: '',
     images: [],
     mesures: emptyMesures(),
     createdAt: '',
     updatedAt: '',
+  }
+}
+
+export function memberSelfProfile(person) {
+  if (!person?.id) return null
+  const prenom = String(person.prenom || '').trim()
+  const nom = String(person.nom || '').trim()
+  if (!prenom && !nom) return null
+  return {
+    id: person.id,
+    prenom,
+    nom,
+    roles: normalizeRoles(person),
+    saisons: personSeasons(person),
+    nouveau: isNewMember(person),
+    photo: coverSrc(person) || '',
+    images: person.images || [],
+    mesures: { ...emptyMesures(), ...(person.mesures || {}) },
+    tailleLettre: String(person.tailleLettre || '').trim(),
+    noteAtelier: String(person.noteAtelier || '').trim(),
   }
 }
 
@@ -354,6 +375,7 @@ export function normalizePerson(input = {}, { id, now } = {}) {
   else person.nouveau = isFirstYearOfSeason(person.saisons, newSeasonId())
   delete person.role
   person.images = normalizeImages(person.images)
+  person.noteAtelier = String(person.noteAtelier || '').trim().slice(0, 1000)
   const stamp = now || new Date().toISOString()
   person.createdAt = person.createdAt || stamp
   person.updatedAt = stamp

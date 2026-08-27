@@ -66,6 +66,20 @@
       <FieldRow label="Notes" align-top class="mt-5">
         <v-textarea v-model="person.notes" hide-details rows="3" placeholder="Contact, remarques…" />
       </FieldRow>
+      <FieldRow
+        label="Note atelier vêtement"
+        hint="Visible par l’atelier, aussi saisissable depuis l’espace membre"
+        align-top
+        class="mt-5"
+      >
+        <v-textarea
+          v-model="person.noteAtelier"
+          hide-details
+          rows="3"
+          maxlength="1000"
+          placeholder="Ex. J’ai laissé ma housse dans le local FLG, je la récupère la semaine prochaine."
+        />
+      </FieldRow>
     </section>
 
     <section class="form-block form-section">

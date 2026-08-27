@@ -39,6 +39,11 @@
       </v-col>
     </v-row>
 
+    <section v-if="person.noteAtelier" class="page-block">
+      <h2 class="section-label">Note à l’atelier vêtement</h2>
+      <v-alert type="info" variant="tonal" class="text-multiline">{{ person.noteAtelier }}</v-alert>
+    </section>
+
     <section v-if="person.notes" class="page-block">
       <h2 class="section-label">Notes</h2>
       <p class="text-multiline text-body-1">{{ person.notes }}</p>

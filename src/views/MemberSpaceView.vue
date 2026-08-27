@@ -16,7 +16,7 @@
           size="small"
           class="text-none"
           prepend-icon="mdi-briefcase-outline"
-          to="/"
+          :to="gestionHome"
         >
           Gestion
         </v-btn>
@@ -50,6 +50,7 @@
         <v-tab value="agenda" class="text-none">Agenda</v-tab>
         <v-tab value="infos" class="text-none">Infos & tutos</v-tab>
         <v-tab value="emprunts" class="text-none">Emprunts</v-tab>
+        <v-tab value="profil" class="text-none">Moi</v-tab>
       </v-tabs>
 
       <div v-show="tab === 'accueil'" class="member-space__panel">
@@ -170,31 +171,25 @@
           <v-alert v-else type="info" variant="tonal">Aucun emprunt en cours.</v-alert>
         </section>
       </div>
+
+      <div v-show="tab === 'profil'" class="member-space__panel">
+        <MemberProfilePanel
+          :profiles="data.profiles || []"
+          :self-loans="data.selfLoans || []"
+          :tailles="data.tailles || []"
+          @updated="onProfileUpdated"
+          @logout="logout"
+        />
+      </div>
     </template>
 
     <BottomTabBar
       v-if="!mdAndUp && !pending"
       :items="memberTabs"
-      :active-id="accountOpen ? 'moi' : tab"
+      :active-id="tab"
       label="Espace membres"
       @select="onMemberTab"
     />
-
-    <v-bottom-sheet v-model="accountOpen" class="kamg-account-sheet">
-      <v-sheet class="kamg-sheet-panel">
-        <v-list class="kamg-sheet-list pa-2 bg-surface">
-        <v-list-item :title="memberDisplayName || 'Compte'" :subtitle="GROUP_NAME" />
-        <v-list-item
-          v-if="canOpenGestion"
-          title="Gestion"
-          prepend-icon="mdi-briefcase-outline"
-          to="/"
-          @click="accountOpen = false"
-        />
-        <v-list-item title="Déconnexion" prepend-icon="mdi-logout" @click="onAccountLogout" />
-        </v-list>
-      </v-sheet>
-    </v-bottom-sheet>
 
     <v-dialog v-model="eventDialog" :fullscreen="!mdAndUp" max-width="760" scrollable>
       <v-card v-if="selectedEvent">
@@ -288,6 +283,7 @@ import { personDisplayName } from '@/domain/person'
 import CalendarSubscribePanel from '@/components/CalendarSubscribePanel.vue'
 import MemberBlogPanel from '@/components/MemberBlogPanel.vue'
 import MemberHomePanel from '@/components/MemberHomePanel.vue'
+import MemberProfilePanel from '@/components/MemberProfilePanel.vue'
 import AgendaCalendar from '@/components/AgendaCalendar.vue'
 import EventKindChips from '@/components/EventKindChips.vue'
 import EventPollCard from '@/components/EventPollCard.vue'
@@ -295,7 +291,7 @@ import EventRsvpPoll from '@/components/EventRsvpPoll.vue'
 import SortieFiche from '@/components/SortieFiche.vue'
 import BottomTabBar from '@/components/BottomTabBar.vue'
 import { useAuthStore } from '@/stores/auth'
-import { canAccessGestion } from '@/domain/gestionNav'
+import { canAccessGestion, gestionHomePath } from '@/domain/gestionNav'
 import { memberSpaceQuery } from '@/domain/memberSpaceNav'
 
 const route = useRoute()
@@ -304,6 +300,7 @@ const auth = useAuthStore()
 const display = useDisplay()
 const mdAndUp = computed(() => display.mdAndUp.value)
 const canOpenGestion = computed(() => canAccessGestion(auth.user))
+const gestionHome = computed(() => gestionHomePath(auth.user))
 const memberDisplayName = computed(() => String(auth.user?.nom || auth.user?.login || '').trim())
 const loading = ref(true)
 const error = ref('')
@@ -318,7 +315,6 @@ const empruntsVisited = ref(route.query.onglet === 'emprunts')
 const selectedEvent = ref(null)
 const eventDialog = ref(false)
 const subscribeOpen = ref(false)
-const accountOpen = ref(false)
 const pendingArticleId = ref(route.query.article || '')
 const pendingInfosCategory = ref(route.query.categorie || '')
 
@@ -329,7 +325,7 @@ const memberTabs = [
   { id: 'agenda', label: 'Agenda', icon: 'mdi-calendar-month-outline', activeIcon: 'mdi-calendar-month' },
   { id: 'infos', label: 'Infos', icon: 'mdi-book-open-page-variant-outline', activeIcon: 'mdi-book-open-page-variant' },
   { id: 'emprunts', label: 'Emprunts', icon: 'mdi-swap-horizontal' },
-  { id: 'moi', label: 'Moi', icon: 'mdi-account-outline', activeIcon: 'mdi-account' },
+  { id: 'profil', label: 'Moi', icon: 'mdi-account-outline', activeIcon: 'mdi-account' },
 ]
 
 const allEvents = computed(() => [
@@ -419,17 +415,17 @@ async function logout() {
 }
 
 function onMemberTab(id) {
-  if (id === 'moi') {
-    accountOpen.value = true
-    return
-  }
-  accountOpen.value = false
   tab.value = id
 }
 
-async function onAccountLogout() {
-  accountOpen.value = false
-  await logout()
+function onProfileUpdated(updated) {
+  if (!data.value || !updated?.id) return
+  data.value = {
+    ...data.value,
+    profiles: (data.value.profiles || []).map((person) =>
+      person.id === updated.id ? { ...person, ...updated } : person,
+    ),
+  }
 }
 
 function onPresenceUpdated(record) {

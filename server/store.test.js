@@ -45,6 +45,7 @@ import {
   importGoogleCalendarEvents,
   getPublicCalendarIcs,
   getMemberSpace,
+  updateMemberProfile,
 } from './store.js'
 
 async function tmpOptions() {
@@ -720,5 +721,97 @@ END:VCALENDAR`
     const space = await getMemberSpace(user, options)
     assert.equal(space.loans.length, 1)
     assert.equal(space.loans[0].personId, ado.id)
+    assert.equal(space.selfLoans.length, 1)
+    assert.equal(space.selfLoans[0].personId, ado.id)
+  })
+
+  it('enregistre un chèque de caution et un retour prévu facultatif', async () => {
+    const jupe = await createItem(
+      { code: 'JUP-CAUTION', nom: 'Jupe caution', categorie: 'piece_costume', disponibilite: 'Disponible' },
+      options,
+    )
+    const person = await createPerson({ nom: 'Caution', prenom: 'Anna' }, options)
+    const loan = await createLoan(
+      {
+        personId: person.id,
+        items: [{ itemId: jupe.id }],
+        chequeCaution: true,
+        nomChequeCaution: 'Anna Caution',
+        dateRetourPrevue: '',
+      },
+      options,
+    )
+    assert.equal(loan.chequeCaution, true)
+    assert.equal(loan.nomChequeCaution, 'Anna Caution')
+    assert.equal(loan.dateRetourPrevue, '')
+    const cleared = await updateLoan(loan.id, { chequeCaution: false, nomChequeCaution: 'ignoré' }, options)
+    assert.equal(cleared.chequeCaution, false)
+    assert.equal(cleared.nomChequeCaution, '')
+  })
+
+  it('autorise un membre à mettre à jour uniquement sa fiche liée', async () => {
+    const person = await createPerson({ nom: 'Profil', prenom: 'Léa' }, options)
+    const other = await createPerson({ nom: 'Autre', prenom: 'Yan' }, options)
+    const user = await createUser(
+      {
+        login: 'lea-profil',
+        password: 'motdepasse',
+        nom: 'Léa',
+        role: 'membre',
+        personIds: [person.id],
+      },
+      options,
+    )
+    await assert.rejects(
+      () => updateMemberProfile(user, other.id, { noteAtelier: 'non' }, options),
+      /liée/,
+    )
+    const updated = await updateMemberProfile(
+      user,
+      person.id,
+      { noteAtelier: 'Housse au local FLG', tailleLettre: 'M' },
+      options,
+    )
+    assert.equal(updated.noteAtelier, 'Housse au local FLG')
+    assert.equal(updated.tailleLettre, 'M')
+    const space = await getMemberSpace(user, options)
+    assert.equal(space.profiles[0].noteAtelier, 'Housse au local FLG')
+  })
+
+  it('interdit à un accès sorties libres de créer une répétition officielle', async () => {
+    const actor = await createUser(
+      {
+        login: 'sortie-libre',
+        password: 'motdepasse',
+        nom: 'Libre',
+        role: 'membre',
+        custom: true,
+        permissions: ['agenda.libre'],
+      },
+      options,
+    )
+    await assert.rejects(
+      () =>
+        createEvent(
+          {
+            kinds: ['repetition_ado'],
+            titre: 'Salle',
+            debut: '2026-09-04T18:00:00.000Z',
+          },
+          { ...options, actor },
+        ),
+      /non officielles/,
+    )
+    const created = await createEvent(
+      {
+        kinds: ['fest_noz'],
+        horsCercle: true,
+        titre: 'Fest-noz copains',
+        debut: '2026-09-12T21:00:00.000Z',
+      },
+      { ...options, actor },
+    )
+    assert.equal(created.horsCercle, true)
+    assert.ok(created.kinds.includes('fest_noz'))
   })
 })

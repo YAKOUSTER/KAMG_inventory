@@ -10,6 +10,7 @@ import {
   getPerson,
   createPerson,
   updatePerson,
+  updateMemberProfile,
   deletePerson,
   listLoans,
   getLoan,
@@ -68,7 +69,7 @@ import {
   dataPaths,
 } from './store.js'
 import { can, canReceivePushNotifications } from '../src/domain/auth.js'
-import { isDisabledUser, isPendingPlacement } from '../src/domain/memberAccount.js'
+import { isDisabledUser, isPendingPlacement, normalizePersonIds } from '../src/domain/memberAccount.js'
 import { securityHeaders } from './security.js'
 import { createRateLimiter, loginRateLimitKey, resetRateLimits } from './rateLimit.js'
 import { clientIp, requestOrigin } from './requestMeta.js'
@@ -127,9 +128,25 @@ function auth(permission) {
   }
 }
 
+function authAny(permissions = []) {
+  return async (req, res, next) => {
+    return auth()(req, res, () => {
+      if (permissions.length && !permissions.some((permission) => can(req.user, permission))) {
+        res.status(403).json({ error: 'Accès refusé' })
+        return
+      }
+      next()
+    })
+  }
+}
+
 function authUpload(req, res, next) {
   return auth()(req, res, () => {
     if (can(req.user, 'items.create') || can(req.user, 'items.update') || can(req.user, 'people.write')) {
+      next()
+      return
+    }
+    if (!isPendingPlacement(req.user) && normalizePersonIds(req.user?.personIds).length) {
       next()
       return
     }
@@ -186,6 +203,11 @@ export function createApiApp() {
       keyFn: (req) => req.user?.id || req.ip || 'member-presence',
     }),
     handle((req) => setEventPresence(req.params.id, req.body || {}, { actor: req.user, linkedOnly: true })),
+  )
+  app.put(
+    '/api/public/profile/:personId',
+    authPlacedMember,
+    handle((req) => updateMemberProfile(req.user, req.params.personId, req.body || {})),
   )
   app.get(
     '/api/public/calendar.ics',
@@ -372,10 +394,10 @@ export function createApiApp() {
     handle((req) => cancelLoan(req.params.id, { actor: req.user })),
   )
 
-  app.get('/api/events', auth('agenda.read'), handle(() => listEvents()))
+  app.get('/api/events', authAny(['agenda.read', 'agenda.write', 'agenda.libre']), handle(() => listEvents()))
   app.get(
     '/api/events/:id',
-    auth('agenda.read'),
+    authAny(['agenda.read', 'agenda.write', 'agenda.libre']),
     handle(async (req) => {
       const event = await getEvent(req.params.id)
       if (!event) throw Object.assign(new Error('Événement introuvable'), { status: 404 })
@@ -384,17 +406,17 @@ export function createApiApp() {
   )
   app.post(
     '/api/events',
-    auth('agenda.write'),
+    authAny(['agenda.write', 'agenda.libre']),
     handle((req) => createEvent(req.body, { actor: req.user })),
   )
   app.put(
     '/api/events/:id',
-    auth('agenda.write'),
+    authAny(['agenda.write', 'agenda.libre']),
     handle((req) => updateEvent(req.params.id, req.body, { actor: req.user })),
   )
   app.delete(
     '/api/events/:id',
-    auth('agenda.write'),
+    authAny(['agenda.write', 'agenda.libre']),
     handle((req) => deleteEvent(req.params.id, { actor: req.user })),
   )
   app.get(

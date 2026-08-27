@@ -21,6 +21,9 @@
       <v-alert v-if="isPast" type="info" variant="tonal" class="mb-4" density="compact">
         Cet événement est passé. Vous pouvez encore le modifier.
       </v-alert>
+      <v-alert v-if="libreOnly" type="info" variant="tonal" class="mb-4" density="compact">
+        Vous pouvez ajouter ou modifier uniquement des sorties non officielles (fest-noz / hors cercle).
+      </v-alert>
 
       <h2 class="kamg-banner">Informations générales</h2>
       <div class="form-fields-grid form-fields-grid--2">
@@ -105,6 +108,7 @@
             v-model="form.horsCercle"
             label="Libre · Fest-noz / sortie hors cercle"
             hide-details
+            :disabled="libreOnly"
           />
         </FieldRow>
       </div>
@@ -126,7 +130,7 @@
         <v-btn variant="text" :to="{ name: 'agenda' }">Annuler</v-btn>
         <v-spacer />
         <v-btn
-          v-if="isEdit && auth.can('agenda.write')"
+          v-if="isEdit && canDeleteEvent"
           color="error"
           variant="text"
           :loading="deleting"
@@ -146,6 +150,7 @@ import FieldRow from '@/components/FieldRow.vue'
 import SortieFiche from '@/components/SortieFiche.vue'
 import { api } from '@/services/api'
 import { useAuthStore } from '@/stores/auth'
+import { isLibreAgendaUser } from '@/domain/auth'
 import { GROUP_NAME, LOGO_SRC } from '@/domain/brand'
 import { summarizePresences } from '@/domain/presence'
 import {
@@ -159,7 +164,7 @@ import {
 } from '@/domain/eventKinds'
 import { danceGroupSelectItems } from '@/domain/eventGroups'
 import { emptySortie, normalizeSortie } from '@/domain/sortie'
-import { eventIsPast } from '@/domain/events'
+import { assertCanMutateEvent, eventIsPast } from '@/domain/events'
 import {
   defaultRecurrenceUntil,
   RECURRENCE_FREQS,
@@ -180,7 +185,15 @@ const presences = ref([])
 const originalType = ref('autre')
 const groupesTouched = ref(false)
 const isEdit = computed(() => Boolean(props.id))
-const kindItems = computed(() => eventKindSelectItems())
+const libreOnly = computed(() => isLibreAgendaUser(auth.user))
+const kindItems = computed(() => {
+  const items = eventKindSelectItems()
+  if (!libreOnly.value) return items
+  return items.filter((item) => item.value === 'fest_noz' || item.value === 'sortie')
+})
+const canDeleteEvent = computed(
+  () => auth.can('agenda.write') || (libreOnly.value && form.horsCercle),
+)
 const groupItems = computed(() => danceGroupSelectItems())
 const recurrenceItems = [
   { title: 'Ne pas répéter', value: '' },
@@ -227,6 +240,14 @@ const dancerCount = computed(() => summarizePresences(presences.value, props.id)
 const required = (value) => Boolean(String(value || '').trim()) || 'Champ requis'
 const requiredKinds = (value) => (Array.isArray(value) && value.length > 0) || 'Choisissez au moins un type'
 const requiredTitle = () => Boolean(String(fullTitle.value || '').trim()) || 'Champ requis'
+
+watch(
+  libreOnly,
+  (value) => {
+    if (value) form.horsCercle = true
+  },
+  { immediate: true },
+)
 
 watch(
   () => form.kinds.join(','),
@@ -313,7 +334,9 @@ function applyFormFromEvent(event) {
 
 async function loadEvent(id) {
   const event = await api.event(id)
+  assertCanMutateEvent(auth.user, event)
   applyFormFromEvent(event)
+  if (libreOnly.value) form.horsCercle = true
   presences.value = await api.eventPresences(id).catch(() => [])
 }
 
@@ -323,6 +346,10 @@ onMounted(async () => {
     if (props.id) {
       await loadEvent(props.id)
     } else {
+      if (libreOnly.value) {
+        form.horsCercle = true
+        if (!form.kinds.length) form.kinds = ['fest_noz']
+      }
       const debut = String(route.query.debut || '')
       if (/^\d{4}-\d{2}-\d{2}$/.test(debut)) {
         form.debut = `${debut}T18:00`
@@ -362,7 +389,7 @@ async function submit() {
       description: form.description,
       publie: form.publie,
       inscriptionsOuvertes: form.inscriptionsOuvertes,
-      horsCercle: form.horsCercle,
+      horsCercle: libreOnly.value ? true : form.horsCercle,
       sortie: isSortie.value ? form.sortie : null,
     }
     if (showRecurrence.value && form.recurrenceFreq) {

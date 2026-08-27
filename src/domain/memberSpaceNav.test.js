@@ -21,4 +21,8 @@ describe('memberSpaceQuery', () => {
   it('ignore l’onglet compte mobile', () => {
     assert.equal(memberSpaceQuery('moi', { onglet: 'accueil' }), null)
   })
+
+  it('conserve l’onglet profil comme un vrai onglet', () => {
+    assert.deepEqual(memberSpaceQuery('profil', { onglet: 'accueil' }), { onglet: 'profil' })
+  })
 })

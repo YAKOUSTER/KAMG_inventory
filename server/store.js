@@ -24,11 +24,12 @@ import {
   PASSWORD_RESET_MESSAGE,
   validatePassword,
 } from '../src/domain/memberAccount.js'
-import { groupLoansByYear, normalizePerson, personDisplayName } from '../src/domain/person.js'
+import { groupLoansByYear, memberSelfProfile, normalizePerson, personDisplayName } from '../src/domain/person.js'
 import { todayLocal, formatDate } from '../src/domain/dates.js'
-import { normalizeEvent, filterPublishedEvents, upcomingEvents, pastEvents, sortEvents, applyEventOverlay, eventAcceptsInscriptions, publicEventSummary, eventLocalDay } from '../src/domain/events.js'
+import { normalizeEvent, filterPublishedEvents, upcomingEvents, pastEvents, sortEvents, applyEventOverlay, eventAcceptsInscriptions, publicEventSummary, eventLocalDay, assertCanMutateEvent } from '../src/domain/events.js'
 import { kindsAreRepetition } from '../src/domain/eventKinds.js'
 import { personCanRsvpToEvent, loansVisibleToMember } from '../src/domain/eventGroups.js'
+import { loansOfPeople } from '../src/domain/loans.js'
 import { expandRecurringDates, shiftEventTimes } from '../src/domain/recurrence.js'
 import { normalizeContentPage, filterPublishedPages, sortContentPages, publicContentSummary } from '../src/domain/content.js'
 import { normalizePresenceRecord, publicPerson, isClearedPresenceStatut } from '../src/domain/presence.js'
@@ -686,6 +687,9 @@ export async function createLoan(payload, options = {}) {
       dateRetourPrevue: formatDate(payload.dateRetourPrevue) || '',
       dateRetour: isArchive ? archiveReturn : null,
       statut: isArchive ? 'retourne' : 'en_cours',
+      chequeCaution: payload.chequeCaution === true,
+      nomChequeCaution:
+        payload.chequeCaution === true ? String(payload.nomChequeCaution || '').trim() : '',
       items: lines,
       createdAt: new Date().toISOString(),
     }
@@ -817,6 +821,15 @@ export async function updateLoan(id, payload, options = {}) {
     }
     if (payload.dateRetourPrevue != null) {
       loan.dateRetourPrevue = formatDate(payload.dateRetourPrevue)
+    }
+    if (payload.chequeCaution != null) {
+      loan.chequeCaution = payload.chequeCaution === true
+      if (!loan.chequeCaution) loan.nomChequeCaution = ''
+    }
+    if (payload.nomChequeCaution != null) {
+      loan.nomChequeCaution = loan.chequeCaution
+        ? String(payload.nomChequeCaution || '').trim()
+        : ''
     }
 
     if (payload.dateRetour != null) {
@@ -1000,12 +1013,50 @@ export async function getMemberSpace(user, options = {}) {
   }
   const space = await getPublicMemberSpace(options)
   const allowed = new Set(normalizePersonIds(user.personIds))
+  const db = await readDb(options)
+  const profiles = (db.people || []).map(memberSelfProfile).filter((person) => person && allowed.has(person.id))
   return {
     ...space,
     pending: false,
-    profiles: (space.people || []).filter((person) => allowed.has(person.id)),
+    profiles,
+    tailles: Array.isArray(db.referentiels?.tailles) ? db.referentiels.tailles : [],
     loans: loansVisibleToMember(space.loans || [], space.people || [], [...allowed]),
+    selfLoans: loansOfPeople(space.loans || [], [...allowed]),
   }
+}
+
+export async function updateMemberProfile(user, personId, payload = {}, options = {}) {
+  if (!user) throw Object.assign(new Error('Connexion requise'), { status: 401 })
+  if (isPendingPlacement(user)) {
+    throw Object.assign(new Error('Votre inscription est en attente de rangement'), { status: 403 })
+  }
+  const allowed = new Set(normalizePersonIds(user.personIds))
+  const id = String(personId || '').trim()
+  if (!id || !allowed.has(id)) {
+    throw Object.assign(new Error('Cette fiche ne vous est pas liée'), { status: 403 })
+  }
+  return withDb((db) => {
+    const index = db.people.findIndex((person) => person.id === id)
+    if (index === -1) throw Object.assign(new Error('Personne introuvable'), { status: 404 })
+    const current = db.people[index]
+    const next = {
+      ...current,
+      images: payload.images != null ? payload.images : current.images,
+      mesures: payload.mesures != null ? { ...current.mesures, ...payload.mesures } : current.mesures,
+      tailleLettre: payload.tailleLettre != null ? payload.tailleLettre : current.tailleLettre,
+      noteAtelier: payload.noteAtelier != null ? payload.noteAtelier : current.noteAtelier,
+    }
+    const person = runDomain(normalizePerson, next, { id })
+    db.people[index] = person
+    appendAudit(db, user, {
+      action: 'person.profile',
+      entityType: 'person',
+      entityId: person.id,
+      entityLabel: personLabel(person),
+      summary: `Profil membre mis à jour — ${personLabel(person)}`,
+    })
+    return memberSelfProfile(person)
+  }, options)
 }
 
 function listLocalEvents(db) {
@@ -1179,6 +1230,8 @@ export async function createEvent(payload, options = {}) {
     (recurrence.freq === 'weekly' || recurrence.freq === 'biweekly')
   const dates = shouldExpand ? expandRecurringDates(rest.debut, recurrence) : [rest.debut]
   const starts = dates.length ? dates : [rest.debut]
+  const preview = runDomain(normalizeEvent, { ...rest, source: 'local' }, { id: 'preview' })
+  assertCanMutateEvent(options.actor, preview)
 
   return withDb((db) => {
     db.events = db.events || []
@@ -1227,11 +1280,13 @@ export async function updateEvent(id, payload, options = {}) {
     const index = db.events.findIndex((entry) => entry.id === id)
     if (index === -1) throw Object.assign(new Error('Événement introuvable'), { status: 404 })
     const current = applyEventOverlay(db.events[index], db.eventOverlays?.[id])
+    assertCanMutateEvent(options.actor, current)
     const event = runDomain(
       normalizeEvent,
       { ...current, ...payload, id, source: 'local', googleUid: current.googleUid },
       { id },
     )
+    assertCanMutateEvent(options.actor, event)
     db.events[index] = event
     if (db.eventOverlays?.[id]) delete db.eventOverlays[id]
     appendAudit(db, options.actor, {
@@ -1250,6 +1305,8 @@ export async function deleteEvent(id, options = {}) {
     db.events = db.events || []
     const index = db.events.findIndex((entry) => entry.id === id)
     if (index === -1) throw Object.assign(new Error('Événement introuvable'), { status: 404 })
+    const current = applyEventOverlay(db.events[index], db.eventOverlays?.[id])
+    assertCanMutateEvent(options.actor, current)
     const [removed] = db.events.splice(index, 1)
     if (db.eventOverlays?.[id]) delete db.eventOverlays[id]
     db.presences = (db.presences || []).filter((entry) => entry.eventId !== id)

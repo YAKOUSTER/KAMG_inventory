@@ -15,6 +15,8 @@
     <div class="detail-rows mb-6">
       <DetailRow label="Date d’emprunt" :value="displayDate(loan.dateEmprunt)" />
       <DetailRow v-if="loan.dateRetourPrevue" label="Retour prévu" :value="displayDate(loan.dateRetourPrevue)" />
+      <DetailRow label="Chèque de caution" :value="loan.chequeCaution ? 'Oui' : 'Non'" />
+      <DetailRow v-if="loan.chequeCaution && loan.nomChequeCaution" label="Nom sur le chèque" :value="loan.nomChequeCaution" />
       <DetailRow v-if="loan.dateRetour" label="Retour complet" :value="displayDate(loan.dateRetour)" />
     </div>
 
@@ -61,8 +63,17 @@
       <FieldRow label="Date d’emprunt">
         <v-text-field v-model="editForm.dateEmprunt" hide-details type="date" />
       </FieldRow>
-      <FieldRow label="Retour prévu">
+      <FieldRow label="Retour prévu" hint="Facultatif">
         <v-text-field v-model="editForm.dateRetourPrevue" hide-details type="date" clearable />
+      </FieldRow>
+      <FieldRow label="Chèque de caution">
+        <v-radio-group v-model="editForm.chequeCaution" inline hide-details density="compact">
+          <v-radio value="oui" label="Oui" />
+          <v-radio value="non" label="Non" />
+        </v-radio-group>
+      </FieldRow>
+      <FieldRow v-if="editForm.chequeCaution === 'oui'" label="Nom sur le chèque">
+        <v-text-field v-model="editForm.nomChequeCaution" hide-details />
       </FieldRow>
       <FieldRow label="Retour effectué" hint="Renseigner pour clôturer rétroactivement">
         <v-text-field v-model="editForm.dateRetour" hide-details type="date" clearable />
@@ -189,6 +200,8 @@ const editForm = ref({
   dateEmprunt: '',
   dateRetourPrevue: '',
   dateRetour: '',
+  chequeCaution: 'non',
+  nomChequeCaution: '',
 })
 
 function setLoanAction(mode) {
@@ -217,6 +230,8 @@ function syncEditForm() {
     dateEmprunt: formatDate(loan.value.dateEmprunt),
     dateRetourPrevue: formatDate(loan.value.dateRetourPrevue),
     dateRetour: formatDate(loan.value.dateRetour),
+    chequeCaution: loan.value.chequeCaution === true ? 'oui' : 'non',
+    nomChequeCaution: loan.value.nomChequeCaution || '',
   }
 }
 
@@ -320,6 +335,8 @@ async function saveLoanEdits() {
       dateEmprunt: editForm.value.dateEmprunt,
       dateRetourPrevue: editForm.value.dateRetourPrevue,
       dateRetour: editForm.value.dateRetour,
+      chequeCaution: editForm.value.chequeCaution === 'oui',
+      nomChequeCaution: editForm.value.chequeCaution === 'oui' ? editForm.value.nomChequeCaution : '',
     })
     inventory.patchLoan(updated)
     remoteLoan.value = updated

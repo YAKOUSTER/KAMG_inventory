@@ -11,6 +11,7 @@ import {
   personDisplayName,
   personRolesLabel,
   sortPeople,
+  memberSelfProfile,
 } from './person.js'
 
 describe('normalizePerson', () => {
@@ -157,5 +158,26 @@ describe('formatDate', () => {
 describe('displayDate', () => {
   it('formate une date ISO en jour/mois/année', () => {
     assert.equal(displayDate('2026-08-15T18:00:00.000Z'), '15/08/2026')
+  })
+})
+
+describe('memberSelfProfile', () => {
+  it('expose la note atelier et les mesures pour l’espace membre', () => {
+    const person = normalizePerson(
+      {
+        nom: 'Le Gall',
+        prenom: 'Anna',
+        noteAtelier: '  Housse au local FLG  ',
+        tailleLettre: 'M',
+        mesures: { pointure: 38 },
+      },
+      { id: 'p-note' },
+    )
+    assert.equal(person.noteAtelier, 'Housse au local FLG')
+    const profile = memberSelfProfile(person)
+    assert.equal(profile.noteAtelier, 'Housse au local FLG')
+    assert.equal(profile.tailleLettre, 'M')
+    assert.equal(profile.mesures.pointure, 38)
+    assert.equal(profile.id, 'p-note')
   })
 })

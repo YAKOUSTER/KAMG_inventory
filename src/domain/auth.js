@@ -10,6 +10,7 @@ export const PERMISSIONS = [
   { id: 'people.write', label: 'Modifier les personnes' },
   { id: 'agenda.read', label: 'Consulter l’agenda' },
   { id: 'agenda.write', label: 'Gérer l’agenda (répétitions, sorties…)' },
+  { id: 'agenda.libre', label: 'Ajouter uniquement des sorties non officielles' },
   { id: 'content.read', label: 'Consulter les contenus membres' },
   { id: 'content.write', label: 'Gérer les contenus membres' },
   { id: 'users.manage', label: 'Gérer les comptes et les accès' },
@@ -52,6 +53,18 @@ export function effectivePermissions(user) {
 export function can(user, permission) {
   if (!permission) return Boolean(user)
   return effectivePermissions(user).includes(permission)
+}
+
+export function canSeeAgenda(user) {
+  return can(user, 'agenda.read') || can(user, 'agenda.write') || can(user, 'agenda.libre')
+}
+
+export function canWriteLibreEvents(user) {
+  return can(user, 'agenda.write') || can(user, 'agenda.libre')
+}
+
+export function isLibreAgendaUser(user) {
+  return can(user, 'agenda.libre') && !can(user, 'agenda.write')
 }
 
 export function canReceivePushNotifications(user) {

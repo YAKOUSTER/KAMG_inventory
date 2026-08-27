@@ -31,6 +31,15 @@ export function openLoanLines(loan) {
   return (loan?.items || []).filter((line) => !line.returnedAt)
 }
 
+export function hasChequeCaution(loan) {
+  return loan?.chequeCaution === true
+}
+
+export function loansOfPeople(loans = [], personIds = []) {
+  const allowed = new Set(personIds)
+  return (loans || []).filter((loan) => allowed.has(loan.personId))
+}
+
 export function itemsInPossession(loans = []) {
   const list = []
   for (const loan of loans) {

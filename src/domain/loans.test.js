@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { isOverdue, itemsInPossession, loanPiecesLabel, loanStatusLabel, openLoanLines } from './loans.js'
+import { isOverdue, itemsInPossession, loanPiecesLabel, loanStatusLabel, openLoanLines, hasChequeCaution, loansOfPeople } from './loans.js'
 
 describe('isOverdue', () => {
   it('signale un emprunt encore ouvert dont la date prévue est passée', () => {
@@ -54,5 +54,18 @@ describe('loan helpers', () => {
     assert.equal(held.length, 2)
     assert.equal(held[0].code, 'JUP-01')
     assert.equal(held[1].code, 'ROC-01')
+  })
+
+  it('filtre les emprunts d’une personne et le chèque de caution', () => {
+    const loans = [
+      { id: '1', personId: 'a', chequeCaution: true },
+      { id: '2', personId: 'b', chequeCaution: false },
+    ]
+    assert.deepEqual(
+      loansOfPeople(loans, ['a']).map((loan) => loan.id),
+      ['1'],
+    )
+    assert.equal(hasChequeCaution(loans[0]), true)
+    assert.equal(hasChequeCaution(loans[1]), false)
   })
 })

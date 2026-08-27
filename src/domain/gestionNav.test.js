@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import {
   canAccessGestion,
   gestionAreaForPath,
+  gestionHomePath,
   linkMatchesPath,
   toolbarLinksForArea,
   visibleGestionAreas,
@@ -46,6 +47,17 @@ describe('navigation gestion', () => {
     assert.ok(!areas.find((area) => area.id === 'membres')?.links.some((link) => link.to === '/a-ranger'))
     assert.equal(canAccessGestion(membre), false)
     assert.equal(canAccessGestion(lecteur), true)
+  })
+
+  it('montre le calendrier à un accès sorties non officielles uniquement', () => {
+    const libre = { role: 'membre', custom: true, permissions: ['agenda.libre'] }
+    const areas = visibleGestionAreas(libre)
+    assert.deepEqual(
+      areas.map((area) => area.id),
+      ['calendrier'],
+    )
+    assert.equal(gestionHomePath(libre), '/agenda')
+    assert.equal(canAccessGestion(libre), true)
   })
 
   it('reconnaît la partie d’après l’URL', () => {

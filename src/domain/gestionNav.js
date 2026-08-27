@@ -46,7 +46,7 @@ export const GESTION_AREAS = [
         to: '/agenda',
         title: 'Agenda',
         icon: 'mdi-calendar-month-outline',
-        permission: 'agenda.read',
+        permissionAny: ['agenda.read', 'agenda.write', 'agenda.libre'],
         match: ['/agenda'],
       },
     ],
@@ -102,7 +102,18 @@ export function linkMatchesPath(link, path) {
 }
 
 export function visibleAreaLinks(area, user) {
-  return (area?.links || []).filter((link) => can(user, link.permission))
+  return (area?.links || []).filter((link) => linkAllowed(link, user))
+}
+
+export function linkAllowed(link, user) {
+  if (Array.isArray(link.permissionAny) && link.permissionAny.length) {
+    return link.permissionAny.some((permission) => can(user, permission))
+  }
+  return can(user, link.permission)
+}
+
+export function gestionHomePath(user) {
+  return visibleGestionAreas(user)[0]?.home || '/espace-membre'
 }
 
 export function toolbarLinksForArea(area) {

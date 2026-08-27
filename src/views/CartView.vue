@@ -57,8 +57,17 @@
         <FieldRow label="Date d’emprunt">
           <v-text-field v-model="dateEmprunt" hide-details type="date" />
         </FieldRow>
-        <FieldRow label="Retour prévu">
-          <v-text-field v-model="dateRetourPrevue" hide-details type="date" />
+        <FieldRow label="Retour prévu" hint="Facultatif — laissez vide si la date n’est pas connue">
+          <v-text-field v-model="dateRetourPrevue" hide-details type="date" clearable />
+        </FieldRow>
+        <FieldRow label="Chèque de caution">
+          <v-radio-group v-model="chequeCaution" inline hide-details density="compact">
+            <v-radio value="oui" label="Oui" />
+            <v-radio value="non" label="Non" />
+          </v-radio-group>
+        </FieldRow>
+        <FieldRow v-if="chequeCaution === 'oui'" label="Nom sur le chèque">
+          <v-text-field v-model="nomChequeCaution" hide-details placeholder="Nom indiqué sur le chèque" />
         </FieldRow>
         <v-checkbox
           v-model="archiveMode"
@@ -95,7 +104,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
 import { api } from '@/services/api'
 import { isLoanable } from '@/domain/item'
-import { addDays, todayLocal } from '@/domain/dates'
+import { todayLocal } from '@/domain/dates'
 import { matchesSearch, personDisplayName } from '@/domain/person'
 import CartItemCard from '@/components/CartItemCard.vue'
 import FieldRow from '@/components/FieldRow.vue'
@@ -109,7 +118,9 @@ const route = useRoute()
 const personId = ref(route.query.person || null)
 const titre = ref('')
 const dateEmprunt = ref(todayLocal())
-const dateRetourPrevue = ref(addDays(todayLocal(), 7))
+const dateRetourPrevue = ref('')
+const chequeCaution = ref('non')
+const nomChequeCaution = ref('')
 const archiveMode = ref(false)
 const dateRetourEffectuee = ref('')
 const saving = ref(false)
@@ -155,6 +166,8 @@ async function validate() {
       titre: titre.value,
       dateEmprunt: dateEmprunt.value,
       dateRetourPrevue: archiveMode.value ? '' : dateRetourPrevue.value,
+      chequeCaution: chequeCaution.value === 'oui',
+      nomChequeCaution: chequeCaution.value === 'oui' ? nomChequeCaution.value : '',
       items: cart.items.map((item) => ({ itemId: item.id, comment: item.comment })),
     }
     if (archiveMode.value) {

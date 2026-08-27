@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { ROLE_PRESETS, can, canReceivePushNotifications, effectivePermissions, publicUser } from './auth.js'
+import { ROLE_PRESETS, can, canReceivePushNotifications, canSeeAgenda, canWriteLibreEvents, effectivePermissions, isLibreAgendaUser, PERMISSIONS, publicUser } from './auth.js'
 
 const admin = { role: 'admin' }
 const gestion = { role: 'gestion' }
@@ -59,6 +59,9 @@ describe('presets', () => {
     assert.ok(!ROLE_PRESETS.gestion.includes('items.create'))
     assert.ok(ROLE_PRESETS.gestion.includes('items.update'))
     assert.ok(ROLE_PRESETS.gestion.includes('agenda.write'))
+    assert.ok(!ROLE_PRESETS.gestion.includes('agenda.libre'))
+    assert.ok(!ROLE_PRESETS.lecteur.includes('agenda.libre'))
+    assert.ok(PERMISSIONS.some((perm) => perm.id === 'agenda.libre'))
     assert.ok(ROLE_PRESETS.membre)
     assert.equal(can({ role: 'membre' }, 'items.read'), false)
     assert.deepEqual(ROLE_PRESETS.lecteur, [
@@ -68,5 +71,17 @@ describe('presets', () => {
       'agenda.read',
       'content.read',
     ])
+  })
+})
+
+describe('agenda.libre', () => {
+  it('donne l’agenda sans le droit de gérer les répétitions officielles', () => {
+    const libre = { role: 'membre', custom: true, permissions: ['agenda.libre'] }
+    assert.equal(canSeeAgenda(libre), true)
+    assert.equal(canWriteLibreEvents(libre), true)
+    assert.equal(isLibreAgendaUser(libre), true)
+    assert.equal(isLibreAgendaUser({ role: 'gestion' }), false)
+    assert.equal(isLibreAgendaUser({ role: 'admin' }), false)
+    assert.equal(can(libre, 'agenda.write'), false)
   })
 })
