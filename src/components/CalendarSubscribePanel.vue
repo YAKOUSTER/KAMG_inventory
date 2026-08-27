@@ -4,10 +4,6 @@
       Un seul abonnement pour Google, Apple ou Outlook. Choisissez tout le calendrier, ou seulement
       certains groupes.
     </p>
-    <v-alert type="info" variant="tonal" density="compact" class="mb-3">
-      Google Agenda n’accepte pas toujours le bouton. Copiez l’adresse https, puis dans Google :
-      Paramètres → Ajouter un agenda → À partir de l’URL.
-    </v-alert>
     <div class="calendar-subscribe__groups">
       <v-chip
         :color="!selected.length ? 'primary' : undefined"
@@ -30,19 +26,33 @@
         {{ group.label }}
       </v-chip>
     </div>
-    <div class="d-flex flex-wrap ga-2 mt-3">
-      <v-btn
-        color="primary"
-        variant="tonal"
-        size="small"
-        class="text-none"
-        :href="googleUrl"
-        target="_blank"
-        rel="noopener noreferrer"
-        prepend-icon="mdi-google"
-      >
-        Google Agenda
+
+    <v-alert type="info" variant="tonal" density="compact" class="mt-4 mb-3">
+      Google Agenda n’accepte pas le bouton « un clic ». Il faut coller l’adresse https dans les
+      paramètres, <strong>sur un ordinateur</strong> (l’application téléphone ne propose pas « À
+      partir de l’URL »).
+    </v-alert>
+    <ol class="calendar-subscribe__steps">
+      <li>Copiez l’adresse https ci-dessous.</li>
+      <li>Ouvrez Google Agenda sur un ordinateur.</li>
+      <li>Paramètres (engrenage) → Ajouter un agenda → À partir de l’URL.</li>
+      <li>Collez l’adresse, puis Ajouter un agenda.</li>
+    </ol>
+
+    <div class="calendar-subscribe__copy-row">
+      <v-text-field
+        :model-value="icsUrl"
+        label="Adresse à coller dans Google Agenda"
+        readonly
+        hide-details
+        density="comfortable"
+        variant="outlined"
+      />
+      <v-btn color="primary" variant="flat" class="text-none" prepend-icon="mdi-content-copy" @click="copyLink">
+        {{ copied ? 'Adresse copiée' : 'Copier l’adresse' }}
       </v-btn>
+    </div>
+    <div class="d-flex flex-wrap ga-2 mt-3">
       <v-btn
         variant="outlined"
         size="small"
@@ -52,21 +62,24 @@
       >
         Apple / Outlook
       </v-btn>
-      <v-btn variant="text" size="small" class="text-none" prepend-icon="mdi-content-copy" @click="copyLink">
-        {{ copied ? 'Lien copié' : 'Copier le lien' }}
+      <v-btn
+        variant="text"
+        size="small"
+        class="text-none"
+        href="https://calendar.google.com/calendar/u/0/r/settings"
+        target="_blank"
+        rel="noopener noreferrer"
+        prepend-icon="mdi-google"
+      >
+        Ouvrir Google Agenda
       </v-btn>
     </div>
-    <p class="calendar-subscribe__url">{{ icsUrl }}</p>
   </div>
 </template>
 
 <script setup>
 import { computed, ref } from 'vue'
-import {
-  appCalendarIcsUrl,
-  appCalendarWebcalUrl,
-  googleCalendarSubscribeFromIcsUrl,
-} from '@/domain/agendaSettings'
+import { appCalendarIcsUrl, appCalendarWebcalUrl } from '@/domain/agendaSettings'
 import { selectableEventGroups } from '@/domain/eventCatalog'
 import { activeEventGroups } from '@/domain/eventGroups'
 
@@ -83,7 +96,6 @@ const groups = computed(() =>
 )
 const icsUrl = computed(() => appCalendarIcsUrl(origin, selected.value))
 const webcalUrl = computed(() => appCalendarWebcalUrl(origin, selected.value))
-const googleUrl = computed(() => googleCalendarSubscribeFromIcsUrl(icsUrl.value))
 
 function toggle(id) {
   if (selected.value.includes(id)) selected.value = selected.value.filter((entry) => entry !== id)
@@ -117,10 +129,27 @@ async function copyLink() {
   gap: 6px;
 }
 
-.calendar-subscribe__url {
-  margin: 10px 0 0;
-  font-size: 0.78rem;
-  word-break: break-all;
-  color: rgba(44, 51, 44, 0.62);
+.calendar-subscribe__steps {
+  margin: 0 0 14px;
+  padding-left: 1.2rem;
+  font-size: 0.9rem;
+  color: rgba(44, 51, 44, 0.78);
+  line-height: 1.5;
+}
+
+.calendar-subscribe__copy-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.calendar-subscribe__copy-row .v-text-field {
+  flex: 1 1 220px;
+}
+
+.calendar-subscribe__copy-row .v-btn {
+  margin-top: 4px;
+  flex-shrink: 0;
 }
 </style>

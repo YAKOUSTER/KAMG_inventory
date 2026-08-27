@@ -7,6 +7,7 @@ import {
   buildSingleEventIcs,
   eventIcsUid,
   foldIcsLine,
+  icsLinesRespectOctetLimit,
 } from './ics.js'
 import {
   googleCalendarAddEventUrl,
@@ -68,9 +69,9 @@ describe('calendar links', () => {
       'webcal://kamg.sterennfonseca.fr/calendrier.ics',
     )
     const google = googleCalendarSubscribeFromIcsUrl(ics)
-    assert.match(google, /calendar\.google\.com/)
-    assert.ok(google.includes(encodeURIComponent('webcal://kamg.sterennfonseca.fr/calendrier.ics')))
-    assert.ok(!google.includes(encodeURIComponent(ics)))
+    assert.equal(google, ics)
+    assert.ok(!google.includes('calendar.google.com'))
+    assert.ok(!google.includes('webcal://'))
   })
 })
 
@@ -142,5 +143,30 @@ describe('buildCalendarIcs', () => {
   it('plie les lignes trop longues', () => {
     const folded = foldIcsLine(`SUMMARY:${'A'.repeat(90)}`)
     assert.ok(folded.includes('\r\n '))
+    assert.ok(icsLinesRespectOctetLimit(folded))
+  })
+
+  it('plie les descriptions accentuées sous 75 octets, comme l’exige Google', () => {
+    const description = [
+      'Initiation à la danse sur un bal de rhuys de 15h40 à 15h55 avec ✨',
+      'Programme de l’après-midi pour les intéressé :',
+      'Voici le programme entier de l’après-midi pour ceux qui le veulent',
+      '- Initiations aux danses bretonnes par les cercles présents',
+      'Ouverture des portes : 13h30',
+    ].join('\n')
+    const ics = buildCalendarIcs([
+      {
+        id: 'long-1',
+        titre: 'Répétition Ado+Tremplin — Quimper',
+        debut: '2026-09-10T17:30:00.000Z',
+        fin: '2026-09-10T17:30:00.000Z',
+        publie: true,
+        description,
+        lieu: 'Salle Bleue Moulin-Vert',
+      },
+    ])
+    assert.ok(icsLinesRespectOctetLimit(ics), 'une ligne dépasse 75 octets UTF-8')
+    assert.match(ics, /DTEND:20260910T183000Z/)
+    assert.match(ics, /DTSTART:20260910T173000Z/)
   })
 })

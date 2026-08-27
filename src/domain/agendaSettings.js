@@ -38,9 +38,9 @@ export function appCalendarWebcalUrl(origin = '', groupes = []) {
 }
 
 export function googleCalendarSubscribeFromIcsUrl(icsUrl) {
-  const httpsUrl = String(icsUrl || '').trim()
-  const webcalUrl = httpsUrl.replace(/^https:\/\//i, 'webcal://').replace(/^http:\/\//i, 'webcal://')
-  return `https://calendar.google.com/calendar/render?cid=${encodeURIComponent(webcalUrl)}`
+  // Google refuse le raccourci cid= pour un ICS externe (« Impossible d'ajouter l'agenda »).
+  // L’URL https se colle dans Paramètres → Ajouter un agenda → À partir de l’URL.
+  return String(icsUrl || '').trim()
 }
 
 export function googleCalendarSubscribeUrl(settings) {

@@ -88,15 +88,26 @@ function calendarGroupesFromQuery(query) {
 async function sendPublicCalendar(req, res) {
   try {
     const ics = await getPublicCalendarIcs({ groupes: calendarGroupesFromQuery(req.query) })
+    const body = String(ics || '')
     res.setHeader('Content-Type', 'text/calendar; charset=utf-8')
-    res.setHeader('Content-Disposition', 'inline; filename="kamg.ics"')
     res.setHeader('Cache-Control', 'public, max-age=300')
     res.setHeader('Access-Control-Allow-Origin', '*')
-    res.send(ics)
+    res.setHeader('Content-Length', Buffer.byteLength(body))
+    if (req.method === 'HEAD') {
+      res.end()
+      return
+    }
+    res.end(body)
   } catch (error) {
+    const fallback = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//KAMG//Gestion KAMG//FR\r\nEND:VCALENDAR\r\n'
     res.status(error.status || 500)
     res.setHeader('Content-Type', 'text/calendar; charset=utf-8')
-    res.send('BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//KAMG//Gestion KAMG//FR\r\nEND:VCALENDAR\r\n')
+    res.setHeader('Content-Length', Buffer.byteLength(fallback))
+    if (req.method === 'HEAD') {
+      res.end()
+      return
+    }
+    res.end(fallback)
   }
 }
 

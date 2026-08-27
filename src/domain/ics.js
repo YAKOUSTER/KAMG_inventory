@@ -154,16 +154,54 @@ export function escapeIcsText(value) {
     .replace(/;/g, '\\;')
 }
 
+const ICS_LINE_LIMIT = 75
+
+function utf8Bytes(text) {
+  return new TextEncoder().encode(String(text || ''))
+}
+
+function sliceUtf8Octets(text, start, maxOctets) {
+  const bytes = utf8Bytes(text).slice(start)
+  if (bytes.length <= maxOctets) {
+    return { chunk: new TextDecoder().decode(bytes), next: start + bytes.length, done: true }
+  }
+  let end = maxOctets
+  while (end > 0 && (bytes[end] & 0b11000000) === 0b10000000) end -= 1
+  if (end <= 0) {
+    end = 1
+    while (end < bytes.length && (bytes[end] & 0b11000000) === 0b10000000) end += 1
+  }
+  return {
+    chunk: new TextDecoder().decode(bytes.slice(0, end)),
+    next: start + end,
+    done: end >= bytes.length,
+  }
+}
+
 export function foldIcsLine(line) {
   const text = String(line || '')
-  if (text.length <= 75) return text
-  const chunks = [text.slice(0, 75)]
-  let rest = text.slice(75)
-  while (rest.length) {
-    chunks.push(` ${rest.slice(0, 74)}`)
-    rest = rest.slice(74)
+  const limit = ICS_LINE_LIMIT
+  if (utf8Bytes(text).length <= limit) return text
+  const chunks = []
+  let offset = 0
+  let first = true
+  const total = utf8Bytes(text).length
+  while (offset < total) {
+    const max = first ? limit : limit - 1
+    const { chunk, next } = sliceUtf8Octets(text, offset, max)
+    if (next <= offset) break
+    chunks.push(first ? chunk : ` ${chunk}`)
+    first = false
+    offset = next
   }
   return chunks.join('\r\n')
+}
+
+export function icsLinesRespectOctetLimit(ics) {
+  return String(ics || '')
+    .replace(/\r\n/g, '\n')
+    .split('\n')
+    .every((line) => utf8Bytes(line).length <= ICS_LINE_LIMIT)
 }
 
 export function eventIcsUid(event) {
@@ -173,9 +211,19 @@ export function eventIcsUid(event) {
   return `kamg-${id}@kamg.sterennfonseca.fr`
 }
 
+function icsEndUtcDate(event, debut) {
+  const fin = toIcsUtcDate(event.fin || event.debut) || debut
+  if (fin && debut && fin > debut) return fin
+  const start = new Date(event.debut)
+  if (Number.isNaN(start.getTime())) return debut
+  start.setUTCHours(start.getUTCHours() + 1)
+  return toIcsUtcDate(start.toISOString()) || debut
+}
+
 function veventLines(event) {
   const debut = toIcsUtcDate(event.debut)
-  const fin = toIcsUtcDate(event.fin || event.debut) || debut
+  if (!debut) return []
+  const fin = icsEndUtcDate(event, debut)
   const stamp = toIcsUtcDate(event.updatedAt || event.createdAt || new Date().toISOString()) || toIcsUtcDate(new Date().toISOString())
   const lines = [
     'BEGIN:VEVENT',

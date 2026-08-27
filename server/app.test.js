@@ -132,14 +132,23 @@ describe('API HTTP', () => {
     const ics = await request(app, 'GET', '/api/public/calendar.ics')
     assert.equal(ics.status, 200)
     assert.match(String(ics.headers.get('content-type') || ''), /text\/calendar/)
+    assert.equal(ics.headers.get('content-disposition'), null)
     assert.match(ics.body.raw || '', /BEGIN:VCALENDAR/)
     assert.match(ics.body.raw || '', /SUMMARY:Sortie ICS/)
     assert.match(ics.body.raw || '', /LOCATION:Quimper/)
+    const overlong = String(ics.body.raw || '')
+      .split(/\r\n|\n/)
+      .find((line) => Buffer.byteLength(line, 'utf8') > 75)
+    assert.equal(overlong, undefined)
 
     const pretty = await request(app, 'GET', '/calendrier.ics')
     assert.equal(pretty.status, 200)
     assert.match(String(pretty.headers.get('content-type') || ''), /text\/calendar/)
     assert.match(pretty.body.raw || '', /SUMMARY:Sortie ICS/)
+
+    const head = await request(app, 'HEAD', '/calendrier.ics')
+    assert.equal(head.status, 200)
+    assert.match(String(head.headers.get('content-type') || ''), /text\/calendar/)
 
     const draft = await request(app, 'POST', '/api/events', {
       token: login.body.token,

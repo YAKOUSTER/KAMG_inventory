@@ -8,9 +8,9 @@
     </p>
 
     <v-alert type="info" variant="tonal" class="mb-4">
-      Pour Google Agenda : copiez l’adresse https, puis ouvrez Google Agenda → Paramètres →
-      Ajouter un agenda → À partir de l’URL. Le bouton ci-dessous tente l’ajout automatique, mais
-      Google le refuse souvent.
+      Google Agenda refuse le raccourci automatique (« Impossible d’ajouter l’agenda, vérifier
+      l’URL »). Copiez l’adresse https, puis sur un ordinateur : Google Agenda → Paramètres →
+      Ajouter un agenda → À partir de l’URL. L’application téléphone ne propose pas cette option.
     </v-alert>
 
     <div class="form-fields-grid form-fields-grid--2 mb-4">
@@ -47,14 +47,17 @@
 
     <div class="d-flex flex-wrap ga-3 mb-6">
       <v-btn color="primary" :loading="saving" @click="save">Enregistrer le nom</v-btn>
+      <v-btn variant="tonal" prepend-icon="mdi-content-copy" class="text-none" @click="copy(icsUrl)">
+        Copier l’adresse Google
+      </v-btn>
       <v-btn
-        variant="tonal"
+        variant="text"
         prepend-icon="mdi-google"
-        :href="googleSubscribeUrl"
+        href="https://calendar.google.com/calendar/u/0/r/settings"
         target="_blank"
         rel="noopener noreferrer"
       >
-        Ajouter à Google Agenda
+        Ouvrir Google Agenda
       </v-btn>
       <v-btn variant="outlined" prepend-icon="mdi-apple" :href="webcalUrl">
         S’abonner (Apple / Outlook)
@@ -96,11 +99,7 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import FieldRow from '@/components/FieldRow.vue'
 import { api } from '@/services/api'
-import {
-  appCalendarIcsUrl,
-  appCalendarWebcalUrl,
-  googleCalendarSubscribeFromIcsUrl,
-} from '@/domain/agendaSettings'
+import { appCalendarIcsUrl, appCalendarWebcalUrl } from '@/domain/agendaSettings'
 import { displayDateTime } from '@/domain/dates'
 
 const draft = reactive({
@@ -118,7 +117,6 @@ const ok = ref(false)
 const origin = computed(() => (typeof window === 'undefined' ? '' : window.location.origin))
 const icsUrl = computed(() => appCalendarIcsUrl(origin.value))
 const webcalUrl = computed(() => appCalendarWebcalUrl(origin.value))
-const googleSubscribeUrl = computed(() => googleCalendarSubscribeFromIcsUrl(icsUrl.value))
 
 onMounted(async () => {
   Object.assign(draft, await api.agendaSettings())
