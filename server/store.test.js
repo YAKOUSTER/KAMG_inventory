@@ -948,6 +948,60 @@ END:VCALENDAR`
     assert.equal(db.people.filter((entry) => entry.prenom === 'Anne-Marie').length, 2)
   })
 
+  it('relie un parent aux fiches enfants et crée sa fiche s’il danse aussi', async () => {
+    const child = await createPerson({ nom: 'Le Gall', prenom: 'Léa', roles: ['danseur_enfant'] }, options)
+    const signup = await registerMember(
+      {
+        prenom: 'Marie',
+        nom: 'Le Gall',
+        email: 'marie.famille@cercle.test',
+        password: 'motdepasse',
+        relation: 'parent',
+        childrenNames: 'Léa',
+        alsoDances: true,
+      },
+      options,
+    )
+    const placed = await placeMember(
+      signup.user.id,
+      { createPerson: true, alsoDances: true, roles: ['danseur_loisir'] },
+      options,
+    )
+    assert.ok(placed.personIds.includes(child.id))
+    assert.equal(placed.personIds.length, 2)
+    const parentId = placed.personIds.find((id) => id !== child.id)
+    const parent = await getPerson(parentId, options)
+    assert.deepEqual(parent.childIds, [child.id])
+    assert.ok(parent.roles.includes('danseur_loisir'))
+  })
+
+  it('crée une fiche parent pour le CA sans l’ajouter au sondage s’il ne danse pas', async () => {
+    const child = await createPerson({ nom: 'Le Goff', prenom: 'Mael', roles: ['danseur_enfant'] }, options)
+    const signup = await registerMember(
+      {
+        prenom: 'Soazig',
+        nom: 'Le Goff',
+        email: 'soazig.famille@cercle.test',
+        password: 'motdepasse',
+        relation: 'parent',
+        childrenNames: 'Mael',
+        alsoDances: false,
+      },
+      options,
+    )
+    const placed = await placeMember(
+      signup.user.id,
+      { createPerson: true, alsoDances: false, familyChildIds: [child.id] },
+      options,
+    )
+    assert.deepEqual(placed.personIds, [child.id])
+    const db = await readDb(options)
+    const parent = db.people.find((person) => person.prenom === 'Soazig')
+    assert.ok(parent)
+    assert.deepEqual(parent.childIds, [child.id])
+    assert.deepEqual(parent.roles, [])
+  })
+
   it('copie l’e-mail du compte quand on lie une fiche ensuite', async () => {
     const person = await createPerson(
       { nom: 'Prigent', prenom: 'Yan', email: 'ancien@cercle.test', roles: ['danseur_concours'] },

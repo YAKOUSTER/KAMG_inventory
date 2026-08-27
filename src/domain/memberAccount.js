@@ -51,6 +51,7 @@ export function normalizeSignup(input = {}) {
     telephone: String(input.telephone || '').trim(),
     relation,
     childrenNames,
+    alsoDances: relation === 'danseur' ? true : Boolean(input.alsoDances),
     message: String(input.message || '').trim().slice(0, 500),
   }
 }

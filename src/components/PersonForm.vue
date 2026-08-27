@@ -76,6 +76,28 @@
       <FieldRow label="Notes" align-top class="mt-5">
         <v-textarea v-model="person.notes" hide-details rows="3" placeholder="Contact, remarques…" />
       </FieldRow>
+      <FieldRow label="Enfant(s)" class="mt-5" hint="Lien de parenté pour le CA. Les deux parents peuvent pointer vers les mêmes enfants.">
+        <v-autocomplete
+          v-model="person.childIds"
+          :items="familyItems"
+          multiple
+          chips
+          closable-chips
+          hide-details="auto"
+          placeholder="Relier une fiche enfant"
+        />
+      </FieldRow>
+      <FieldRow label="Parent(s)" class="mt-4" hint="Visible aussi depuis la fiche de l’enfant.">
+        <v-autocomplete
+          v-model="parentIds"
+          :items="familyItems"
+          multiple
+          chips
+          closable-chips
+          hide-details="auto"
+          placeholder="Relier une fiche parent"
+        />
+      </FieldRow>
       <FieldRow
         label="Biographie"
         hint="Quelques mots visibles par les membres du même groupe de danse"
@@ -205,10 +227,12 @@ import {
   emptyPerson,
   membershipSeasons,
   normalizeRoles,
+  normalizeChildIds,
   personDisplayName,
   personSeasons,
   isNewMember,
   canHaveSeasons,
+  parentsOf,
 } from '@/domain/person'
 import { newSeasonId } from '@/domain/seasons'
 import { normalizeImages } from '@/domain/images'
@@ -225,6 +249,7 @@ const props = defineProps({
 const emit = defineEmits(['save'])
 const form = ref(null)
 const person = reactive(emptyPerson())
+const parentIds = ref([])
 const inventory = useInventoryStore()
 const tailleItems = computed(() => ['', ...inventory.resolvedReferentiels.tailles])
 const showSeasons = computed(() => canHaveSeasons(person))
@@ -234,6 +259,12 @@ const nouveauChecked = computed(() => isNewMember(person))
 const orgFormTree = orgFormSections()
 const required = (v) => !!v || 'Champ requis'
 const photoCode = computed(() => personDisplayName(person) || 'personne')
+const familyItems = computed(() =>
+  [...inventory.people]
+    .filter((entry) => entry.id && entry.id !== person.id)
+    .map((entry) => ({ title: personDisplayName(entry), value: entry.id }))
+    .sort((a, b) => a.title.localeCompare(b.title, 'fr')),
+)
 
 function toggleOrgTag(id) {
   const index = person.tags.indexOf(id)
@@ -249,7 +280,9 @@ watch(
     person.mesures = { ...emptyPerson().mesures, ...(value?.mesures || {}) }
     person.roles = normalizeRoles(value || person)
     person.tags = normalizeOrgTags(value || person)
+    person.childIds = normalizeChildIds(value?.childIds, person.id)
     person.saisons = personSeasons(person)
+    parentIds.value = parentsOf(inventory.people, person.id).map((entry) => entry.id)
     if (value?.nouveau === true || value?.nouveau === false) person.nouveau = value.nouveau
     else person.nouveau = null
   },
@@ -265,6 +298,8 @@ async function submit() {
     mesures: { ...emptyPerson().mesures, ...person.mesures },
     roles: [...person.roles],
     tags: [...person.tags],
+    childIds: [...person.childIds],
+    parentIds: [...parentIds.value],
   })
 }
 </script>

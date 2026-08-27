@@ -49,6 +49,34 @@
       </v-col>
     </v-row>
 
+    <section v-if="familyParents.length || familyChildren.length" class="page-block">
+      <h2 class="section-label">Famille</h2>
+      <div class="detail-rows">
+        <DetailRow v-if="familyParents.length" label="Parent(s)">
+          <span>
+            <router-link
+              v-for="(relative, index) in familyParents"
+              :key="relative.id"
+              :to="{ name: 'person-detail', params: { id: relative.id } }"
+            >
+              {{ personDisplayName(relative) }}<template v-if="index < familyParents.length - 1">, </template>
+            </router-link>
+          </span>
+        </DetailRow>
+        <DetailRow v-if="familyChildren.length" label="Enfant(s)">
+          <span>
+            <router-link
+              v-for="(relative, index) in familyChildren"
+              :key="relative.id"
+              :to="{ name: 'person-detail', params: { id: relative.id } }"
+            >
+              {{ personDisplayName(relative) }}<template v-if="index < familyChildren.length - 1">, </template>
+            </router-link>
+          </span>
+        </DetailRow>
+      </div>
+    </section>
+
     <section v-if="person.bio" class="page-block">
       <h2 class="section-label">Biographie</h2>
       <p class="text-multiline text-body-1">{{ person.bio }}</p>
@@ -125,7 +153,7 @@ import { useRouter } from 'vue-router'
 import { api } from '@/services/api'
 import { useAuthStore } from '@/stores/auth'
 import { useInventoryStore } from '@/stores/inventory'
-import { PERSON_MEASUREMENTS, displayDate, personDisplayName, personLegalName, roleLabel, normalizeRoles, membershipLabels, adhesionSummary, membershipStatusLabel, isNewMember } from '@/domain/person'
+import { PERSON_MEASUREMENTS, displayDate, personDisplayName, personLegalName, roleLabel, normalizeRoles, membershipLabels, adhesionSummary, membershipStatusLabel, isNewMember, childrenOf, parentsOf } from '@/domain/person'
 import { personOrgTagLabels } from '@/domain/orgChart'
 import { itemsInPossession } from '@/domain/loans'
 import { useUiStore } from '@/stores/ui'
@@ -159,6 +187,8 @@ const roleChips = computed(() => {
   return labels
 })
 const orgChips = computed(() => personOrgTagLabels(person.value))
+const familyChildren = computed(() => childrenOf(inventory.people, person.value))
+const familyParents = computed(() => parentsOf(inventory.people, person.value?.id))
 const seasonLabel = computed(() => {
   const summary = adhesionSummary(person.value)
   if (!summary) return isNewMember(person.value) ? 'NEW' : ''

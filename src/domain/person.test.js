@@ -22,6 +22,10 @@ import {
   personAdhesions,
   setAdhesionRecord,
   matchingPeopleForAccount,
+  matchingPeopleForChildrenNames,
+  childrenOf,
+  parentsOf,
+  memberRsvpLabel,
   foldText,
 } from './person.js'
 
@@ -336,5 +340,28 @@ describe('matchingPeopleForAccount', () => {
       signup: { prenom: 'Anne-Marie', nom: 'GIBELOT' },
     })
     assert.deepEqual(matches.map((person) => person.id), ['am-keep'])
+  })
+})
+
+describe('liens de parenté', () => {
+  it('relie les enfants par le prénom et le nom du parent', () => {
+    const lea = normalizePerson({ nom: 'Le Gall', prenom: 'Léa', roles: ['danseur_enfant'] }, { id: 'lea' })
+    const yann = normalizePerson({ nom: 'Le Gall', prenom: 'Yann', roles: ['danseur_ado'] }, { id: 'yann' })
+    const other = normalizePerson({ nom: 'Le Goff', prenom: 'Léa', roles: ['danseur_enfant'] }, { id: 'other' })
+    const matches = matchingPeopleForChildrenNames([lea, yann, other], 'Léa et Yann', 'Le Gall')
+    assert.deepEqual(matches.map((person) => person.id).sort(), ['lea', 'yann'])
+  })
+
+  it('empêche une fiche d’être son propre enfant et calcule parents / enfants', () => {
+    const parent = normalizePerson(
+      { nom: 'Martin', prenom: 'Marie', childIds: ['lea', 'marie'] },
+      { id: 'marie' },
+    )
+    const child = normalizePerson({ nom: 'Martin', prenom: 'Léa' }, { id: 'lea' })
+    assert.deepEqual(parent.childIds, ['lea'])
+    assert.equal(childrenOf([parent, child], parent)[0].id, 'lea')
+    assert.equal(parentsOf([parent, child], 'lea')[0].id, 'marie')
+    assert.match(memberRsvpLabel(child, [parent, child], [parent, child]), /enfant/)
+    assert.match(memberRsvpLabel(parent, [parent, child], [parent, child]), /moi/)
   })
 })

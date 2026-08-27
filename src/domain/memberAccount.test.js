@@ -29,6 +29,17 @@ describe('inscription membres', () => {
       childrenNames: 'Léa',
     })
     assert.equal(parent.relation, 'parent')
+    assert.equal(parent.alsoDances, false)
+    const dancingParent = normalizeSignup({
+      prenom: 'Marie',
+      nom: 'Le Gall',
+      relation: 'parent',
+      childrenNames: 'Léa',
+      alsoDances: true,
+    })
+    assert.equal(dancingParent.alsoDances, true)
+    const dancer = normalizeSignup({ prenom: 'Léa', nom: 'Le Gall', relation: 'danseur' })
+    assert.equal(dancer.alsoDances, true)
     assert.throws(
       () => normalizeSignup({ prenom: 'Marie', nom: 'Le Gall', relation: 'parent' }),
       /enfant/,

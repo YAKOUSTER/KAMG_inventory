@@ -110,6 +110,7 @@ export function emptyPerson() {
     tailleLettre: '',
     images: [],
     mesures: emptyMesures(),
+    childIds: [],
     createdAt: '',
     updatedAt: '',
   }
@@ -138,6 +139,7 @@ export function memberSelfProfile(person) {
     tailleLettre: String(person.tailleLettre || '').trim(),
     noteAtelier: String(person.noteAtelier || '').trim(),
     bio: String(person.bio || '').trim(),
+    childIds: normalizeChildIds(person.childIds, person.id),
   }
 }
 
@@ -370,6 +372,73 @@ export function matchingPeopleForAccount(people = [], account = {}) {
   })
 }
 
+export function normalizeChildIds(ids = [], selfId = '') {
+  const self = String(selfId || '').trim()
+  return [...new Set((Array.isArray(ids) ? ids : []).map((id) => String(id || '').trim()).filter((id) => id && id !== self))]
+}
+
+export function splitChildrenNames(value) {
+  return String(value || '')
+    .split(/[,;/\n]| et | & /i)
+    .map((part) => part.trim())
+    .filter(Boolean)
+}
+
+export function matchingPeopleForChildrenNames(people = [], childrenNames, parentNom = '') {
+  const names = splitChildrenNames(childrenNames).map((name) => foldText(name)).filter(Boolean)
+  if (!names.length) return []
+  const parentFold = foldText(parentNom)
+  const byId = new Map()
+  for (const name of names) {
+    const parts = name.split(/\s+/).filter(Boolean)
+    const candidates = (people || []).filter((person) => {
+      if (!person?.id) return false
+      const prenom = foldText(person.prenom)
+      const nom = foldText(person.nomUsage || person.nom)
+      const legalNom = foldText(person.nom)
+      const full = [prenom, nom].filter(Boolean).join(' ')
+      const legal = [prenom, legalNom].filter(Boolean).join(' ')
+      if (full === name || legal === name) return true
+      if (parts.length >= 2 && prenom === parts[0] && (nom === parts.slice(1).join(' ') || legalNom === parts.slice(1).join(' '))) {
+        return true
+      }
+      return parts.length === 1 && prenom === parts[0]
+    })
+    if (candidates.length === 1) {
+      byId.set(candidates[0].id, candidates[0])
+      continue
+    }
+    if (candidates.length > 1 && parentFold) {
+      const sameFamily = candidates.filter(
+        (person) => foldText(person.nomUsage || person.nom) === parentFold || foldText(person.nom) === parentFold,
+      )
+      if (sameFamily.length === 1) byId.set(sameFamily[0].id, sameFamily[0])
+    }
+  }
+  return [...byId.values()]
+}
+
+export function childrenOf(people = [], person) {
+  const ids = new Set(normalizeChildIds(person?.childIds, person?.id))
+  return sortPeople((people || []).filter((entry) => ids.has(entry.id)))
+}
+
+export function parentsOf(people = [], personId) {
+  const id = String(personId || '').trim()
+  if (!id) return []
+  return sortPeople(
+    (people || []).filter((person) => person?.id && person.id !== id && normalizeChildIds(person.childIds, person.id).includes(id)),
+  )
+}
+
+export function memberRsvpLabel(person, people = [], profiles = []) {
+  const name = personDisplayName(person)
+  if (!person?.id) return name
+  if (parentsOf(people.length ? people : profiles, person.id).length) return `${name} (enfant)`
+  if ((profiles || []).length > 1) return `${name} (moi)`
+  return name
+}
+
 export function matchesSearch(haystack, query) {
   const foldedQuery = foldText(query)
   if (!foldedQuery) return true
@@ -566,6 +635,7 @@ export function normalizePerson(input = {}, { id, now } = {}) {
   person.nomUsage = String(person.nomUsage || '').trim().toLocaleUpperCase('fr')
   person.roles = normalizeRoles(person)
   person.tags = normalizeOrgTags(person)
+  person.childIds = normalizeChildIds(person.childIds || person.children, person.id)
   const eligible = canHaveSeasons(person)
   if (!eligible) {
     person.adhesions = []

@@ -37,6 +37,8 @@ import {
   personAdhesions,
   paymentMethodLabel,
   matchingPeopleForAccount,
+  matchingPeopleForChildrenNames,
+  normalizeChildIds,
 } from '../src/domain/person.js'
 import { parseSeasonId } from '../src/domain/seasons.js'
 import { todayLocal, formatDate } from '../src/domain/dates.js'
@@ -519,6 +521,7 @@ export async function createPerson(payload, options = {}) {
   return withDb((db) => {
     const person = runDomain(normalizePerson, payload, { id: randomUUID() })
     db.people.push(person)
+    applyFamilyLinks(db, person.id, { childIds: person.childIds, parentIds: payload.parentIds })
     appendAudit(db, options.actor, {
       action: 'person.create',
       entityType: 'person',
@@ -526,7 +529,7 @@ export async function createPerson(payload, options = {}) {
       entityLabel: personLabel(person),
       summary: `Création de la personne ${personLabel(person)}`,
     })
-    return person
+    return db.people.find((entry) => entry.id === person.id) || person
   }, options)
 }
 
@@ -536,6 +539,7 @@ export async function updatePerson(id, payload, options = {}) {
     if (index === -1) throw Object.assign(new Error('Personne introuvable'), { status: 404 })
     const person = runDomain(normalizePerson, { ...db.people[index], ...payload, id }, { id })
     db.people[index] = person
+    applyFamilyLinks(db, person.id, { childIds: person.childIds, parentIds: payload.parentIds })
     appendAudit(db, options.actor, {
       action: 'person.update',
       entityType: 'person',
@@ -543,7 +547,7 @@ export async function updatePerson(id, payload, options = {}) {
       entityLabel: personLabel(person),
       summary: `Modification de la personne ${personLabel(person)}`,
     })
-    return person
+    return db.people.find((entry) => entry.id === person.id) || person
   }, options)
 }
 
@@ -593,6 +597,9 @@ export async function deletePerson(id, options = {}) {
     const used = db.loans.some((loan) => loan.personId === id)
     if (used) throw Object.assign(new Error('Cette personne a des emprunts enregistrés'), { status: 409 })
     const [removed] = db.people.splice(index, 1)
+    for (const other of db.people) {
+      other.childIds = normalizeChildIds(other.childIds, other.id).filter((personId) => personId !== id)
+    }
     appendAudit(db, options.actor, {
       action: 'person.delete',
       entityType: 'person',
@@ -1735,10 +1742,37 @@ function applySignupTelephoneToPeople(db, user, personIds) {
   }
 }
 
+function applyFamilyLinks(db, personId, { childIds, parentIds } = {}) {
+  const id = String(personId || '').trim()
+  const person = (db.people || []).find((entry) => entry.id === id)
+  if (!person) return
+  const known = new Set((db.people || []).map((entry) => entry.id))
+  if (childIds) {
+    person.childIds = normalizeChildIds(childIds, id).filter((childId) => known.has(childId))
+    for (const other of db.people) {
+      if (!person.childIds.includes(other.id)) continue
+      other.childIds = normalizeChildIds(other.childIds, other.id).filter((entryId) => entryId !== id)
+    }
+  }
+  if (parentIds) {
+    const wanted = new Set(normalizeChildIds(parentIds, id).filter((parentId) => known.has(parentId)))
+    for (const other of db.people) {
+      if (other.id === id) continue
+      const has = normalizeChildIds(other.childIds, other.id).includes(id)
+      const should = wanted.has(other.id)
+      if (should && !has) {
+        other.childIds = normalizeChildIds([...(other.childIds || []), id], other.id)
+        person.childIds = normalizeChildIds(person.childIds, id).filter((childId) => childId !== other.id)
+      } else if (!should && has) {
+        other.childIds = normalizeChildIds(other.childIds, other.id).filter((entryId) => entryId !== id)
+      }
+    }
+  }
+}
+
 function shouldCreatePersonOnPlace(user, payload, matches) {
   if (!payload.createPerson) return false
   if (payload.forceCreate) return true
-  if (user?.signup?.relation === 'parent') return Boolean(payload.createPerson)
   return matches.length === 0
 }
 
@@ -1763,24 +1797,40 @@ export async function placeMember(id, payload = {}, options = {}) {
     }
 
     const personIds = normalizePersonIds(payload.personIds)
-    const isParent = user.signup?.relation === 'parent'
-    const matches = isParent ? [] : matchingPeopleForAccount(db.people || [], user)
-    if (!isParent && matches.length && !payload.forceCreate) {
-      for (const match of matches) {
+    const signup = user.signup || {}
+    const isParent = signup.relation === 'parent'
+    const alsoDances = !isParent || Boolean(signup.alsoDances) || Boolean(payload.alsoDances)
+    const selfMatches = matchingPeopleForAccount(db.people || [], user)
+    const childMatches = matchingPeopleForChildrenNames(
+      db.people || [],
+      signup.childrenNames,
+      signup.nom || user.nom,
+    )
+    if (!payload.forceCreate) {
+      const extras = isParent
+        ? [...childMatches, ...(alsoDances ? selfMatches : [])]
+        : selfMatches
+      for (const match of extras) {
+        if (!personIds.includes(match.id)) personIds.push(match.id)
+      }
+    } else if (isParent) {
+      for (const match of childMatches) {
         if (!personIds.includes(match.id)) personIds.push(match.id)
       }
     }
-    if (shouldCreatePersonOnPlace(user, payload, matches)) {
-      const source = user.signup || {}
+    let createdPersonId = ''
+    if (shouldCreatePersonOnPlace(user, payload, selfMatches)) {
+      const source = signup
       const person = runDomain(normalizePerson, {
         prenom: source.prenom || user.nom,
         nom: source.nom || '',
         email: user.email,
         telephone: source.telephone || '',
-        roles: Array.isArray(payload.roles) ? payload.roles : [],
+        roles: alsoDances && Array.isArray(payload.roles) ? payload.roles : [],
       }, { id: randomUUID() })
       db.people.push(person)
-      personIds.push(person.id)
+      if (!isParent || alsoDances) personIds.push(person.id)
+      createdPersonId = person.id
       appendAudit(db, options.actor, {
         action: 'person.create',
         entityType: 'person',
@@ -1797,6 +1847,26 @@ export async function placeMember(id, payload = {}, options = {}) {
     const unknown = uniqueIds.filter((personId) => !(db.people || []).some((person) => person.id === personId))
     if (unknown.length) {
       throw Object.assign(new Error('Fiche personne introuvable'), { status: 400 })
+    }
+
+    const parentId =
+      String(payload.parentPersonId || '').trim() ||
+      createdPersonId ||
+      (isParent ? selfMatches[0]?.id || '' : '')
+    const requestedChildren = normalizeChildIds(
+      payload.familyChildIds?.length
+        ? payload.familyChildIds
+        : [
+            ...childMatches.map((person) => person.id),
+            ...(isParent ? uniqueIds.filter((personId) => personId !== parentId) : []),
+          ],
+      parentId,
+    )
+    if (parentId && requestedChildren.length) {
+      const parent = db.people.find((person) => person.id === parentId)
+      applyFamilyLinks(db, parentId, {
+        childIds: [...normalizeChildIds(parent?.childIds, parentId), ...requestedChildren],
+      })
     }
 
     user.status = 'active'

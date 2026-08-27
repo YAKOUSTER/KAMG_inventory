@@ -49,7 +49,7 @@
           <p class="text-body-2 text-medium-emphasis mb-4">
             {{
               isParent
-                ? 'Choisissez la ou les fiches des enfants. Les deux parents peuvent être liés à la même fiche.'
+                ? 'Reliez les fiches des enfants. Cochez « Je danse aussi » si le parent a sa propre fiche danseur. Une fiche parent sert au CA à se souvenir de la famille, même s’il ne danse pas.'
                 : 'Reliez à une fiche existante, ou créez-en une et cochez le groupe de danse.'
             }}
           </p>
@@ -57,6 +57,10 @@
             Fiche déjà présente :
             {{ matchedPeople.map((person) => personDisplayName(person)).join(', ') }}.
             Elle sera liée à ce compte — ne créez pas une seconde fiche.
+          </v-alert>
+          <v-alert v-if="matchedChildren.length" type="info" variant="tonal" class="mb-4">
+            Enfant(s) déjà en fiche :
+            {{ matchedChildren.map((person) => personDisplayName(person)).join(', ') }}.
           </v-alert>
           <v-autocomplete
             v-model="personIds"
@@ -69,24 +73,30 @@
             class="mb-4"
           />
           <v-checkbox
-            v-if="!isParent"
-            v-model="createPerson"
-            label="Créer une fiche danseur à partir de cette inscription"
+            v-if="isParent"
+            v-model="alsoDances"
+            label="Le parent danse aussi : relier ou créer sa fiche danseur"
             hide-details
             class="mb-3"
           />
-          <v-alert v-if="!isParent && createPerson && matchedPeople.length" type="warning" variant="tonal" class="mb-3">
+          <v-checkbox
+            v-model="createPerson"
+            :label="isParent ? 'Créer la fiche du parent (pour le CA, même s’il ne danse pas)' : 'Créer une fiche danseur à partir de cette inscription'"
+            hide-details
+            class="mb-3"
+          />
+          <v-alert v-if="createPerson && matchedPeople.length" type="warning" variant="tonal" class="mb-3">
             Une fiche du même nom existe déjà. Cocher « créer » sans « créer quand même » reliera
             cette fiche, sans doublon.
           </v-alert>
           <v-checkbox
-            v-if="!isParent && createPerson && matchedPeople.length"
+            v-if="createPerson && matchedPeople.length"
             v-model="forceCreate"
             label="Créer une nouvelle fiche malgré la correspondance (doublon volontaire)"
             hide-details
             class="mb-3"
           />
-          <div v-if="createPerson" class="mb-2">
+          <div v-if="createPerson && (!isParent || alsoDances)" class="mb-2">
             <div class="text-caption mb-2">Groupe</div>
             <v-chip-group v-model="roles" multiple column>
               <v-chip v-for="role in PERSON_ROLES" :key="role.id" :value="role.id" filter variant="outlined" color="primary">
@@ -109,7 +119,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useDisplay } from 'vuetify'
 import { api } from '@/services/api'
-import { PERSON_ROLES, matchingPeopleForAccount, personDisplayName } from '@/domain/person'
+import { PERSON_ROLES, matchingPeopleForAccount, matchingPeopleForChildrenNames, personDisplayName } from '@/domain/person'
 import { SIGNUP_RELATIONS } from '@/domain/memberAccount'
 import { useInventoryStore } from '@/stores/inventory'
 
@@ -125,12 +135,20 @@ const current = ref(null)
 const personIds = ref([])
 const createPerson = ref(false)
 const forceCreate = ref(false)
+const alsoDances = ref(false)
 const roles = ref([])
 
 const isParent = computed(() => current.value?.signup?.relation === 'parent')
 const matchedPeople = computed(() =>
-  current.value && !isParent.value
-    ? matchingPeopleForAccount(inventory.people, current.value)
+  current.value ? matchingPeopleForAccount(inventory.people, current.value) : [],
+)
+const matchedChildren = computed(() =>
+  current.value && isParent.value
+    ? matchingPeopleForChildrenNames(
+        inventory.people,
+        current.value.signup?.childrenNames,
+        current.value.signup?.nom || current.value.nom,
+      )
     : [],
 )
 const personItems = computed(() =>
@@ -156,12 +174,20 @@ async function load() {
 
 function openPlace(account) {
   current.value = account
-  const matches =
-    account.signup?.relation === 'parent' ? [] : matchingPeopleForAccount(inventory.people, account)
-  personIds.value = matches.map((person) => person.id)
-  createPerson.value = account.signup?.relation !== 'parent' && matches.length === 0
+  const parent = account.signup?.relation === 'parent'
+  const selfMatches = matchingPeopleForAccount(inventory.people, account)
+  const childMatches = parent
+    ? matchingPeopleForChildrenNames(
+        inventory.people,
+        account.signup?.childrenNames,
+        account.signup?.nom || account.nom,
+      )
+    : []
+  personIds.value = parent ? childMatches.map((person) => person.id) : selfMatches.map((person) => person.id)
+  alsoDances.value = Boolean(account.signup?.alsoDances)
+  createPerson.value = selfMatches.length === 0
   forceCreate.value = false
-  roles.value = account.signup?.relation === 'parent' ? [] : ['danseur_loisir']
+  roles.value = parent && !account.signup?.alsoDances ? [] : ['danseur_loisir']
   error.value = ''
   dialog.value = true
 }
@@ -175,6 +201,8 @@ async function save() {
       personIds: personIds.value,
       createPerson: createPerson.value,
       forceCreate: Boolean(createPerson.value && forceCreate.value),
+      alsoDances: Boolean(alsoDances.value),
+      familyChildIds: isParent.value ? personIds.value : [],
       roles: roles.value,
     })
     dialog.value = false

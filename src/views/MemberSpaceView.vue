@@ -295,7 +295,7 @@ import {
   storePresencePersonId,
   summarizePresences,
 } from '@/domain/presence'
-import { personDisplayName } from '@/domain/person'
+import { memberRsvpLabel } from '@/domain/person'
 import CalendarSubscribePanel from '@/components/CalendarSubscribePanel.vue'
 import GroupFilterBar from '@/components/GroupFilterBar.vue'
 import MemberBlogPanel from '@/components/MemberBlogPanel.vue'
@@ -361,7 +361,7 @@ const upcomingCards = computed(() =>
 )
 const personItems = computed(() =>
   (data.value?.profiles || []).map((person) => ({
-    title: personDisplayName(person),
+    title: memberRsvpLabel(person, data.value?.people || [], data.value?.profiles || []),
     value: person.id,
   })),
 )

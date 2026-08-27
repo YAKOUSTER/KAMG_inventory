@@ -58,6 +58,13 @@
           rows="2"
           class="login-field"
         />
+        <v-checkbox
+          v-if="relation === 'parent'"
+          v-model="alsoDances"
+          label="Je danse aussi (ado, loisir, tremplin…)"
+          hide-details
+          class="login-field"
+        />
         <v-textarea
           v-model="message"
           label="Message pour le bureau (facultatif)"
@@ -101,6 +108,7 @@ const password = ref('')
 const telephone = ref('')
 const relation = ref('danseur')
 const childrenNames = ref('')
+const alsoDances = ref(false)
 const message = ref('')
 const show = ref(false)
 const loading = ref(false)
@@ -119,6 +127,7 @@ async function submit() {
       telephone: telephone.value,
       relation: relation.value,
       childrenNames: childrenNames.value,
+      alsoDances: alsoDances.value,
       message: message.value,
     })
     router.replace('/espace-membre')
