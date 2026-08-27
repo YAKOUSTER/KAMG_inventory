@@ -14,6 +14,7 @@ export const ORG_CHART_SECTIONS = [
   {
     id: 'ca',
     label: 'Conseil d’Administration',
+    icon: 'mdi-account-tie',
     slots: [
       { id: 'ca_president', label: 'Président(e)' },
       { id: 'ca_vice_president', label: 'Vice-Président(e)' },
@@ -27,6 +28,7 @@ export const ORG_CHART_SECTIONS = [
   {
     id: 'loisir',
     label: 'Groupe Loisir',
+    icon: 'mdi-music',
     slots: [
       { id: 'loisir_resp_a', label: 'Responsable groupe A', multiple: true },
       { id: 'loisir_resp_b', label: 'Responsable groupe B', multiple: true },
@@ -42,6 +44,7 @@ export const ORG_CHART_SECTIONS = [
   {
     id: 'enfants',
     label: 'Groupe Enfants (Korrigan et Bugale)',
+    icon: 'mdi-human-male-child',
     slots: [
       { id: 'enfants_responsable', label: 'Responsable' },
       { id: 'enfants_moniteur', label: 'Moniteur(s)', multiple: true },
@@ -58,6 +61,7 @@ export const ORG_CHART_SECTIONS = [
   {
     id: 'ado',
     label: 'Groupe Ado',
+    icon: 'mdi-account-school-outline',
     slots: [
       { id: 'ado_co_responsable', label: 'Co-responsable', multiple: true },
       { id: 'ado_moniteur', label: 'Moniteurs', multiple: true },
@@ -74,6 +78,7 @@ export const ORG_CHART_SECTIONS = [
   {
     id: 'tremplin',
     label: 'Groupe Tremplin',
+    icon: 'mdi-trending-up',
     slots: [
       { id: 'tremplin_responsable', label: 'Responsable' },
       { id: 'tremplin_moniteur', label: 'Moniteurs', multiple: true },
@@ -89,6 +94,7 @@ export const ORG_CHART_SECTIONS = [
   {
     id: 'concours',
     label: 'Groupe Concours',
+    icon: 'mdi-trophy-outline',
     slots: [
       { id: 'concours_co_responsable', label: 'Co-responsable du groupe Concours', multiple: true },
     ],
@@ -96,6 +102,7 @@ export const ORG_CHART_SECTIONS = [
       {
         id: 'trad',
         label: 'Commission Trad’',
+        icon: 'mdi-music-note',
         slots: [
           { id: 'trad_penn', label: 'Penn Trad' },
           { id: 'trad_membre', label: 'Membre de la commission Trad’', multiple: true },
@@ -104,6 +111,7 @@ export const ORG_CHART_SECTIONS = [
       {
         id: 'artistique',
         label: 'Commission Artistique',
+        icon: 'mdi-palette-outline',
         slots: [
           { id: 'art_penn', label: 'Penn Artistique' },
           { id: 'art_scenique', label: 'Référent(e) scénique' },
@@ -127,6 +135,7 @@ export const ORG_CHART_SECTIONS = [
   {
     id: 'vetement',
     label: 'Groupe Vêtement',
+    icon: 'mdi-hanger',
     slots: [
       { id: 'vetement_atelier', label: 'Responsable atelier/stage' },
       { id: 'vetement_inventaire', label: 'Responsable inventaire/collection' },
@@ -136,6 +145,7 @@ export const ORG_CHART_SECTIONS = [
       {
         id: 'collectage',
         label: 'Commission Collectage',
+        icon: 'mdi-book-search-outline',
         slots: [
           { id: 'collectage_membre', label: 'Membre de la commission Collectage', multiple: true },
         ],
@@ -145,6 +155,7 @@ export const ORG_CHART_SECTIONS = [
   {
     id: 'logistique',
     label: 'Commission logistique',
+    icon: 'mdi-truck-outline',
     slots: [
       { id: 'log_penn', label: 'Penn logistique' },
       { id: 'log_sortie', label: 'Co-responsable(s) sortie', multiple: true },
@@ -154,6 +165,7 @@ export const ORG_CHART_SECTIONS = [
   {
     id: 'communication',
     label: 'Commission Communication',
+    icon: 'mdi-bullhorn-outline',
     slots: [
       { id: 'com_penn', label: 'Penn communication' },
       { id: 'com_membre', label: 'Membres de la commission communication', multiple: true },
@@ -259,6 +271,7 @@ function leftoverSection(people) {
   return {
     id: ORG_LEFTOVER_SECTION_ID,
     label: ORG_LEFTOVER_LABEL,
+    icon: 'mdi-account-heart-outline',
     slots: [
       {
         id: ORG_LEFTOVER_SLOT_ID,

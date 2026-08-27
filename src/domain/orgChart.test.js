@@ -38,6 +38,7 @@ describe('orgChartFromPeople', () => {
     )
 
     const ca = chart.find((section) => section.id === 'ca')
+    assert.equal(ca.icon, 'mdi-account-tie')
     assert.deepEqual(ca.slots.map((slot) => slot.id), ['ca_president', 'ca_membre'])
     assert.deepEqual(ca.slots[0].people.map((person) => person.id), ['1'])
 
@@ -79,6 +80,7 @@ describe('orgChartFromPeople', () => {
     assert.deepEqual(ca.slots.flatMap((slot) => slot.people.map((person) => person.id)), ['ca'])
     const leftover = chart.find((section) => section.id === ORG_LEFTOVER_SECTION_ID)
     assert.equal(leftover.label, 'Adhérents actifs hors groupes, commissions ou CA')
+    assert.equal(leftover.icon, 'mdi-account-heart-outline')
     assert.deepEqual(leftover.slots[0].people.map((person) => person.id), ['hors'])
   })
 })
