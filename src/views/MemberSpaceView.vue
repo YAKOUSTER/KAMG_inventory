@@ -138,7 +138,11 @@
       </div>
 
       <div v-if="infosVisited" v-show="tab === 'infos'" class="member-space__panel">
-        <MemberBlogPanel :pages="data.pages" :article-id="pendingArticleId" />
+        <MemberBlogPanel
+          :pages="data.pages"
+          :article-id="pendingArticleId"
+          :lot-id="pendingInfosCategory"
+        />
       </div>
 
       <div v-show="tab === 'groupe'" class="member-space__panel">

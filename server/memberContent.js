@@ -5,7 +5,7 @@ import { normalizeContentPage } from '../src/domain/content.js'
 import { SUPERSEDED_BY_GLIDE_IMPORT } from './glideSujetsImport.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-export const MEMBER_CONTENT_VERSION = 8
+export const MEMBER_CONTENT_VERSION = 9
 
 /** Anciennes pages du jeu d'exemple remplacées par member-pages.json */
 export const LEGACY_SUPERSEDED_PAGE_IDS = new Set([

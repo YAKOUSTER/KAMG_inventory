@@ -41,7 +41,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { api } from '@/services/api'
-import { CONTENT_CATEGORIES, sortContentPages } from '@/domain/content'
+import { CONTENT_CATEGORIES, resolveContentCategory, sortContentPages } from '@/domain/content'
 
 const auth = useAuthStore()
 const pages = ref([])
@@ -50,14 +50,16 @@ const categoryFilter = ref('Tout')
 const categoryItems = [{ title: 'Tout', value: 'Tout' }, ...CONTENT_CATEGORIES.map((cat) => ({ title: cat.label, value: cat.id }))]
 
 const filtered = computed(() =>
-  pages.value.filter((page) => categoryFilter.value === 'Tout' || page.categorie === categoryFilter.value),
+  pages.value.filter(
+    (page) => categoryFilter.value === 'Tout' || resolveContentCategory(page) === categoryFilter.value,
+  ),
 )
 
 const grouped = computed(() => {
   const sorted = sortContentPages(filtered.value)
   return CONTENT_CATEGORIES.map((category) => ({
     ...category,
-    pages: sorted.filter((page) => page.categorie === category.id),
+    pages: sorted.filter((page) => resolveContentCategory(page) === category.id),
   })).filter((group) => group.pages.length)
 })
 

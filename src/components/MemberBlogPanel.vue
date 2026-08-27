@@ -106,87 +106,60 @@
     </template>
 
     <template v-else>
-      <div class="member-blog__filters d-flex flex-wrap ga-2 mb-4">
-        <v-chip
-          :color="categoryFilter === 'tous' ? 'primary' : undefined"
-          :variant="categoryFilter === 'tous' ? 'flat' : 'outlined'"
-          size="small"
-          class="text-none"
-          @click="categoryFilter = 'tous'"
+      <nav v-if="lots.length > 1" class="member-blog__lots-nav" aria-label="Rubriques">
+        <a
+          v-for="lot in lots"
+          :key="lot.id"
+          class="member-blog__lots-link"
+          href="#infos"
+          @click.prevent="scrollToLot(lot.id)"
         >
-          Tous
-        </v-chip>
-        <v-chip
-          v-for="category in availableCategories"
-          :key="category.id"
-          :color="categoryFilter === category.id ? 'primary' : undefined"
-          :variant="categoryFilter === category.id ? 'flat' : 'outlined'"
-          size="small"
-          class="text-none"
-          @click="categoryFilter = category.id"
-        >
-          <v-icon start size="14">{{ category.icon }}</v-icon>
-          {{ category.label }}
-        </v-chip>
-      </div>
+          {{ lot.label }}
+        </a>
+      </nav>
 
-      <div v-if="filteredPages.length" class="member-blog__feed">
-        <article
-          v-for="page in filteredPages"
-          :key="page.id"
-          class="member-blog-card"
-          tabindex="0"
-          role="button"
-          @click="openArticle(page.id)"
-          @keydown.enter="openArticle(page.id)"
-        >
-          <figure v-if="coverMedia(page)" class="member-blog-card__cover">
-            <CoverImage
-              :src="coverMedia(page).url"
-              :alt="coverMedia(page).legende || page.titre"
-            />
-          </figure>
-          <div v-else class="member-blog-card__cover member-blog-card__cover--placeholder">
-            <v-icon size="24" color="primary">{{ categoryMeta(page.categorie).icon }}</v-icon>
-          </div>
+      <section v-for="lot in lots" :id="`lot-${lot.id}`" :key="lot.id" class="member-blog-lot">
+        <h2 class="member-blog-lot__title">{{ lot.label }}</h2>
+        <div class="member-blog-lot__pages">
+          <button
+            v-for="page in lot.pages"
+            :key="page.id"
+            type="button"
+            class="member-blog-lot__page"
+            @click="openArticle(page.id)"
+          >
+            <span class="member-blog-lot__page-title">{{ page.titre }}</span>
+            <v-icon size="18">mdi-chevron-right</v-icon>
+          </button>
+        </div>
+      </section>
 
-          <div class="member-blog-card__body">
-            <v-chip size="x-small" variant="tonal" color="primary" class="text-none mb-1">
-              {{ categoryMeta(page.categorie).label }}
-            </v-chip>
-            <h3 class="member-blog-card__title">{{ page.titre }}</h3>
-            <p class="member-blog-card__excerpt">{{ cardExcerpt(page) }}</p>
-          </div>
-        </article>
-      </div>
-
-      <v-alert v-else type="info" variant="tonal">Aucun article pour ce filtre.</v-alert>
+      <v-alert v-if="!lots.length" type="info" variant="tonal">Aucun article publié.</v-alert>
     </template>
   </div>
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { api } from '@/services/api'
 import {
-  CONTENT_CATEGORIES,
   articleLayout,
   contentCategoryMeta,
   contentCoverMedia,
-  contentExcerpt,
   filterPublishedPages,
+  groupPagesByCategory,
 } from '@/domain/content'
 import CoverImage from '@/components/CoverImage.vue'
 
 const props = defineProps({
   pages: { type: Array, default: () => [] },
   articleId: { type: String, default: '' },
+  lotId: { type: String, default: '' },
 })
 
 const route = useRoute()
 const router = useRouter()
-const categoryFilter = ref(route.query.categorie || 'tous')
 const selectedArticleId = ref(props.articleId || route.query.article || '')
 const fullPages = ref({})
 const articleLoading = ref(false)
@@ -194,15 +167,9 @@ const articleError = ref('')
 
 const publishedPages = computed(() => filterPublishedPages(props.pages))
 
-const availableCategories = computed(() => {
-  const ids = new Set(publishedPages.value.map((page) => page.categorie))
-  return CONTENT_CATEGORIES.filter((category) => ids.has(category.id))
-})
+const lots = computed(() => groupPagesByCategory(publishedPages.value))
 
-const filteredPages = computed(() => {
-  if (categoryFilter.value === 'tous') return publishedPages.value
-  return publishedPages.value.filter((page) => page.categorie === categoryFilter.value)
-})
+const activeLotId = computed(() => String(props.lotId || route.query.categorie || '').trim())
 
 const selectedPage = computed(() =>
   publishedPages.value.find((page) => page.id === selectedArticleId.value) || null,
@@ -214,11 +181,22 @@ const selectedLayout = computed(() =>
   fullArticle.value ? articleLayout(fullArticle.value) : { sections: [], gallery: [] },
 )
 
+function scrollToLot(categoryId) {
+  const id = String(categoryId || '').trim()
+  if (!id) return
+  const el = document.getElementById(`lot-${id}`)
+  el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
 watch(
-  () => route.query.categorie,
-  (value) => {
-    if (value) categoryFilter.value = value
+  () => [activeLotId.value, selectedArticleId.value, lots.value.map((lot) => lot.id).join('|')],
+  ([lotId, articleId]) => {
+    if (!lotId || articleId) return
+    nextTick(() => {
+      requestAnimationFrame(() => scrollToLot(lotId))
+    })
   },
+  { immediate: true },
 )
 
 watch(
@@ -281,11 +259,6 @@ function coverMedia(page) {
   return contentCoverMedia(page)
 }
 
-function cardExcerpt(page) {
-  if (page?.excerpt) return page.excerpt
-  return contentExcerpt(page?.corps)
-}
-
 function openArticle(id) {
   selectedArticleId.value = id
   window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -311,93 +284,74 @@ function closeArticle() {
   cursor: pointer;
 }
 
-.member-blog__feed {
-  display: grid;
-  gap: 10px;
-}
-
-@media (min-width: 640px) {
-  .member-blog__feed {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (min-width: 960px) {
-  .member-blog__feed {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-@media (min-width: 1280px) {
-  .member-blog__feed {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-}
-
-.member-blog-card {
+.member-blog__lots-nav {
   display: flex;
-  flex-direction: column;
-  background: #fff;
-  border: 1px solid var(--kamg-border);
-  border-radius: 14px;
-  box-shadow: var(--kamg-shadow);
-  overflow: hidden;
-  cursor: pointer;
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.75rem;
+  margin-bottom: 1.25rem;
 }
 
-.member-blog-card:hover,
-.member-blog-card:focus-visible {
-  box-shadow: var(--kamg-shadow-hover);
-  transform: translateY(-2px);
+.member-blog__lots-link {
+  color: var(--kamg-deep);
+  font-size: 0.88rem;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.member-blog__lots-link:hover,
+.member-blog__lots-link:focus-visible {
+  text-decoration: underline;
   outline: none;
 }
 
-.member-blog-card__cover {
-  margin: 0;
-  aspect-ratio: 4 / 3;
-  max-height: 140px;
-  background: rgba(71, 91, 145, 0.06);
-  overflow: hidden;
+.member-blog-lot {
+  scroll-margin-top: 1rem;
+  margin-bottom: 1.6rem;
 }
 
-.member-blog-card__cover :deep(img) {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.member-blog-lot__title {
+  margin: 0 0 0.55rem;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--kamg-ink);
 }
 
-.member-blog-card__cover--placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.member-blog-card__body {
+.member-blog-lot__pages {
   display: flex;
   flex-direction: column;
-  flex: 1;
-  padding: 10px 12px 12px;
+  gap: 0.4rem;
 }
 
-.member-blog-card__title {
-  margin: 0 0 4px;
-  font-size: 0.92rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.25;
+.member-blog-lot__page {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--kamg-border);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: var(--kamg-shadow);
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
 }
 
-.member-blog-card__excerpt {
-  margin: 0;
-  flex: 1;
-  font-size: 0.78rem;
-  line-height: 1.4;
-  color: rgba(44, 51, 44, 0.72);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+.member-blog-lot__page:hover,
+.member-blog-lot__page:focus-visible {
+  border-color: rgba(83, 115, 106, 0.28);
+  box-shadow: var(--kamg-shadow-hover);
+  outline: none;
+}
+
+.member-blog-lot__page-title {
+  font-size: 0.98rem;
+  font-weight: 650;
+  line-height: 1.3;
 }
 
 .member-blog-article {
@@ -545,10 +499,5 @@ function closeArticle() {
   margin-top: 6px;
   font-size: 0.86rem;
   color: rgba(44, 51, 44, 0.68);
-}
-
-.member-blog__filters {
-  overflow-x: auto;
-  padding-bottom: 2px;
 }
 </style>

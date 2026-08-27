@@ -177,7 +177,7 @@ const mediaTypeItems = [
 ]
 
 const form = reactive({
-  categorie: 'presentation',
+  categorie: 'vie_associative',
   titre: '',
   corps: '',
   ordre: 0,

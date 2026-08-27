@@ -29,7 +29,7 @@
     <section class="member-home__section">
       <div class="member-home__head">
         <div>
-          <h2 class="member-home__title">📣 Actualité du cercle</h2>
+          <h2 class="member-home__title">📣 Actualité du groupe</h2>
           <p class="member-home__intro">Que se passe-t-il en ce moment chez les Korriganed</p>
         </div>
         <v-btn variant="text" size="small" class="text-none" @click="emit('open-news')">

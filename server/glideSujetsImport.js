@@ -1,5 +1,6 @@
 /** Import des sujets Glide (export CSV) vers les pages espace membres. */
 
+import { resolveContentCategory } from '../src/domain/content.js'
 import {
   mediaKind as resolveMediaKind,
   normalizeMediaUrl,
@@ -27,10 +28,10 @@ const PAGE_ID_BY_TITLE = {
 
 const CATEGORY_BY_TYPE = {
   'Commencer la danse': 'commencer_danse',
-  'Le vêtement et les coiffures': 'tuto_habillage',
-  'Danses et chants': 'vocabulaire',
+  'Le vêtement et les coiffures': 'terroir',
+  'Danses et chants': 'culture_collectage',
   'La saison 2023-2024': 'newsletter',
-  'Prendre des responsabilités': 'autre',
+  'Prendre des responsabilités': 'commencer_danse',
 }
 
 /** Pages remplacées par l’import CSV (listes danse éclatées, doublons). */
@@ -71,8 +72,11 @@ export function pageIdForRow(row) {
 export function categoryForRow(row) {
   const type = trim(row['Types de sujets'])
   const mapping = CATEGORY_BY_TYPE[type]
-  if (typeof mapping === 'string') return mapping
-  return 'autre'
+  return resolveContentCategory({
+    id: pageIdForRow(row),
+    titre: trim(row.Titre),
+    categorie: typeof mapping === 'string' ? mapping : 'autre',
+  })
 }
 
 function trim(value) {

@@ -1,6 +1,6 @@
 {
   "meta": {
-    "memberContentVersion": 7,
+    "memberContentVersion": 9,
     "source": "Export Glide — App Sujets.csv",
     "importedAt": "2026-08-24T10:48:21.650Z",
     "pageCount": 15
@@ -8,7 +8,7 @@
   "pages": [
     {
       "id": "page-bienvenue",
-      "categorie": "commencer_danse",
+      "categorie": "vie_associative",
       "titre": "Bienvenue",
       "corps": "dans le cercle celtique du Moulin Vert\n\n\n## Qu'est ce qu'un cercle celtique ?\n\nUn cercle celtique est un groupe qui promouvoit la culture bretonne à travers la danse, les modes vestimentaires traditionnelles, la musique... \nAu cercle celtique du Moulin Vert, nous avons même des crêpières qui partagent leurs connaissances/techniques lors des événements et qui font saliver les touristes (avec les crêpes !). \n\nIl existe plusieurs types de cercle celtique : \n- les cercles celtiques non adhérents\n- les cercles celtiques non-classés adhérents à Kenleur\n- les cercles celtiques classés adhérentes à Kenleur\n\nIl y a des cercles celtiques partout dans le monde, et partout en France. \nBeaucoup viennent en Bretagne pendant la saison estivale pour participer au concours.\n\n\n## La confédération Kenleur\n\nKenleur est LA confédération de danse bretonne à laquelle notre cercle celtique est affilié. Il s'agit d'une association avec 8 salariés. Son siège est à Auray. \nSolenn Boënnec et Rozenn Le Roy sont les présidentes.\nMathieu Lamour et Tristan Gloaguen sont les directeurs. \n\nLa confédération permet au cercles adhérents de bénéficier de formations et stages (danses, broderies, chants, histoires, ...), de répartir les cercles celtiques sur les événéments de la saison, d'organiser l'accueil, de contrôler le respects de la tradition, tout en chalengeant la créativité et la modernisation des groupes, aux travers des concours (danses, costumes et spectacles scéniques). \n\nSite internet de Kenleur :\n\nLien : https://www.kenleur.bzh/\n\n\n## Notre cercle du Moulin Vert\n\nNous sommes le cercle celtique qui représente le quartier du Moulin Vert à Quimper. Adhérent à Kenleur, nous nous classons en seconde catégorie. \n\nEn mai 2024, nous avons terminé le championnat et nous sommes arrivés 4ème sur 13, de la seconde catégorie. \nNous avons gagné un trophée en arrivant 3ème pour l'épreuve scénique avec notre spectacle DIVUZUL.\n\nNotre cercle se compose : \n\n• d'un groupe Loisir : apprendre la danse bretonne sans concours et sans représentations en costume\n\n• d'un groupe Enfant : apprentissage progressif de la danse bretonne et saison estivale en costume pour présenter leur spectacle lors d'événements culturels\n\n• d'un groupe Tremplin : nouveau depuis 2022. Pour l'instant il permet surtout de mettre à niveau les jeunes danseurs. Ils ont participé aux concours 2023. \n\n• d'un groupe Concours : apprentissages des danses pour préparer les concours. Nombreuses représentation en costumes. Il s'agit du groupe qui représente officiellement le cercle complet au championnat. \n\n• d'un atelier Costume\n\nA Quimper, il existe 5 cercles celtiques \n- Eostiged Ar Stangala (Kerfeunteun) - catégorie Excellence\n- Danserien Kemper (Ergue-Armel) - 3 ème catégorie\n- Mederien Kemper (Penhars), notre cercle est issu de ce cercle. Ils sont dans la catégorie Label\n- Keltiad (Centre-Ville). Ils ont déménagé à Langolen. C'est une assocation loisir-théâtre maintenant. Ils ne particient pas au championnat.\n\nNous sommes le plus jeune cercle celtique de Quimper, notre groupe a été créé en 2000. Au départ, il s'agissait d'un groupe enfant uniquement.\n\n\n## Le Conseil d'Administration (CA)\n\nLes Conseils d'Administration (CA) ont lieu une fois toutes les trois semaines environ. A l’issue de ceux-ci vous recevrez un compte-rendu par mail. \n \nChaque année, vous serez invité à l'Assemblée Générale (AG) qui se déroule fin septembre ou début octobre. Lors de cette soirée, le conseil d'administration fait un point sur l'année passée, les membres se réunissent et le nouveau conseil d'administration pour l'année suivante est élu grâce à vos votes (des procurations sont possibles).\n\nSi vous voulez participer à la vie de l'association en faisant partie du Conseil d'Administration, vous devez adresser une demande par courrier selon les délais indiqués dans la convocation à l'AG.  \n\nLe CA 2023-2024\n\nPrésident : Pascal NICOL\nVice-Présidente : Lenawenn TOPIN \nSecrétaire : Dany ROCUET\nSecrétaire Adjointe : Audrey ROCUET\nTrésorière : Gaëlle LOUBOUTIN\nTrésorière Adjointe : Maureen GUIARD\n\nLes membres du CA :\nMarine NEDELEC, Sterenn FONSECA, Malo GUIARD, Typhaine SOYER, Christiane LE TREUT et Gaëlle ROBIN.",
       "couverture": {
@@ -44,7 +44,7 @@
     },
     {
       "id": "page-inscription",
-      "categorie": "commencer_danse",
+      "categorie": "vie_associative",
       "titre": "Comment s'inscrire ?",
       "corps": "Les documents d'inscription sont distribués aux nouveaux danseurs lors des premières répétitions et sont à rendre les semaines suivantes. N'hésitez pas à les demander. Nous vous invitons également à lire le règlement intérieur.\n\nDans ces documents, vous trouverez :\n\n- Coordonnées et autorisations, droit à l'image et votre signature concernant le règlement\n- Fiche sanitaire\n\n\n## Le règlement\n\nLien : https://drive.google.com/file/d/1URbRx9xMc2y9a9eFjT8GwZGHXB8UmBZd/view?usp=sharing",
       "couverture": {
@@ -121,7 +121,7 @@
           "ordre": 6
         }
       ],
-      "ordre": 3,
+      "ordre": 1,
       "publie": true,
       "createdAt": "2026-08-24T10:48:21.650Z",
       "updatedAt": "2026-08-24T10:48:21.650Z"
@@ -187,14 +187,14 @@
           "ordre": 7
         }
       ],
-      "ordre": 4,
+      "ordre": 2,
       "publie": true,
       "createdAt": "2026-08-24T10:48:21.650Z",
       "updatedAt": "2026-08-24T10:48:21.650Z"
     },
     {
       "id": "page-communication",
-      "categorie": "commencer_danse",
+      "categorie": "vie_associative",
       "titre": "Nos outils de communication",
       "corps": "Discord, l'application et les mails\n\n\n## 1 / Discord\n\nDiscord est une plateforme de communication en ligne qui fonctionne sur le principe de \"serveurs\". En cliquant sur le lien ci-dessous vous allez rejoindre le \"serveur du cercle du Moulin Vert\". L'application est disponible sur mobile ou sur PC, elle permet à tous de pouvoir échanger, que ce soit par écrit, en appel audio ou même en visioconférence.\n\nLa plateforme propose un service de canaux/channel qui permet de découper les sujets de conversation. \n\nNous l'utilisons pour les échanges instantannés. Vous pouvez prévenir de vos absences en répétitions ou poser des questions.\n\nLien : https://discord.gg/GmZZqaGkBE\n\n\n## 2 / Les mails\n\nLa secrétaire du cercle, Dany, vous enverra des informations importantes via l'adresse mail du cercle c.korriganed@gmail.com.\n\n\n## 3 / Cette application\n\nEt oui, le dernier outil que nous utilsons est cette application qui permet d'avoir des informations sur le cercle, les costumes, le planning des répétitions,...",
       "couverture": {
@@ -204,14 +204,14 @@
         "ordre": 0
       },
       "medias": [],
-      "ordre": 5,
+      "ordre": 3,
       "publie": true,
       "createdAt": "2026-08-24T10:48:21.650Z",
       "updatedAt": "2026-08-24T10:48:21.650Z"
     },
     {
       "id": "page-pays-glazig",
-      "categorie": "tuto_habillage",
+      "categorie": "terroir",
       "titre": "Le Pays Glazig",
       "corps": "Terroir\n\nLe pays Glazig (petit bleu : nom provenant de la couleur de l’étoffe des gilets masculins) est un terroir important puisqu’il regroupe une petite trentaine de communes. Cette zone géographique de forme triangulaire est délimitée par les Montagnes Noires, le Menez Hom, le plateau de Scaër, le cours de l’Odet, du Jet, du Ris et la ria de Combrit. \r\nL’histoire du terroir Glazig est fortement marquée par celle de Quimper, capitale de la Cornouaille.\n\n\n## I/ Début de l'histoire de Quimper\n\nDébutons nos pérégrinations par Quimper. Tout au long de son histoire, cette ville a été un lieu de passage. C’est à l’époque gauloise qu’elle fut fondée ainsi que son port, sur le site actuel de Locmaria. Au Moyen Âge, le centre urbain se déplace en amont au niveau du confluent de l’Odet et du Steir, d’où son nom. Tout comme les remparts, la construction de la cathédrale Saint-Corentin débuta au XIIIe siècle. Cet édifice fut achevé qu’au XIXe siècle par ses deux flèches de 76 mètres. Entre celles-ci trône le roi Gradlon sur son cheval dont la légende, ainsi que celle de Saint-Corentin moine ermite, est liée au terroir glazig.\n\n\n## II / Après la Révolution\n\nAprès la Révolution, l’activité économique s’intensifie. Le port, de plus en plus fréquenté, voit l’aménagement de ses quais. C’est également à cette époque que la ville est choisie en tant que chef-lieu du département. De même au XIXe siècle, les industries sont florissantes, notamment celles des faïenceries implantées depuis 1690. Pendant de longues années, elles seront le fleuron des entreprises quimpéroises. Les faïences sont décorées selon la technique du décor dit « à la touche » basé sur cinq couleurs : le bleu, le vert, le rouge, le jaune et le violet de manganèse. C’est d’ailleurs ce style si particulier, ces personnages bretons et ces décors floraux qui font la réputation de ces faïences à travers le monde.",
       "couverture": null,
@@ -223,7 +223,7 @@
     },
     {
       "id": "page-costume-petit-dimanche",
-      "categorie": "tuto_habillage",
+      "categorie": "terroir",
       "titre": "Le costume de \"Petit dimanche\"",
       "corps": "Coiffure et habillement\n\nCe costume en drap et en velours est le premier costume créé par le cercle. Il se porte dès l'âge de 6 ans. Les plus jeunes pourront le porter avec un bonnet noir perlé.\nOn parle de petit-dimanche car il est plus riche qu'un costume de travail car il comporte du velour et sera porté avec des tabliers en matières également nobles. \n\nLes adultes peuvent l'agrémenter de bijoux.\n\nNéanmoins ce costume est en cours d'une réétude à l'atetier costume afin d'améliorer sa fiche de présentation.\n\n\n## 1 / La coiffure\n\nLa coiffure consiste en un simple chignon. A l'arrière de celui-ci, il faut placer un large peigne.\n\nMatériels : \n- une brosse à cheveux\n- une peigne \n- un élastique\n- un filet de la couleur des cheveux\n- des pinces neiges / à chignons\n- des pinces plates\n- laque et/ou gel\n- large peigne\n\nN'hésitez pas à aller voir la liste des fournitures d'une danseuse dans la rubrique 'Commencer la danse\".\n\nVidéo : https://youtu.be/SOf62Fvaeo4\n\n\n## 2 / Le costume\n\nLe costume se compose de : \n- un corselet à manche longue\n- un corselet\n- une jupe \n- un tablier\n- une coiffe \n\n- collant noir\n- bottines noires à talons ou plates\n\nVers 12 ans, on peut y ajouter un tour de cou. \nPuis dès 15 ans, un sautoir.\n\nVidéo : https://youtu.be/C0AVVdbbgXM",
       "couverture": {
@@ -253,7 +253,7 @@
     },
     {
       "id": "page-costume-velour",
-      "categorie": "tuto_habillage",
+      "categorie": "terroir",
       "titre": "Le costume velour 1935-1938",
       "corps": "Présentation du costume\n\nIl s'agit d'un costume récemment réalisé au sein de l'atelier costume. Les danseuses de la génération Concours 2018-2019 ont initié le projet. Elles ont souhaité créer une collection féminine et masculine plus récente avec des coupes plus ajustées et fluides. Avec l'aide de Christophe Rochet, collectionneur et passionné et de l'atelier costume, elles ont lancé cette nouvelle série.\n\nCette page de l'application expliquera comment le porter et des inspirations de coiffures, bijoux, accessoires.\n\nPour en apprendre plus sur le costume, je vous invite à lire le dossier présentant les recherches et les étapes de conception :\n\nLien : https://drive.google.com/file/d/1jPG-fx-dvdp2rLBwT9PvoPVzqca3uGbP/view?usp=sharing\n\n\n## 1/ Inspiration\n\nVoici la photo qui a inspiré le choix de l'époque. Il s'agit d'une photo issue de la collection personnelle de Christophe Rochet.\n\n\n## 2 / La coiffure\n\nLe style de coiffure est assez varié mais toujours imposant. On retrouve des crans comme dans les années folles, des permanentes bouclées, des \"coques\" basiques, des raies centrales... \n\nSwipes dans les images pour trouver ton style :\n\n\n## 2 / Le costume\n\nLe costume se compose de : \n- un corselet à manche longue et large\n- un corselet\n- une jupe \n- un tablier\n- une coiffe \n- des bijoux\n- des accessoires\n\n- collant noir ou collant chair\n- escarpin de type mocassin, salomé ou babies",
       "couverture": {
@@ -432,7 +432,7 @@
     },
     {
       "id": "page-rond-pagan",
-      "categorie": "vocabulaire",
+      "categorie": "culture_collectage",
       "titre": "Rond de Pagan",
       "corps": "Chant\n\nLà-bas, là-haut sur la colline\nRond de Pagan (Dañs Round)\n\n-----\n\nLà-bas, là-haut sur la colline, là-bas, là-haut sur la colline,\nIl y a des moutons blancs, ran tan plan belle rose,\nIl y a des moutons blancs, belle rose du printemps\n\nC'est la bergère qui les garde,\nAvec son tablier blanc,\n\nUn beau monsieur passant près d'elle,\nElle lui dit tout simplement,\n\nCombien gagnez-vous la belle ?\nCombien gagnez-vous par an,\n\nJe ne gagne pas grand chose,\nL'argent d'un tablier blanc,\n\nVenez avec moi la belle\nJe vous en donnerai autant\n\nVous n'aurez pas grand chose à faire,\nFaire mon lit tout simplement\n\nLe faire et le défaire,\nCoucher avec moi dedans\n\nJe ne couche point avec les hommes,\nCar maman me le défend\n\nN'écoutez pas votre chère mère,\nCar elle en a fait autant\n\nSi elle n'avait pas voulu le faire\nElle n'aurait pas eu d'enfants",
       "couverture": {
@@ -442,14 +442,14 @@
         "ordre": 0
       },
       "medias": [],
-      "ordre": 1,
+      "ordre": 4,
       "publie": true,
       "createdAt": "2026-08-24T10:48:21.650Z",
       "updatedAt": "2026-08-24T10:48:21.650Z"
     },
     {
       "id": "page-pile-menu",
-      "categorie": "vocabulaire",
+      "categorie": "culture_collectage",
       "titre": "Pilé-Menu",
       "corps": "Chant\n\nQue la barbe m'en fume!\nPilé Menu\n\n-----\n\nC'est dans 10 ans, je chante et je ris\nJe bois un coup, je me divertis\nLe lendemain je jure : Que la barbe m'en fume !\nJ'aimerais mieux l'argent dans ma poche,\nEt n'avoir jamais fait la bamboche\n\nC'est dans 9 ans...\n\n\nVidéo : 2:03\n\nEn passant par le moulin blanc\nPilé Menu \n\n---\n\nY a bien dix ans, petit mouton blanc,\nJ'ai vu la meunière du moulin à vent\n« Y a bien dix ans, petit mouton blanc, »\n« J'ai vu la meunière du moulin à vent »\nEt elle voulait que je la caresse\nEt moi qui n'avait pas le temps\nLa belle attendait la belle à tantôt\nJe vous caresserai comme il faut\n« La belle attendait la belle à tantôt »\n« Je vous caresserai comme il faut »\n\nVidéo ci-dessous à 4:56\n\nVidéo : https://www.youtube.com/watch?v=9AXpScIft8E&ab_channel=TristanGloaguen",
       "couverture": null,
@@ -461,26 +461,26 @@
           "ordre": 0
         }
       ],
-      "ordre": 2,
-      "publie": true,
-      "createdAt": "2026-08-24T10:48:21.650Z",
-      "updatedAt": "2026-08-24T10:48:21.650Z"
-    },
-    {
-      "id": "page-ridee-6-temps",
-      "categorie": "vocabulaire",
-      "titre": "Ridée 6 temps",
-      "corps": "Chant\n\nA la première auberge\nRidée 6 temps\n\n---\n\nÀ la première auberge là nous boirons,\nÀ la première auberge là nous boirons.\nLà nous boirons si les filles sont belles,\nLà nous boirons si le vin est bon.\n\nLégère variante :\n\nÀ la première auberge nous y boirons,\nÀ la première auberge nous y boirons.\nNous y boirons si les filles sont belles,\nNous y boirons si le vin est bon.\n\n(idem avec deuxième, troisième, quatrième, etc.)",
-      "couverture": null,
-      "medias": [],
       "ordre": 3,
       "publie": true,
       "createdAt": "2026-08-24T10:48:21.650Z",
       "updatedAt": "2026-08-24T10:48:21.650Z"
     },
     {
+      "id": "page-ridee-6-temps",
+      "categorie": "culture_collectage",
+      "titre": "Ridée 6 temps",
+      "corps": "Chant\n\nA la première auberge\nRidée 6 temps\n\n---\n\nÀ la première auberge là nous boirons,\nÀ la première auberge là nous boirons.\nLà nous boirons si les filles sont belles,\nLà nous boirons si le vin est bon.\n\nLégère variante :\n\nÀ la première auberge nous y boirons,\nÀ la première auberge nous y boirons.\nNous y boirons si les filles sont belles,\nNous y boirons si le vin est bon.\n\n(idem avec deuxième, troisième, quatrième, etc.)",
+      "couverture": null,
+      "medias": [],
+      "ordre": 2,
+      "publie": true,
+      "createdAt": "2026-08-24T10:48:21.650Z",
+      "updatedAt": "2026-08-24T10:48:21.650Z"
+    },
+    {
       "id": "page-mener-animation",
-      "categorie": "autre",
+      "categorie": "commencer_danse",
       "titre": "Mener une animation",
       "corps": "Animateur/Animatrice\n\nPour chaque sortie, il faut un meneur qui se chargera de parler au nom du cercle. Etes-vous capable de mener une sortie ?\n\n\n## 1 / Type de sortie\n\nIl existe plusieurs types de sorties : \n\n- les sorties défilé et spectacle\n- les sorties défilé, spectacle et animation\n- les sorties animation\n\n\n## 2 / Faire le programme\n\nVous allez animer une sortie, veillez à connaitre à l'avance le temps de prestation et les attendus dans le contrat : \n\n- Horaire d'arrivée ? Horaire de fin ? Est-ce qu'il y a une entracte ? \n- Quels danseurs : enfants, tremplin, concours ?\n- Est-ce qu'il y a des loges pour se changer ? Devons-nous arriver en costume dans ce cas ?\n- Public français ou étranger ?\n- Les musiciens doivent-ils être présents ? S'il s'agit d'une animation hors concours, les organisateurs ont-ils payé un supplément pour avoir des musiciens ?\n- Les musiciens devront-ils faire des balances ?\n- La taille de la scène permet-elle de présenter le spectacle ? \n- Devons-nous stocker des accessoires pour le spectacle ?\n- Les organisateurs souhaitaient-ils un défilé, une présentation de costume, une initiation à la danse, une danse des milles ? \n- Les musiciens présents pourront-ils assurer la présentation du spectacle (s'ils sont que 2 sur 5 par exemple) ? \n- Quel est le répertoire possible des musiciens pour les danses de l'animation ? \n- Les danseurs présents connaissent-ils les danses de leur répertoire ? \n- Une sono sera t-elle mise à disposition ? Devons-nous apporter notre sono et branchements pour les musiciens ? \n- Le public est-il assis ou debout ?\n- Le public pourra-t'il danser ? \n\nLes organisations ne donnent parfois pas d'indications de contenu. C'est donc au meneur et aux musiciens de créer l'ordre de l'animation et de faire des choix selon le public présent. \n\n\n--------------------------Exemple de cas-------------------------\n\nNous avons une sortie de 2h dans une petite fête locale. Il n'y a pas de défilé. Il y a une scène de taille moyenne, les musiciens doivent être présents (les organisateurs ont payé un supplément pour les avoir). \nVoici un exemple de programme d'une durée de 2 heures : \n\n20h : arrivée des danseurs sur le lieu en costume\n20h30 : début de la prestation\n\n1// une danse d'entrée dynamique : 5 min\n2// présentation du cercle au micro par le meneur et phrase d'introduction pour annoncer la suite glazig : 5 min\n3// suite glazig : 15min\n4// présentation costume : 15 minutes\n5// 2-3 danses qui ne sont présentes dans le spectacle : 10min\n6// présentation des concours et de notre spectacle : 5min\n7// spectacle : 20 minutes\n8// initiation à la danse hanter dro et rond de st vincent : 30 minutes \n9// échange et photo avec le public : 10min\n\nRemarque : En général en camping et hotel, on ne peut pas présenter le spectacle, les conditions ne sont pas favorables. C'est donc interessant d'avoir un spectacle de type animation.\n\n\n## 3/ Faire une introduction\n\nEn fonction de la sortie, le public n'est pas le même. \n\nEst-ce qu'il s'agit d'un public averti ? Connait-il le monde des cercles celtiques ? \nParlent-ils français ou une autre langue ? \n\n\nExemple de textes à s'approprier avec ses mots : \n\n\"\"\nBonjour à toutes et à tous, nous sommes ravis d'être à vos côtés {ce soir} ! \n\nNous sommes les Korriganed Ar Meilhoù Glas, le cercle celtique du quartier du Moulin Vert à Quimper. Quimper, capital de la Cornouaille bien connue pour ces faiencerie Henriot. Elle se situe à {une demi-heure d'ici}, n'hésitez pas à y faire un tour lors de votre séjour en Bretagne. Notre cercle est le plus jeune cercle de Quimper, il a été créé en 2000. Quimper a la chance de compter 4 cerce qui représente les différents quartiers, elle est une des seules villes à en compter autant. \nSavez-vous ce qu'est un cercle celtique ? \nUn cercle celtique est une association qui a pour but de promouvoir la culture bretonne à travers la danse, la musique, la mode vestimentaire, le chant,... Nous travaillons toute l'année l'apprentissage des danses à partir de collectages anciens transmis par des référents. Nous créons chaque année, un spectacle pour le présenter à nos concours annuels. \nCe soir nous sommes accompagnés de nos musiciens et nous allons vous présenter différentes danses traditionnelles sous leur forme anciennes et parfois modernisées par des mouvements chorégraphique. Nous vous présenterons également notre création scénique {2024}. \nBelle prestation, à tout à l'heure ! \n\n\"\"\n\n\n## 4/ Choisir les danses\n\nQuand vous choisissez les danses du programme de votre animation, il faut essayer de varier les styles et les dynamiques, tout en pensant à l'épuisement des danseurs. \n\nIl s'agit d'une prestation payée donc nous devons montrer une bonne image du cercle : des costumes bien portés, des sourires, un programme organisé et rythmé, des transitions rapides et de la technique. \n\nNe faites pas durer les danses plus de 2min30 car ça peut donner l'impression d'être interminable pour le public, surtout si c'est uniquement une ronde. En parler avec les musiciens. \n\nLes enchainements entre les danses doivent être nets. Restez sur scène, sortez tous, ... faites des choix propres. \n\nVoir la page avec une liste non exhaustive de danse.\n\n\n## 5/ Présentation des costumes\n\nCe n'est pas obligatoirement le meneur qui présente les costume mais celui-ci doit être là pour ryhtmer la prestation globale. La ou les personnes qui se chargeront de présentation les costumes portés doivent s'adapter aux costumes présents lors de la soirée. \n\n\nFaire une présentation pour expliquer les terroirs de danses, l'identité bretonne à travers le costume...\n\n\n## 6/ Initiation à la danse\n\nL'initiation clôture, en général, la prestation car le public devient l'acteur du moment. Il est important de ne pas bacler ce moment qui donnera la dernière image du cercle. \n\nChoisissez 2 danses simples : \n- Hanter Dro - c'est idéal de commencer avec une danse qui n'a pas de bras\n- Andro\n- Rond de St-Vincent\n- Scottish - interessant quand il y a beaucoup de couples\n- Cercle circassin - très convivial pour les mariages \n\nVoici les étapes : \n\nETAPE 1 \nInformez le public que nous allons faire une initiation à la danse\n\"Maintenant que vous avez pu vous imprégniez de nos pas de danse, C'est à vous de danser ! venez, n'hésitez pas... Nous allons former une grande ronde. Les danseurs vont s'intercaler entre vous pour vous aider...\". \n\nETAPE 2\nInvitez les à se placer en ronde autour de vous et placez vous au centre. Demander leur de ne pas se tenir pour le moment. \n\nETAPE 3 : \nLever votre jupe pour dévoiler vos pieds et montrer d'abord le pas. Il faut rassurer le public. Donner du contexte sur la danse.\n\"Je vais commencer par vous montrer la danse que nous allons apprendre. Elle est très simple. Il s' agit de l'Hanter Dro, une danse du pays Vannetais. On le compte en 4 temps. 1, 2, 3...4.\"\n\nETAPE 4 \nMaintenant que vous avez montrer la danse. N'hésitez pas à relancer les plus timides. \n\"Vous voyez ce n'est pas compliqué, si certains veulent nous rejoindre et tenter quelques pas de danse bretonne, n'hésitez pas c'est encore le moment !\"\n\n\nETAPE 5\nL'apprentissage. \nPrenez le temps de décomposer les pas mais pas trop non plus. Le mimétisme c'est souvent la clé : faites le pas lentement en disant Gauche, Droite, Gauche,... Droite. et enchainez-en plusieurs lentement. Le public va l'avoir très facilement.\n\nETAPE 6 \nFaites tourner quelques pas sans musique en compter. Accélérez progressivement pour arriver à la vitesse réelle. N'oubliez pas d'encourager les danseurs : \"C'est ça !... Vous êtes doués, beaucoup d'entre vous sont prêts à aller sur scène\". \nIl faut que les gens se sentent à l'aise. Mettez les à l'aise avec des petites notes d'humour. Surtout ne laissez pas un silence, parlez !\n\n\nETAPE 7\nDanser en musique. \n\nSi on a des musiciens : n'interrompez pas les danseurs et demandez aux musiciens de commencer à jouer sur vos 1, 2, 3, ...4. La musique doit s'installer progressivement. \n\nSi on est avec enregistrement : annoncer que vous allez mettre la musique.Commencer à compter sur la musique sans danser puis annoncer \"on y va... 1, 2, 3...4\". Comptez sur la musique. \n\n\nETAPE 8 \nLaissez les danser tout en commentant. \nC'est bon ils dansent sur la musique. Vous pouvez aller danser avec eux ou alors continuer de compter pour aider les danseurs qui galèrent. N'hésitez pas à commenter et dire que c'est bien.\n\n\nETAPE 9 \nUne autre danse ? \n\"Je vous propose maintenant d'apprendre une autre danse, ça vous dit\"...\n\n\n## 6/ Clotûrer la soirée\n\nExemple de texte \n\n\"Merci à tous pour votre énergie. Nous espérons que vous avez passé une belle soirée à nos côtés. On espère vous voir bientôt sur des pistes de danse en Fest noz. \n\nN'hésitez pas à nous suivre sur les réseaux sociaux : Facebook et Instagram. Nous avons le QR Code sur notre bannière. \n\nNous sommes disponibles pour prendre quelques photos. N'hésitez pas à nous solliciter ! \n\nMerci, belle soirée et bon séjour. \"",
       "couverture": {
@@ -509,19 +509,19 @@
           "ordre": 2
         }
       ],
-      "ordre": 2,
+      "ordre": 3,
       "publie": true,
       "createdAt": "2026-08-24T10:48:21.650Z",
       "updatedAt": "2026-08-24T10:48:21.650Z"
     },
     {
       "id": "page-liste-danses",
-      "categorie": "autre",
+      "categorie": "culture_collectage",
       "titre": "Liste des danses",
       "corps": "Idées en vrac\n\n\n## Famille des branles anciens\n\n- Hanter Dro\n- En-Dro\n- Dans Trikot\n\n- Rond de Saint-Vincent-sur-Oust\n- Rond de Sautron\n- Rond Paludier (l'en dedans et l'enlevé (2 mode : petits ou grand pas)) \n\n- Ridée 6 temps\n- Ridée de Saint-Gildas\n- Ridée ou Laridé 8 temps\n- Ridée de Saint-Gildas-de-Rhuys\n- Laridé de la côte mode Carnac\n- Laridé mode Baud\n\n- Rond de Sautron (pays de Nantes) \n- Rond de Landéda\n- Rond Pagan\n- Maraichine\n- Pilé-Menu\n- Pachpi / Passepied\n- Tour et en-dedans\n- Poudou-fer (danse jeu)\n\n\n## Suite complète\n\n- Suite Gavotte des montages (ton simple, bal, ton double) \n\n- Suite Gavotte mode Spezet (ton simple, tamm kreiz, ton double) \n\n- Suite de Loudéac (rond, baleu, rond et riqueniée)\n\n- Suite Plinn (ton simple, bal, ton double)\n\n- Suite Glazig (gavotte glazig, bals, jabadao et gavotte d'honneur) \n\n- Suite Bigoudène\n\n- Suite Rouzig\n\n- Suite de l'Aven à la mode Clohars Carnoët (gavotte à 4, bal à 4, bal à 2) \n\n- Suite Dardoup (gavotte à 4, bal à 4, bal à 8)\n\n- Suite Chateauneuf du Faou \n\n- Suite Kernevodez (chaînes en couples, bal en chaînes)\n\n- Suite Treguer (2 rondes : intérieur F et extérieur H, cortège à deux inverse aiguille d'une montre, cortège rapide horaire)\n\n- Suite Fisel (ronde, bal à deux, ronde)\n\n- Suite du Cap Sizun\n\n- Suite du pays Calanhel\n\n- Suite de Poher (gavotte ts, bal, gavotte td)\n\n\n## Les gavottes / Dans Tro\n\n- Gavotte des montagnes\n- Kost Ar C'hoad\n- Gavotte de Plougastel\n- Gavotte Pour let\n\n\n## Dérobée\n\n- Dérobée de Guingamp\n- Dérobée de Brasparts\n- Montfarine de Braspart (vol d'une cavalière)\n\n\n## Danse en cortège\n\n- Kas a-barh (ou En-Dro) mode Carnac-Plouharnel\n- Kas a-barh mode Langedig\n\n\n- - - - - - - - - - - - - - -  Haute-Bretagne - - - - - - - - - - - - -\n\n- Aéroplane\n\n\n## Danse en couple\n\n- Scottish\n- Valse écossaise\n- Mazurka\n- Valse\n- Valse écossaise\n- Polka\n- Galop Nantais\n\n\n## Quadrille\n\n- Avant-deux de travers\n- Avant-deux de St-Martin sur Oust\n- Avant-deux du coglais\n- Avant-deux de Bazouges\n- Avant-deux de ligné les touches\n- Avant-deux de Châteaubriant\n\n\n- Jabadao de Locquenolé (tregor) \n\n\n- Kerouezée (Le Penthievre) - 2 modes",
       "couverture": null,
       "medias": [],
-      "ordre": 3,
+      "ordre": 1,
       "publie": true,
       "createdAt": "2026-08-24T10:48:21.650Z",
       "updatedAt": "2026-08-24T10:48:21.650Z"
