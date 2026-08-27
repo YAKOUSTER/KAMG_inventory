@@ -36,6 +36,7 @@ import {
   normalizePaymentMethod,
   personAdhesions,
   paymentMethodLabel,
+  matchingPeopleForAccount,
 } from '../src/domain/person.js'
 import { parseSeasonId } from '../src/domain/seasons.js'
 import { todayLocal, formatDate } from '../src/domain/dates.js'
@@ -1722,6 +1723,25 @@ function applyAccountEmailToPeople(db, user, personIds) {
   }
 }
 
+function applySignupTelephoneToPeople(db, user, personIds) {
+  const telephone = String(user?.signup?.telephone || '').trim()
+  if (!telephone) return
+  for (const personId of personIds) {
+    const index = (db.people || []).findIndex((person) => person.id === personId)
+    if (index === -1) continue
+    const current = db.people[index]
+    if (String(current.telephone || '').trim()) continue
+    db.people[index] = runDomain(normalizePerson, { ...current, telephone }, { id: current.id })
+  }
+}
+
+function shouldCreatePersonOnPlace(user, payload, matches) {
+  if (!payload.createPerson) return false
+  if (payload.forceCreate) return true
+  if (user?.signup?.relation === 'parent') return Boolean(payload.createPerson)
+  return matches.length === 0
+}
+
 export async function placeMember(id, payload = {}, options = {}) {
   return withDb(async (db) => {
     const user = db.users.find((entry) => entry.id === id)
@@ -1743,7 +1763,14 @@ export async function placeMember(id, payload = {}, options = {}) {
     }
 
     const personIds = normalizePersonIds(payload.personIds)
-    if (payload.createPerson) {
+    const isParent = user.signup?.relation === 'parent'
+    const matches = isParent ? [] : matchingPeopleForAccount(db.people || [], user)
+    if (!isParent && matches.length && !payload.forceCreate) {
+      for (const match of matches) {
+        if (!personIds.includes(match.id)) personIds.push(match.id)
+      }
+    }
+    if (shouldCreatePersonOnPlace(user, payload, matches)) {
       const source = user.signup || {}
       const person = runDomain(normalizePerson, {
         prenom: source.prenom || user.nom,
@@ -1775,6 +1802,7 @@ export async function placeMember(id, payload = {}, options = {}) {
     user.status = 'active'
     user.personIds = uniqueIds
     applyAccountEmailToPeople(db, user, uniqueIds)
+    applySignupTelephoneToPeople(db, user, uniqueIds)
     const access = resolveUserAccess({
       role: user.role,
       custom: user.custom,

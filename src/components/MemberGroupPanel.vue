@@ -9,7 +9,7 @@
       <section v-for="section in chart" :key="section.id" class="org-section">
         <h3 class="org-section__title">{{ section.label }}</h3>
         <div v-for="slot in section.slots" :key="slot.id" class="org-slot">
-          <h4 class="org-slot__title">{{ slot.label }}</h4>
+          <h4 v-if="slot.label" class="org-slot__title">{{ slot.label }}</h4>
           <div class="org-slot__people">
             <MemberPersonCard v-for="person in slot.people" :key="person.id" :person="person" />
           </div>

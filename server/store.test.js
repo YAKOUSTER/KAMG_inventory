@@ -873,6 +873,81 @@ END:VCALENDAR`
     assert.equal(linked.email, 'lea.fiche@cercle.test')
   })
 
+  it('ne crée pas une seconde fiche si le nom existe déjà, même avec des accents différents', async () => {
+    const person = await createPerson(
+      { nom: 'Maherault', prenom: 'Lénaig', roles: ['membre', 'danseur_concours'] },
+      options,
+    )
+    const signup = await registerMember(
+      {
+        prenom: 'Lénaïg',
+        nom: 'MAHÉRAULT',
+        email: 'lenaig.place@cercle.test',
+        password: 'motdepasse',
+        telephone: '0755605561',
+        relation: 'danseur',
+      },
+      options,
+    )
+    const placed = await placeMember(
+      signup.user.id,
+      { createPerson: true, roles: ['danseur_loisir', 'danseur_concours'] },
+      options,
+    )
+    assert.deepEqual(placed.personIds, [person.id])
+    const db = await readDb(options)
+    assert.equal(db.people.length, 1)
+    const linked = await getPerson(person.id, options)
+    assert.equal(linked.telephone, '0755605561')
+    assert.equal(linked.email, 'lenaig.place@cercle.test')
+    assert.deepEqual(linked.roles, ['membre', 'danseur_concours'])
+  })
+
+  it('crée une fiche seulement s’il n’y a pas de correspondance', async () => {
+    const signup = await registerMember(
+      {
+        prenom: 'Rozenn',
+        nom: 'Le Berre',
+        email: 'rozenn.nouvelle@cercle.test',
+        password: 'motdepasse',
+        relation: 'danseur',
+      },
+      options,
+    )
+    const placed = await placeMember(
+      signup.user.id,
+      { createPerson: true, roles: ['danseur_loisir'] },
+      options,
+    )
+    assert.equal(placed.personIds.length, 1)
+    const created = await getPerson(placed.personIds[0], options)
+    assert.equal(created.prenom, 'Rozenn')
+    assert.deepEqual(created.roles, ['danseur_loisir'])
+  })
+
+  it('autorise un doublon volontaire avec forceCreate', async () => {
+    const person = await createPerson({ nom: 'Gibelot', prenom: 'Anne-Marie', roles: ['danseur_tremplin'] }, options)
+    const signup = await registerMember(
+      {
+        prenom: 'Anne-Marie',
+        nom: 'Gibelot',
+        email: 'am.force@cercle.test',
+        password: 'motdepasse',
+        relation: 'danseur',
+      },
+      options,
+    )
+    const placed = await placeMember(
+      signup.user.id,
+      { createPerson: true, forceCreate: true, roles: ['danseur_loisir'] },
+      options,
+    )
+    assert.equal(placed.personIds.length, 1)
+    assert.notEqual(placed.personIds[0], person.id)
+    const db = await readDb(options)
+    assert.equal(db.people.filter((entry) => entry.prenom === 'Anne-Marie').length, 2)
+  })
+
   it('copie l’e-mail du compte quand on lie une fiche ensuite', async () => {
     const person = await createPerson(
       { nom: 'Prigent', prenom: 'Yan', email: 'ancien@cercle.test', roles: ['danseur_concours'] },

@@ -346,6 +346,30 @@ export function foldText(value) {
     .trim()
 }
 
+export function personIdentityKey(person) {
+  return [foldText(person?.prenom), foldText(person?.nomUsage || person?.nom)].filter(Boolean).join('|')
+}
+
+export function matchingPeopleForAccount(people = [], account = {}) {
+  const email = String(account.email || account.login || '')
+    .trim()
+    .toLowerCase()
+  const prenom = foldText(account.signup?.prenom || account.prenom || '')
+  const nom = foldText(account.signup?.nom || '')
+  const fullName = foldText(account.nom || '')
+  return (people || []).filter((person) => {
+    if (!person?.id) return false
+    const personEmail = String(person.email || '').trim().toLowerCase()
+    if (email && email.includes('@') && personEmail === email) return true
+    const personPrenom = foldText(person.prenom)
+    const personNom = foldText(person.nom)
+    const personUsage = foldText(person.nomUsage)
+    if (prenom && nom && personPrenom === prenom && (personNom === nom || personUsage === nom)) return true
+    if (fullName && foldText(personDisplayName(person)) === fullName) return true
+    return false
+  })
+}
+
 export function matchesSearch(haystack, query) {
   const foldedQuery = foldText(query)
   if (!foldedQuery) return true

@@ -1,3 +1,5 @@
+import { isActiveMember } from './person.js'
+
 function personName(person) {
   const prenom = String(person?.prenom || '').trim()
   const nom = String(person?.nomUsage || person?.nom || '').trim()
@@ -235,6 +237,47 @@ function fillSection(section, people) {
   return { ...section, slots, children, afterSlots }
 }
 
-export function orgChartFromPeople(people = []) {
-  return ORG_CHART_SECTIONS.map((section) => fillSection(section, people)).filter(Boolean)
+export const ORG_LEFTOVER_SECTION_ID = 'adherents_hors_groupes'
+export const ORG_LEFTOVER_SLOT_ID = 'adherent_hors_groupe'
+export const ORG_LEFTOVER_LABEL = 'Adhérents actifs hors groupes, commissions ou CA'
+
+function collectChartPersonIds(sections = []) {
+  const ids = new Set()
+  for (const section of sections) {
+    for (const slot of [...(section.slots || []), ...(section.afterSlots || [])]) {
+      for (const person of slot.people || []) {
+        if (person?.id) ids.add(person.id)
+      }
+    }
+    for (const id of collectChartPersonIds(section.children || [])) ids.add(id)
+  }
+  return ids
+}
+
+function leftoverSection(people) {
+  if (!people.length) return null
+  return {
+    id: ORG_LEFTOVER_SECTION_ID,
+    label: ORG_LEFTOVER_LABEL,
+    slots: [
+      {
+        id: ORG_LEFTOVER_SLOT_ID,
+        label: '',
+        multiple: true,
+        people,
+      },
+    ],
+    children: [],
+    afterSlots: [],
+  }
+}
+
+export function orgChartFromPeople(people = [], now = new Date()) {
+  const active = (people || []).filter((person) => isActiveMember(person, now))
+  const chart = ORG_CHART_SECTIONS.map((section) => fillSection(section, active)).filter(Boolean)
+  const placed = collectChartPersonIds(chart)
+  const leftover = sortPeople(active.filter((person) => person?.id && !placed.has(person.id)))
+  const extra = leftoverSection(leftover)
+  if (extra) chart.push(extra)
+  return chart
 }

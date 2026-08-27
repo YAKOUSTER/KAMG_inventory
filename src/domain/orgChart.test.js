@@ -1,6 +1,17 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { orgChartFromPeople, normalizeOrgTags, orgFormSections } from './orgChart.js'
+import {
+  orgChartFromPeople,
+  normalizeOrgTags,
+  orgFormSections,
+  ORG_LEFTOVER_SECTION_ID,
+} from './orgChart.js'
+
+const NOW = new Date('2026-08-27T12:00:00')
+
+function active(person, extra = {}) {
+  return { saisons: ['2025-2026'], adhesions: [{ seasonId: '2025-2026', methode: 'cheque' }], ...person, ...extra }
+}
 
 describe('normalizeOrgTags', () => {
   it('ne garde que les tags d’organigramme connus', () => {
@@ -11,16 +22,16 @@ describe('normalizeOrgTags', () => {
 describe('orgChartFromPeople', () => {
   it('place les responsabilités et les danseurs dans l’ordre demandé', () => {
     const people = [
-      { id: '1', prenom: 'Anna', nom: 'P', tags: ['ca_president'] },
-      { id: '2', prenom: 'Yan', nom: 'V', tags: ['ca_membre'] },
-      { id: '3', prenom: 'Léa', nom: 'L', roles: ['danseur_loisir'] },
-      { id: '4', prenom: 'Mael', nom: 'K', tags: ['enfants_korrigan'], roles: ['danseur_enfant'] },
-      { id: '5', prenom: 'Nora', nom: 'B', roles: ['danseur_enfant'] },
-      { id: '6', prenom: 'Paul', nom: 'C', roles: ['danseur_concours'] },
-      { id: '7', prenom: 'Rozen', nom: 'T', roles: ['danseur_tremplin'] },
-      { id: '8', prenom: 'Soazig', nom: 'A', tags: ['art_penn'] },
+      active({ id: '1', prenom: 'Anna', nom: 'P', tags: ['ca_president'] }),
+      active({ id: '2', prenom: 'Yan', nom: 'V', tags: ['ca_membre'] }),
+      active({ id: '3', prenom: 'Léa', nom: 'L', roles: ['danseur_loisir'] }),
+      active({ id: '4', prenom: 'Mael', nom: 'K', tags: ['enfants_korrigan'], roles: ['danseur_enfant'] }),
+      active({ id: '5', prenom: 'Nora', nom: 'B', roles: ['danseur_enfant'] }),
+      active({ id: '6', prenom: 'Paul', nom: 'C', roles: ['danseur_concours'] }),
+      active({ id: '7', prenom: 'Rozen', nom: 'T', roles: ['danseur_tremplin'] }),
+      active({ id: '8', prenom: 'Soazig', nom: 'A', tags: ['art_penn'] }),
     ]
-    const chart = orgChartFromPeople(people)
+    const chart = orgChartFromPeople(people, NOW)
     assert.deepEqual(
       chart.map((section) => section.id),
       ['ca', 'loisir', 'enfants', 'tremplin', 'concours'],
@@ -44,6 +55,31 @@ describe('orgChartFromPeople', () => {
     assert.equal(art.slots[0].id, 'art_penn')
     const danseurs = concours.afterSlots.find((slot) => slot.id === 'concours_danseur')
     assert.deepEqual(danseurs.people.map((person) => person.id), ['6', '7'])
+  })
+
+  it('n’affiche que les adhérents actifs et range les autres en bas', () => {
+    const people = [
+      active({ id: 'ca', prenom: 'Sterenn', nom: 'F', tags: ['ca_president'] }),
+      {
+        id: 'old',
+        prenom: 'Ancien',
+        nom: 'Membre',
+        tags: ['ca_membre'],
+        saisons: ['2024-2025'],
+        adhesions: [{ seasonId: '2024-2025', methode: 'cheque' }],
+      },
+      active({ id: 'hors', prenom: 'Anne-Marie', nom: 'Gibelot', roles: ['membre'] }),
+    ]
+    const chart = orgChartFromPeople(people, NOW)
+    assert.deepEqual(
+      chart.map((section) => section.id),
+      ['ca', ORG_LEFTOVER_SECTION_ID],
+    )
+    const ca = chart.find((section) => section.id === 'ca')
+    assert.deepEqual(ca.slots.flatMap((slot) => slot.people.map((person) => person.id)), ['ca'])
+    const leftover = chart.find((section) => section.id === ORG_LEFTOVER_SECTION_ID)
+    assert.equal(leftover.label, 'Adhérents actifs hors groupes, commissions ou CA')
+    assert.deepEqual(leftover.slots[0].people.map((person) => person.id), ['hors'])
   })
 })
 

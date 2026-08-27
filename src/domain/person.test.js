@@ -21,6 +21,8 @@ import {
   isActiveMember,
   personAdhesions,
   setAdhesionRecord,
+  matchingPeopleForAccount,
+  foldText,
 } from './person.js'
 
 describe('normalizePerson', () => {
@@ -291,5 +293,48 @@ describe('memberSelfProfile', () => {
     assert.equal(memberSelfProfile(person).nomUsage, 'MARTIN')
     assert.equal(filterPeople([person], { search: 'martin' }).length, 1)
     assert.equal(filterPeople([person], { search: 'dupont' }).length, 1)
+  })
+})
+
+describe('matchingPeopleForAccount', () => {
+  const anneMarie = normalizePerson(
+    { nom: 'Gibelot', prenom: 'Anne-Marie', roles: ['danseur_tremplin'] },
+    { id: 'am-keep' },
+  )
+  const philippe = normalizePerson(
+    { nom: 'Gibelot', prenom: 'Philippe', email: 'philippe.gibelot@orange.fr', roles: ['danseur_loisir'] },
+    { id: 'ph' },
+  )
+  const lenaig = normalizePerson(
+    { nom: 'MAHERAULT', prenom: 'Lénaig', roles: ['danseur_concours'] },
+    { id: 'lenaig-keep' },
+  )
+
+  it('retrouve une fiche par le nom même sans e-mail, accents compris', () => {
+    const matches = matchingPeopleForAccount([anneMarie, philippe, lenaig], {
+      nom: 'Lénaïg MAHÉRAULT',
+      email: 'lenaig.maherault@gmail.com',
+      signup: { prenom: 'Lénaïg', nom: 'MAHÉRAULT' },
+    })
+    assert.deepEqual(matches.map((person) => person.id), ['lenaig-keep'])
+    assert.equal(foldText('Lénaïg MAHÉRAULT'), foldText('Lénaig MAHERAULT'))
+  })
+
+  it('ne confond pas deux homonymes de la même famille', () => {
+    const matches = matchingPeopleForAccount([anneMarie, philippe], {
+      nom: 'Anne-Marie GIBELOT',
+      email: 'am.gibelot@gmail.com',
+      signup: { prenom: 'Anne-Marie', nom: 'GIBELOT' },
+    })
+    assert.deepEqual(matches.map((person) => person.id), ['am-keep'])
+  })
+
+  it('retrouve une fiche par e-mail', () => {
+    const withEmail = { ...anneMarie, email: 'am.gibelot@gmail.com' }
+    const matches = matchingPeopleForAccount([withEmail, philippe], {
+      email: 'am.gibelot@gmail.com',
+      signup: { prenom: 'Anne-Marie', nom: 'GIBELOT' },
+    })
+    assert.deepEqual(matches.map((person) => person.id), ['am-keep'])
   })
 })

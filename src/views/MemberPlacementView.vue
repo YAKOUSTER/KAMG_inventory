@@ -53,6 +53,11 @@
                 : 'Reliez à une fiche existante, ou créez-en une et cochez le groupe de danse.'
             }}
           </p>
+          <v-alert v-if="matchedPeople.length" type="info" variant="tonal" class="mb-4">
+            Fiche déjà présente :
+            {{ matchedPeople.map((person) => personDisplayName(person)).join(', ') }}.
+            Elle sera liée à ce compte — ne créez pas une seconde fiche.
+          </v-alert>
           <v-autocomplete
             v-model="personIds"
             :items="personItems"
@@ -67,6 +72,17 @@
             v-if="!isParent"
             v-model="createPerson"
             label="Créer une fiche danseur à partir de cette inscription"
+            hide-details
+            class="mb-3"
+          />
+          <v-alert v-if="!isParent && createPerson && matchedPeople.length" type="warning" variant="tonal" class="mb-3">
+            Une fiche du même nom existe déjà. Cocher « créer » sans « créer quand même » reliera
+            cette fiche, sans doublon.
+          </v-alert>
+          <v-checkbox
+            v-if="!isParent && createPerson && matchedPeople.length"
+            v-model="forceCreate"
+            label="Créer une nouvelle fiche malgré la correspondance (doublon volontaire)"
             hide-details
             class="mb-3"
           />
@@ -93,7 +109,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useDisplay } from 'vuetify'
 import { api } from '@/services/api'
-import { PERSON_ROLES, personDisplayName } from '@/domain/person'
+import { PERSON_ROLES, matchingPeopleForAccount, personDisplayName } from '@/domain/person'
 import { SIGNUP_RELATIONS } from '@/domain/memberAccount'
 import { useInventoryStore } from '@/stores/inventory'
 
@@ -108,9 +124,15 @@ const dialog = ref(false)
 const current = ref(null)
 const personIds = ref([])
 const createPerson = ref(false)
+const forceCreate = ref(false)
 const roles = ref([])
 
 const isParent = computed(() => current.value?.signup?.relation === 'parent')
+const matchedPeople = computed(() =>
+  current.value && !isParent.value
+    ? matchingPeopleForAccount(inventory.people, current.value)
+    : [],
+)
 const personItems = computed(() =>
   [...inventory.people]
     .map((person) => ({ title: personDisplayName(person), value: person.id }))
@@ -134,8 +156,11 @@ async function load() {
 
 function openPlace(account) {
   current.value = account
-  personIds.value = []
-  createPerson.value = account.signup?.relation !== 'parent'
+  const matches =
+    account.signup?.relation === 'parent' ? [] : matchingPeopleForAccount(inventory.people, account)
+  personIds.value = matches.map((person) => person.id)
+  createPerson.value = account.signup?.relation !== 'parent' && matches.length === 0
+  forceCreate.value = false
   roles.value = account.signup?.relation === 'parent' ? [] : ['danseur_loisir']
   error.value = ''
   dialog.value = true
@@ -149,6 +174,7 @@ async function save() {
     await api.placeMember(current.value.id, {
       personIds: personIds.value,
       createPerson: createPerson.value,
+      forceCreate: Boolean(createPerson.value && forceCreate.value),
       roles: roles.value,
     })
     dialog.value = false
