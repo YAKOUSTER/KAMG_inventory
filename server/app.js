@@ -74,8 +74,31 @@ import { isDisabledUser, isPendingPlacement, normalizePersonIds, DUES_OVERDUE_ME
 import { securityHeaders } from './security.js'
 import { createRateLimiter, loginRateLimitKey, resetRateLimits } from './rateLimit.js'
 import { clientIp, requestOrigin } from './requestMeta.js'
+import { APP_CALENDAR_ICS_ALIASES } from '../src/domain/agendaSettings.js'
 
 export { resetRateLimits, requestOrigin }
+
+function calendarGroupesFromQuery(query) {
+  return String(query?.groupes || '')
+    .split(',')
+    .map((entry) => entry.trim())
+    .filter(Boolean)
+}
+
+async function sendPublicCalendar(req, res) {
+  try {
+    const ics = await getPublicCalendarIcs({ groupes: calendarGroupesFromQuery(req.query) })
+    res.setHeader('Content-Type', 'text/calendar; charset=utf-8')
+    res.setHeader('Content-Disposition', 'inline; filename="kamg.ics"')
+    res.setHeader('Cache-Control', 'public, max-age=300')
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    res.send(ics)
+  } catch (error) {
+    res.status(error.status || 500)
+    res.setHeader('Content-Type', 'text/calendar; charset=utf-8')
+    res.send('BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//KAMG//Gestion KAMG//FR\r\nEND:VCALENDAR\r\n')
+  }
+}
 
 function handle(fn) {
   return async (req, res) => {
@@ -214,30 +237,7 @@ export function createApiApp() {
     authPlacedMember,
     handle((req) => updateMemberProfile(req.user, req.params.personId, req.body || {})),
   )
-  app.get(
-    '/api/public/calendar.ics',
-    createRateLimiter({
-      windowMs: 15 * 60 * 1000,
-      max: 120,
-      keyFn: (req) => clientIp(req) || 'public-ics',
-    }),
-    async (req, res) => {
-      try {
-        const groupes = String(req.query.groupes || '')
-          .split(',')
-          .map((entry) => entry.trim())
-          .filter(Boolean)
-        const ics = await getPublicCalendarIcs({ groupes })
-        res.setHeader('Content-Type', 'text/calendar; charset=utf-8')
-        res.setHeader('Content-Disposition', 'inline; filename="kamg.ics"')
-        res.setHeader('Cache-Control', 'public, max-age=300')
-        res.send(ics)
-      } catch (error) {
-        const status = error.status || 500
-        res.status(status).json({ error: error.message || 'Erreur interne' })
-      }
-    },
-  )
+  app.get(APP_CALENDAR_ICS_ALIASES, sendPublicCalendar)
   app.post(
     '/api/auth/login',
     createRateLimiter({ windowMs: 15 * 60 * 1000, max: 20, keyFn: loginRateLimitKey }),
@@ -552,7 +552,7 @@ export function createProductionApp(distDir) {
   const app = createApiApp()
   app.use(express.static(distDir))
   app.get('*', (req, res, next) => {
-    if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) return next()
+    if (req.path.startsWith('/api') || req.path.startsWith('/uploads') || req.path.endsWith('.ics')) return next()
     res.sendFile(path.join(distDir, 'index.html'))
   })
   return app

@@ -62,13 +62,15 @@ describe('calendar links', () => {
 
   it('pointe l’abonnement Google et iOS vers le flux de l’app', () => {
     const ics = appCalendarIcsUrl('https://kamg.sterennfonseca.fr')
-    assert.equal(ics, 'https://kamg.sterennfonseca.fr/api/public/calendar.ics')
+    assert.equal(ics, 'https://kamg.sterennfonseca.fr/calendrier.ics')
     assert.equal(
       appCalendarWebcalUrl('https://kamg.sterennfonseca.fr'),
-      'webcal://kamg.sterennfonseca.fr/api/public/calendar.ics',
+      'webcal://kamg.sterennfonseca.fr/calendrier.ics',
     )
-    assert.match(googleCalendarSubscribeFromIcsUrl(ics), /calendar\.google\.com/)
-    assert.ok(googleCalendarSubscribeFromIcsUrl(ics).includes(encodeURIComponent(ics)))
+    const google = googleCalendarSubscribeFromIcsUrl(ics)
+    assert.match(google, /calendar\.google\.com/)
+    assert.ok(google.includes(encodeURIComponent('webcal://kamg.sterennfonseca.fr/calendrier.ics')))
+    assert.ok(!google.includes(encodeURIComponent(ics)))
   })
 })
 
@@ -133,7 +135,7 @@ describe('buildCalendarIcs', () => {
     assert.doesNotMatch(adoOnly, /Répétition tremplin/)
     assert.equal(
       appCalendarIcsUrl('https://kamg.sterennfonseca.fr', ['ado', 'tremplin']),
-      'https://kamg.sterennfonseca.fr/api/public/calendar.ics?groupes=ado%2Ctremplin',
+      'https://kamg.sterennfonseca.fr/calendrier.ics?groupes=ado%2Ctremplin',
     )
   })
 

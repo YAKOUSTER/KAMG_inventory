@@ -4,6 +4,10 @@
       Un seul abonnement pour Google, Apple ou Outlook. Choisissez tout le calendrier, ou seulement
       certains groupes.
     </p>
+    <v-alert type="info" variant="tonal" density="compact" class="mb-3">
+      Google Agenda n’accepte pas toujours le bouton. Copiez l’adresse https, puis dans Google :
+      Paramètres → Ajouter un agenda → À partir de l’URL.
+    </v-alert>
     <div class="calendar-subscribe__groups">
       <v-chip
         :color="!selected.length ? 'primary' : undefined"
@@ -52,6 +56,7 @@
         {{ copied ? 'Lien copié' : 'Copier le lien' }}
       </v-btn>
     </div>
+    <p class="calendar-subscribe__url">{{ icsUrl }}</p>
   </div>
 </template>
 
@@ -110,5 +115,12 @@ async function copyLink() {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+}
+
+.calendar-subscribe__url {
+  margin: 10px 0 0;
+  font-size: 0.78rem;
+  word-break: break-all;
+  color: rgba(44, 51, 44, 0.62);
 }
 </style>

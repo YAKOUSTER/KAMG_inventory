@@ -7,7 +7,8 @@ const DEFAULT_AGENDA_SETTINGS = {
   googleCalendarName: 'Sorties — Korriganed Ar Meilhoù Glas',
 }
 
-export const APP_CALENDAR_ICS_PATH = '/api/public/calendar.ics'
+export const APP_CALENDAR_ICS_PATH = '/calendrier.ics'
+export const APP_CALENDAR_ICS_ALIASES = ['/calendrier.ics', '/calendar.ics', '/api/public/calendar.ics']
 
 export function normalizeAgendaSettings(input = {}) {
   const googleCalendarId = String(input.googleCalendarId || DEFAULT_AGENDA_SETTINGS.googleCalendarId).trim()
@@ -37,7 +38,9 @@ export function appCalendarWebcalUrl(origin = '', groupes = []) {
 }
 
 export function googleCalendarSubscribeFromIcsUrl(icsUrl) {
-  return `https://calendar.google.com/calendar/r?cid=${encodeURIComponent(icsUrl)}`
+  const httpsUrl = String(icsUrl || '').trim()
+  const webcalUrl = httpsUrl.replace(/^https:\/\//i, 'webcal://').replace(/^http:\/\//i, 'webcal://')
+  return `https://calendar.google.com/calendar/render?cid=${encodeURIComponent(webcalUrl)}`
 }
 
 export function googleCalendarSubscribeUrl(settings) {

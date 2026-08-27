@@ -136,6 +136,11 @@ describe('API HTTP', () => {
     assert.match(ics.body.raw || '', /SUMMARY:Sortie ICS/)
     assert.match(ics.body.raw || '', /LOCATION:Quimper/)
 
+    const pretty = await request(app, 'GET', '/calendrier.ics')
+    assert.equal(pretty.status, 200)
+    assert.match(String(pretty.headers.get('content-type') || ''), /text\/calendar/)
+    assert.match(pretty.body.raw || '', /SUMMARY:Sortie ICS/)
+
     const draft = await request(app, 'POST', '/api/events', {
       token: login.body.token,
       body: {

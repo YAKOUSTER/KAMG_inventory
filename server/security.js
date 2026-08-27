@@ -20,7 +20,7 @@ export function securityHeaders(req, res, next) {
   res.setHeader('X-Frame-Options', 'SAMEORIGIN')
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
   res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
-  if (req.path !== '/api/public/calendar.ics') {
+  if (req.path !== '/api/public/calendar.ics' && req.path !== '/calendrier.ics' && req.path !== '/calendar.ics') {
     res.setHeader('Content-Security-Policy', CONTENT_SECURITY_POLICY)
   }
   next()

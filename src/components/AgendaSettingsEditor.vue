@@ -8,8 +8,9 @@
     </p>
 
     <v-alert type="info" variant="tonal" class="mb-4">
-      Si un agenda Google ou Apple était déjà abonné à l’ancien calendrier Google du cercle,
-      retirez-le puis abonnez-vous à l’adresse ci-dessous pour éviter les doublons.
+      Pour Google Agenda : copiez l’adresse https, puis ouvrez Google Agenda → Paramètres →
+      Ajouter un agenda → À partir de l’URL. Le bouton ci-dessous tente l’ajout automatique, mais
+      Google le refuse souvent.
     </v-alert>
 
     <div class="form-fields-grid form-fields-grid--2 mb-4">
@@ -22,7 +23,7 @@
       <div class="subscribe-urls__row">
         <v-text-field
           :model-value="icsUrl"
-          label="Adresse ICS (Google Agenda)"
+          label="Adresse https (à coller dans Google Agenda → À partir de l’URL)"
           readonly
           hide-details
           density="comfortable"
