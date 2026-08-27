@@ -109,19 +109,7 @@
           </p>
         </div>
 
-        <div class="member-group-filters">
-          <v-chip
-            v-for="group in eventGroups"
-            :key="group.id"
-            :color="groupFilter === group.id ? 'primary' : undefined"
-            :variant="groupFilter === group.id ? 'flat' : 'outlined'"
-            size="small"
-            class="text-none"
-            @click="groupFilter = group.id"
-          >
-            {{ group.label }}
-          </v-chip>
-        </div>
+        <GroupFilterBar v-model="groupFilter" :items="eventGroups" label="Filtrer par groupe" />
 
         <section v-show="agendaMode === 'events'" id="inscriptions-sorties" class="member-section">
           <div v-if="upcomingCards.length" class="event-poll-list">
@@ -300,6 +288,7 @@ import {
 } from '@/domain/presence'
 import { personDisplayName } from '@/domain/person'
 import CalendarSubscribePanel from '@/components/CalendarSubscribePanel.vue'
+import GroupFilterBar from '@/components/GroupFilterBar.vue'
 import MemberBlogPanel from '@/components/MemberBlogPanel.vue'
 import MemberHomePanel from '@/components/MemberHomePanel.vue'
 import MemberClothingMemo from '@/components/MemberClothingMemo.vue'
@@ -572,15 +561,6 @@ function closeMemberEvent() {
 .member-space__who {
   flex: 1;
   min-width: min(100%, 220px);
-}
-
-.member-group-filters {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 6px;
-  overflow-x: auto;
-  padding-bottom: 8px;
-  margin-bottom: 8px;
 }
 
 .event-poll-list {
