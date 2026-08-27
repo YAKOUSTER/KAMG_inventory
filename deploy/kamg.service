@@ -7,11 +7,9 @@ Type=simple
 WorkingDirectory=/var/www/kamg
 Environment=NODE_ENV=production
 Environment=PORT=4173
-Environment=KAMG_PUBLIC_URL=https://kamg.sterennfonseca.fr
-# Notifications push (gestionnaires) : npm run vapid:generate puis ajouter :
-# Environment=KAMG_VAPID_PUBLIC_KEY=...
-# Environment=KAMG_VAPID_PRIVATE_KEY=...
-# Environment=KAMG_VAPID_SUBJECT=mailto:votre-email@example.com
+Environment=KAMG_PUBLIC_URL=https://kamg.fr
+EnvironmentFile=-/var/www/kamg/data/vapid.env
+# Les clés push sont créées au premier démarrage dans data/vapid.env (hors git).
 ExecStart=/usr/bin/node server/index.js
 Restart=on-failure
 RestartSec=5

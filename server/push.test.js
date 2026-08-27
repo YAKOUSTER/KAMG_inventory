@@ -1,7 +1,16 @@
-import { describe, it } from 'node:test'
+import { describe, it, beforeEach, afterEach } from 'node:test'
 import assert from 'node:assert/strict'
+import { mkdtemp, readFile } from 'node:fs/promises'
+import os from 'node:os'
+import path from 'node:path'
 import { canReceivePushNotifications, publicUser } from '../src/domain/auth.js'
-import { managerSubscriptions, normalizePushSubscription } from './push.js'
+import {
+  managerSubscriptions,
+  normalizePushSubscription,
+  getVapidConfig,
+  ensureVapidKeys,
+  vapidFilePath,
+} from './push.js'
 
 describe('canReceivePushNotifications', () => {
   it('autorise seulement l’administrateur pour le moment', () => {
@@ -53,5 +62,41 @@ describe('normalizePushSubscription', () => {
     )
     assert.equal(entry.userId, 'u1')
     assert.equal(entry.endpoint, 'https://push.example/1')
+  })
+})
+
+describe('ensureVapidKeys', () => {
+  let previousDir
+  let previousPublic
+  let previousPrivate
+
+  beforeEach(async () => {
+    previousDir = process.env.KAMG_DATA_DIR
+    previousPublic = process.env.KAMG_VAPID_PUBLIC_KEY
+    previousPrivate = process.env.KAMG_VAPID_PRIVATE_KEY
+    delete process.env.KAMG_VAPID_PUBLIC_KEY
+    delete process.env.KAMG_VAPID_PRIVATE_KEY
+    process.env.KAMG_DATA_DIR = await mkdtemp(path.join(os.tmpdir(), 'kamg-vapid-'))
+  })
+
+  afterEach(() => {
+    if (previousDir == null) delete process.env.KAMG_DATA_DIR
+    else process.env.KAMG_DATA_DIR = previousDir
+    if (previousPublic == null) delete process.env.KAMG_VAPID_PUBLIC_KEY
+    else process.env.KAMG_VAPID_PUBLIC_KEY = previousPublic
+    if (previousPrivate == null) delete process.env.KAMG_VAPID_PRIVATE_KEY
+    else process.env.KAMG_VAPID_PRIVATE_KEY = previousPrivate
+  })
+
+  it('crée data/vapid.env une fois et le réutilise', async () => {
+    assert.equal(getVapidConfig(), null)
+    const first = ensureVapidKeys()
+    assert.ok(first.publicKey)
+    assert.ok(first.privateKey)
+    const file = await readFile(vapidFilePath(), 'utf8')
+    assert.match(file, /KAMG_VAPID_PUBLIC_KEY=/)
+    const second = ensureVapidKeys()
+    assert.equal(second.publicKey, first.publicKey)
+    assert.equal(second.privateKey, first.privateKey)
   })
 })

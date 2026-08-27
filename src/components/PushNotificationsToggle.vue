@@ -31,7 +31,7 @@ const visible = computed(() => canReceivePushNotifications(auth.user))
 const subtitle = computed(() => {
   if (!supported.value) return 'Non supporté sur ce navigateur'
   if (!enabled.value) return 'Serveur non configuré (VAPID)'
-  return subscribed.value ? 'Emprunts, retours et sorties' : 'Réservé à l’administrateur pour le moment'
+  return subscribed.value ? 'Emprunts, retours et sorties' : 'Alertes emprunts, retours et sorties'
 })
 
 onMounted(refresh)
@@ -49,7 +49,19 @@ async function refresh() {
 }
 
 async function toggle() {
-  if (loading.value || !supported.value || !enabled.value) return
+  if (loading.value) return
+  if (!supported.value) {
+    ui.notify('Notifications non supportées sur ce navigateur. Essayez Chrome ou Firefox, en HTTPS.', {
+      color: 'error',
+    })
+    return
+  }
+  if (!enabled.value) {
+    ui.notify('Les notifications ne sont pas encore configurées sur le serveur. Rechargez la page dans un instant.', {
+      color: 'error',
+    })
+    return
+  }
   loading.value = true
   try {
     const status = subscribed.value ? await disablePushNotifications() : await enablePushNotifications()

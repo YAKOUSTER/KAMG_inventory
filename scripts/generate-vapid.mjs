@@ -1,8 +1,7 @@
 #!/usr/bin/env node
-import webpush from 'web-push'
+import { ensureVapidKeys, vapidFilePath } from '../server/push.js'
 
-const keys = webpush.generateVAPIDKeys()
-console.log('Ajoutez ces variables dans l’environnement du serveur (systemd ou .env) :\n')
+const keys = ensureVapidKeys()
+console.log(`Clés enregistrées dans ${vapidFilePath()}`)
 console.log(`KAMG_VAPID_PUBLIC_KEY=${keys.publicKey}`)
-console.log(`KAMG_VAPID_PRIVATE_KEY=${keys.privateKey}`)
-console.log('KAMG_VAPID_SUBJECT=mailto:votre-email@example.com')
+console.log('La clé privée n’est pas affichée : elle reste dans data/vapid.env (hors git).')

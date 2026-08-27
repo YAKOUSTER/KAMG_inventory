@@ -52,6 +52,9 @@ cp -a data/db.json "$BACKUP/db.json"
 if [[ -d data/uploads ]]; then
   cp -a data/uploads "$BACKUP/uploads"
 fi
+if [[ -f data/vapid.env ]]; then
+  cp -a data/vapid.env "$BACKUP/vapid.env"
+fi
 chown -R www-data:www-data "$APP/data/backups" 2>/dev/null || true
 echo "Sauvegarde : $BACKUP"
 
@@ -68,6 +71,10 @@ PY
 git fetch origin "$BRANCH"
 # Code seulement : db.json et uploads sont dans .gitignore, git ne les remplace pas.
 git checkout -B "$BRANCH" "origin/$BRANCH"
+if [[ -f deploy/kamg.service ]]; then
+  cp deploy/kamg.service /etc/systemd/system/kamg.service
+  systemctl daemon-reload
+fi
 npm ci
 if [[ -f public/logo-source.png ]]; then
   npm run logo:build

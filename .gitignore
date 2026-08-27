@@ -9,6 +9,9 @@ data/uploads/*
 !data/uploads/.gitkeep
 data/backups/
 
+# Clés push (générées sur le serveur, hors git)
+data/vapid.env
+
 # Env
 .env
 .env.local

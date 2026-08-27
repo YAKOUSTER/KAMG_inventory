@@ -1,16 +1,75 @@
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import webpush from 'web-push'
 import { canReceivePushNotifications, publicUser } from '../src/domain/auth.js'
 
-export function getVapidConfig() {
-  const publicKey = process.env.KAMG_VAPID_PUBLIC_KEY || ''
-  const privateKey = process.env.KAMG_VAPID_PRIVATE_KEY || ''
-  const subject = process.env.KAMG_VAPID_SUBJECT || 'mailto:sterenn.fonseca@gmail.com'
+const DEFAULT_SUBJECT = 'mailto:sterenn.fonseca@gmail.com'
+
+function dataDir() {
+  return process.env.KAMG_DATA_DIR
+    ? path.resolve(process.env.KAMG_DATA_DIR)
+    : path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../data')
+}
+
+export function vapidFilePath() {
+  return path.join(dataDir(), 'vapid.env')
+}
+
+function parseEnvFile(text) {
+  const out = {}
+  for (const line of String(text || '').split('\n')) {
+    const trimmed = line.trim()
+    if (!trimmed || trimmed.startsWith('#')) continue
+    const eq = trimmed.indexOf('=')
+    if (eq === -1) continue
+    out[trimmed.slice(0, eq).trim()] = trimmed.slice(eq + 1).trim()
+  }
+  return out
+}
+
+function keysFromSource(source = {}) {
+  const publicKey = String(source.KAMG_VAPID_PUBLIC_KEY || '').trim()
+  const privateKey = String(source.KAMG_VAPID_PRIVATE_KEY || '').trim()
+  const subject = String(source.KAMG_VAPID_SUBJECT || '').trim() || DEFAULT_SUBJECT
   if (!publicKey || !privateKey) return null
   return { publicKey, privateKey, subject }
 }
 
+export function getVapidConfig() {
+  const fromEnv = keysFromSource(process.env)
+  if (fromEnv) return fromEnv
+  const file = vapidFilePath()
+  if (!existsSync(file)) return null
+  try {
+    return keysFromSource(parseEnvFile(readFileSync(file, 'utf8')))
+  } catch {
+    return null
+  }
+}
+
 export function isPushEnabled() {
   return Boolean(getVapidConfig())
+}
+
+export function ensureVapidKeys() {
+  const existing = getVapidConfig()
+  if (existing) return existing
+  const generated = webpush.generateVAPIDKeys()
+  const subject = String(process.env.KAMG_VAPID_SUBJECT || '').trim() || DEFAULT_SUBJECT
+  const file = vapidFilePath()
+  mkdirSync(path.dirname(file), { recursive: true })
+  writeFileSync(
+    file,
+    [
+      `KAMG_VAPID_PUBLIC_KEY=${generated.publicKey}`,
+      `KAMG_VAPID_PRIVATE_KEY=${generated.privateKey}`,
+      `KAMG_VAPID_SUBJECT=${subject}`,
+      '',
+    ].join('\n'),
+    { encoding: 'utf8', mode: 0o640 },
+  )
+  return getVapidConfig()
 }
 
 function subscriptionPayload(entry) {
