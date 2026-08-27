@@ -70,6 +70,17 @@ export function personCanRsvpToEvent(person, event) {
   return personDanceGroups(person).some((id) => required.includes(id))
 }
 
+export function peopleForEventRsvp(people = [], event) {
+  return (people || []).filter((person) => personCanRsvpToEvent(person, event))
+}
+
+export function eventRsvpReservedLabel(event) {
+  const labels = eventAudienceGroups(event).map((id) => eventGroupLabel(id)).filter(Boolean)
+  if (!labels.length) return ''
+  if (labels.length === 1) return `Sondage réservé au groupe ${labels[0]}`
+  return `Sondage réservé aux groupes ${labels.join(', ')}`
+}
+
 export function loansVisibleToMember(loans = [], people = [], memberPersonIds = []) {
   const allowed = new Set(memberPersonIds)
   const mine = people.filter((person) => allowed.has(person.id))

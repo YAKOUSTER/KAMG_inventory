@@ -814,4 +814,28 @@ END:VCALENDAR`
     assert.equal(created.horsCercle, true)
     assert.ok(created.kinds.includes('fest_noz'))
   })
+
+  it('refuse le sondage hors des groupes concernés', async () => {
+    const event = await createEvent(
+      {
+        kinds: ['sortie'],
+        groupes: ['ado', 'tremplin'],
+        titre: 'Sortie ado',
+        debut: '2026-10-01T18:00:00.000Z',
+        inscriptionsOuvertes: true,
+      },
+      options,
+    )
+    const ado = await createPerson({ nom: 'Ado', prenom: 'Léa', roles: ['danseur_ado'] }, options)
+    const concours = await createPerson(
+      { nom: 'Concours', prenom: 'Yan', roles: ['danseur_concours'] },
+      options,
+    )
+    const ok = await setEventPresence(event.id, { personId: ado.id, statut: '1' }, options)
+    assert.equal(ok.statut, 'present')
+    await assert.rejects(
+      () => setEventPresence(event.id, { personId: concours.id, statut: '1' }, options),
+      /concerné/,
+    )
+  })
 })

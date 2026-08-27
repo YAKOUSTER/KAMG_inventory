@@ -13,7 +13,10 @@
       @update:model-value="emit('update:personId', $event || '')"
     />
 
+    <p v-if="reservedLabel && !canRespond" class="rsvp-poll__reserved">{{ reservedLabel }}</p>
+
     <div
+      v-if="canRespond"
       class="rsvp-poll__actions"
       :class="{ 'rsvp-poll__actions--compact': compact }"
     >
@@ -38,7 +41,7 @@
       </button>
     </div>
     <button
-      v-if="!publicMode && currentStatut"
+      v-if="canRespond && !publicMode && currentStatut"
       type="button"
       class="rsvp-poll__clear"
       :disabled="readonly || saving"
@@ -87,7 +90,7 @@ import {
   summarizePresences,
 } from '@/domain/presence'
 import { api } from '@/services/api'
-import { personCanRsvpToEvent } from '@/domain/eventGroups'
+import { eventRsvpReservedLabel, peopleForEventRsvp, personCanRsvpToEvent } from '@/domain/eventGroups'
 
 const props = defineProps({
   event: { type: Object, required: true },
@@ -108,7 +111,9 @@ const pendingStatut = ref('')
 const error = ref('')
 const blockedOpen = ref(false)
 
-const filteredPeople = computed(() => filterPeopleForPresence(props.people, 'tous'))
+const filteredPeople = computed(() =>
+  peopleForEventRsvp(filterPeopleForPresence(props.people, 'tous'), props.event),
+)
 const personItems = computed(() =>
   filteredPeople.value.map((person) => ({
     title: personDisplayName(person),
@@ -131,14 +136,18 @@ const attendeeGroups = computed(() => [
   { id: 'absent', label: 'Absent·e·s', people: grouped.value.absent },
   { id: 'unanswered', label: 'Sans réponse', people: grouped.value.unanswered },
 ])
-const canRespond = computed(() => {
-  if (props.readonly) return false
-  if (!props.event?.id) return false
-  return true
-})
 const selectedPerson = computed(
   () => (props.people || []).find((person) => person.id === props.personId) || null,
 )
+const reservedLabel = computed(() => eventRsvpReservedLabel(props.event))
+const canRespond = computed(() => {
+  if (props.readonly) return false
+  if (!props.event?.id) return false
+  if (props.publicMode) {
+    return Boolean(props.personId && personCanRsvpToEvent(selectedPerson.value, props.event))
+  }
+  return Boolean(props.personId)
+})
 
 async function choose(statut) {
   if (!canRespond.value || saving.value) return
@@ -284,6 +293,12 @@ async function choose(statut) {
 .rsvp-poll__clear:disabled {
   cursor: default;
   text-decoration: none;
+}
+
+.rsvp-poll__reserved {
+  margin: 0;
+  font-size: 0.82rem;
+  color: rgba(44, 51, 44, 0.72);
 }
 
 .rsvp-poll__error {

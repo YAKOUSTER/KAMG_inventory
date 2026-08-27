@@ -280,6 +280,49 @@ describe('API HTTP', () => {
     assert.ok(space.body.presences.some((entry) => entry.personId === child.body.id))
   })
 
+  it('refuse le sondage d’un membre hors des groupes concernés', async () => {
+    const app = createApiApp()
+    const login = await request(app, 'POST', '/api/auth/login', {
+      body: { login: 'admin', password: 'admin' },
+    })
+    const dancer = await request(app, 'POST', '/api/people', {
+      token: login.body.token,
+      body: { nom: 'Le Gall', prenom: 'Yan', roles: ['danseur_concours'] },
+    })
+    const event = await request(app, 'POST', '/api/events', {
+      token: login.body.token,
+      body: {
+        kinds: ['sortie'],
+        groupes: ['ado'],
+        titre: 'Sortie ado',
+        debut: '2026-10-02T17:00:00.000Z',
+        inscriptionsOuvertes: true,
+      },
+    })
+    const signup = await request(app, 'POST', '/api/auth/register', {
+      body: {
+        prenom: 'Yan',
+        nom: 'Le Gall',
+        email: 'yan.ado@cercle.test',
+        password: 'motdepasse',
+        relation: 'danseur',
+      },
+    })
+    await request(app, 'POST', `/api/members/${signup.body.user.id}/place`, {
+      token: login.body.token,
+      body: { personIds: [dancer.body.id] },
+    })
+    const memberLogin = await request(app, 'POST', '/api/auth/login', {
+      body: { login: 'yan.ado@cercle.test', password: 'motdepasse' },
+    })
+    const blocked = await request(app, 'POST', `/api/public/events/${event.body.id}/presence`, {
+      token: memberLogin.body.token,
+      body: { personId: dancer.body.id, statut: '1' },
+    })
+    assert.equal(blocked.status, 403)
+    assert.match(String(blocked.body.error || ''), /concerné/)
+  })
+
   it('réinitialise un mot de passe sans divulguer l’existence du compte', async () => {
     const app = createApiApp()
     const unknown = await request(app, 'POST', '/api/auth/forgot-password', {

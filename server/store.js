@@ -1347,7 +1347,7 @@ export async function setEventPresence(eventId, payload, options = {}) {
     if (options.linkedOnly && !canRsvpAsPerson(options.actor, personId)) {
       throw Object.assign(new Error('Vous ne pouvez répondre que pour vos fiches'), { status: 403 })
     }
-    if (options.linkedOnly && !personCanRsvpToEvent(person, event)) {
+    if (!personCanRsvpToEvent(person, event)) {
       throw Object.assign(
         new Error("Vous n'êtes pas concerné par cet événement ou vous n'avez pas de compte"),
         { status: 403 },

@@ -3,7 +3,9 @@ import assert from 'node:assert/strict'
 import {
   EVENT_GROUPS,
   danceGroupSelectItems,
+  eventRsvpReservedLabel,
   loansVisibleToMember,
+  peopleForEventRsvp,
   personCanRsvpToEvent,
   personDanceGroups,
 } from './eventGroups.js'
@@ -23,6 +25,13 @@ describe('eventGroups', () => {
     assert.equal(personCanRsvpToEvent(concours, event), false)
     assert.equal(personCanRsvpToEvent(ado, { groupes: ['sortie'] }), true)
     assert.equal(personCanRsvpToEvent(null, event), false)
+    assert.deepEqual(
+      peopleForEventRsvp([ado, concours], event).map((person) => person.id),
+      ['p1'],
+    )
+    assert.equal(eventRsvpReservedLabel(event), 'Sondage réservé aux groupes Ado, Tremplin')
+    assert.equal(eventRsvpReservedLabel({ groupes: ['ado'] }), 'Sondage réservé au groupe Ado')
+    assert.equal(eventRsvpReservedLabel({ groupes: ['sortie'] }), '')
   })
 
   it('filtre les emprunts du groupe du membre', () => {
