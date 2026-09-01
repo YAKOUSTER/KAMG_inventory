@@ -1,5 +1,6 @@
 import express from 'express'
 import path from 'node:path'
+import { createHash } from 'node:crypto'
 import {
   listItems,
   getItem,
@@ -89,9 +90,15 @@ async function sendPublicCalendar(req, res) {
   try {
     const ics = await getPublicCalendarIcs({ groupes: calendarGroupesFromQuery(req.query) })
     const body = String(ics || '')
+    const etag = `"${createHash('sha1').update(body).digest('hex')}"`
     res.setHeader('Content-Type', 'text/calendar; charset=utf-8')
-    res.setHeader('Cache-Control', 'public, max-age=300')
+    res.setHeader('Cache-Control', 'no-cache, max-age=0, must-revalidate')
+    res.setHeader('ETag', etag)
     res.setHeader('Access-Control-Allow-Origin', '*')
+    if (req.headers['if-none-match'] === etag) {
+      res.status(304).end()
+      return
+    }
     res.setHeader('Content-Length', Buffer.byteLength(body))
     if (req.method === 'HEAD') {
       res.end()
@@ -442,7 +449,7 @@ export function createApiApp() {
   )
   app.get(
     '/api/events/:id/presences',
-    auth('agenda.read'),
+    authAny(['agenda.read', 'agenda.write', 'agenda.libre']),
     handle((req) => listEventPresences(req.params.id)),
   )
   app.get('/api/presences', auth('agenda.read'), handle(() => listPresences()))

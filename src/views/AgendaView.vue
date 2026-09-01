@@ -55,7 +55,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { api } from '@/services/api'
-import { eventMatchesKindFilter, eventIsHorsCercle } from '@/domain/events'
+import { eventMatchesKindFilter } from '@/domain/events'
 import { eventKindFilterItems } from '@/domain/eventKinds'
 import { canWriteLibreEvents } from '@/domain/auth'
 import AgendaCalendar from '@/components/AgendaCalendar.vue'
@@ -97,9 +97,7 @@ async function importGoogle() {
 }
 
 function openEvent(event) {
-  if (auth.can('agenda.write') || (auth.can('agenda.libre') && eventIsHorsCercle(event))) {
-    router.push({ name: 'event-edit', params: { id: event.id } })
-  }
+  router.push({ name: 'event-detail', params: { id: event.id } })
 }
 
 function createOnDay(isoDay) {

@@ -101,6 +101,9 @@ describe('buildCalendarIcs', () => {
     assert.match(ics, /X-WR-CALNAME:KAMG/)
     assert.match(ics, /SUMMARY:Fest-noz/)
     assert.match(ics, /UID:stable@google.com/)
+    assert.match(ics, /SEQUENCE:0/)
+    assert.match(ics, /STATUS:CONFIRMED/)
+    assert.match(ics, /REFRESH-INTERVAL;VALUE=DURATION:PT15M/)
     assert.doesNotMatch(ics, /Brouillon/)
     assert.doesNotMatch(
       buildCalendarIcs([
@@ -168,5 +171,47 @@ describe('buildCalendarIcs', () => {
     assert.ok(icsLinesRespectOctetLimit(ics), 'une ligne dépasse 75 octets UTF-8')
     assert.match(ics, /DTEND:20260910T183000Z/)
     assert.match(ics, /DTSTART:20260910T173000Z/)
+  })
+
+  it('incrémente SEQUENCE et publie les suppressions comme CANCELLED', () => {
+    const event = {
+      id: 'evt-1',
+      titre: 'Fest-noz',
+      debut: '2026-09-10T17:30:00.000Z',
+      fin: '2026-09-10T19:30:00.000Z',
+      publie: true,
+      sequence: 2,
+      updatedAt: '2026-09-11T08:00:00.000Z',
+      groupes: ['ado'],
+    }
+    const live = buildCalendarIcs([event], { calName: 'KAMG' })
+    assert.match(live, /SEQUENCE:2/)
+    const deleted = buildCalendarIcs([], {
+      calName: 'KAMG',
+      cancelled: [
+        {
+          ...event,
+          sequence: 3,
+          cancelled: true,
+          updatedAt: '2026-09-11T09:00:00.000Z',
+        },
+      ],
+    })
+    assert.match(deleted, /UID:kamg-evt-1@kamg.sterennfonseca.fr/)
+    assert.match(deleted, /STATUS:CANCELLED/)
+    assert.match(deleted, /SEQUENCE:3/)
+    assert.match(deleted, /SUMMARY:Fest-noz/)
+    const adoOnly = buildCalendarIcs([], {
+      calName: 'KAMG',
+      groupes: ['ado'],
+      cancelled: [{ ...event, sequence: 3, cancelled: true }],
+    })
+    assert.match(adoOnly, /STATUS:CANCELLED/)
+    const concoursOnly = buildCalendarIcs([], {
+      calName: 'KAMG',
+      groupes: ['concours'],
+      cancelled: [{ ...event, sequence: 3, cancelled: true }],
+    })
+    assert.doesNotMatch(concoursOnly, /STATUS:CANCELLED/)
   })
 })

@@ -69,6 +69,8 @@ describe('navigation gestion', () => {
     assert.equal(gestionAreaForPath('/emprunts/1', admin)?.id, 'costume')
     assert.equal(gestionAreaForPath('/panier', admin)?.id, 'costume')
     assert.equal(gestionAreaForPath('/agenda/nouveau', admin)?.id, 'calendrier')
+    assert.equal(gestionAreaForPath('/agenda/evt-1', admin)?.id, 'calendrier')
+    assert.equal(gestionAreaForPath('/agenda/evt-1/modifier', admin)?.id, 'calendrier')
     assert.equal(gestionAreaForPath('/agenda/presences', admin)?.id, 'calendrier')
     assert.equal(linkMatchesPath({ to: '/agenda', match: ['/agenda'], exclude: ['/agenda/presences'] }, '/agenda/presences'), false)
     assert.equal(linkMatchesPath({ to: '/agenda', match: ['/agenda'], exclude: ['/agenda/presences'] }, '/agenda/nouveau'), true)

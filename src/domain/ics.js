@@ -211,6 +211,51 @@ export function eventIcsUid(event) {
   return `kamg-${id}@kamg.sterennfonseca.fr`
 }
 
+export function eventIcsSequence(event) {
+  const value = Number(event?.sequence)
+  if (!Number.isFinite(value) || value < 0) return 0
+  return Math.floor(value)
+}
+
+export function icsTombstoneFromEvent(event, { now = new Date() } = {}) {
+  const stamp = now instanceof Date ? now.toISOString() : String(now || '')
+  return {
+    id: String(event?.id || ''),
+    googleUid: String(event?.googleUid || '').trim(),
+    titre: String(event?.titre || 'Événement KAMG'),
+    debut: event?.debut,
+    fin: event?.fin || event?.debut,
+    lieu: String(event?.lieu || ''),
+    description: String(event?.description || ''),
+    groupes: Array.isArray(event?.groupes) ? event.groupes.map((id) => String(id || '').trim()).filter(Boolean) : [],
+    sequence: eventIcsSequence(event) + 1,
+    updatedAt: stamp || new Date().toISOString(),
+    cancelled: true,
+    publie: true,
+  }
+}
+
+export function normalizeIcsTombstone(entry) {
+  if (!entry || typeof entry !== 'object') return null
+  const id = String(entry.id || '').trim()
+  const debut = entry.debut
+  if (!id || !debut) return null
+  return {
+    id,
+    googleUid: String(entry.googleUid || '').trim(),
+    titre: String(entry.titre || 'Événement KAMG'),
+    debut,
+    fin: entry.fin || debut,
+    lieu: String(entry.lieu || ''),
+    description: String(entry.description || ''),
+    groupes: Array.isArray(entry.groupes) ? entry.groupes.map((id) => String(id || '').trim()).filter(Boolean) : [],
+    sequence: eventIcsSequence(entry),
+    updatedAt: entry.updatedAt || entry.cancelledAt || new Date().toISOString(),
+    cancelled: true,
+    publie: true,
+  }
+}
+
 function icsEndUtcDate(event, debut) {
   const fin = toIcsUtcDate(event.fin || event.debut) || debut
   if (fin && debut && fin > debut) return fin
@@ -225,18 +270,21 @@ function veventLines(event) {
   if (!debut) return []
   const fin = icsEndUtcDate(event, debut)
   const stamp = toIcsUtcDate(event.updatedAt || event.createdAt || new Date().toISOString()) || toIcsUtcDate(new Date().toISOString())
+  const cancelled = event.cancelled === true
   const lines = [
     'BEGIN:VEVENT',
     `UID:${eventIcsUid(event)}`,
     `DTSTAMP:${stamp}`,
     `LAST-MODIFIED:${stamp}`,
+    `SEQUENCE:${eventIcsSequence(event)}`,
     `DTSTART:${debut}`,
     `DTEND:${fin}`,
     `SUMMARY:${escapeIcsText(event.titre || 'Événement KAMG')}`,
   ]
-  if (event.description) lines.push(`DESCRIPTION:${escapeIcsText(event.description)}`)
+  if (event.description && !cancelled) lines.push(`DESCRIPTION:${escapeIcsText(event.description)}`)
   if (event.lieu) lines.push(`LOCATION:${escapeIcsText(event.lieu)}`)
-  if (event.publie === false) lines.push('STATUS:TENTATIVE')
+  if (cancelled) lines.push('STATUS:CANCELLED')
+  else if (event.publie === false) lines.push('STATUS:TENTATIVE')
   else lines.push('STATUS:CONFIRMED')
   lines.push('END:VEVENT')
   return lines
@@ -263,8 +311,13 @@ export function buildSingleEventIcs(event) {
   return `${lines.map(foldIcsLine).join('\r\n')}\r\n`
 }
 
-export function buildCalendarIcs(events = [], { calName = 'Korriganed Ar Meilhoù Glas', groupes = [] } = {}) {
+export function buildCalendarIcs(events = [], { calName = 'Korriganed Ar Meilhoù Glas', groupes = [], cancelled = [] } = {}) {
   const published = filterEventsByGroups(events.filter(isPublishableEvent), groupes)
+  const liveUids = new Set(published.map((event) => eventIcsUid(event)))
+  const cancelledEvents = filterEventsByGroups(
+    (cancelled || []).filter((event) => event && event.cancelled !== false && !liveUids.has(eventIcsUid(event))),
+    groupes,
+  )
   const sorted = [...published].sort((a, b) => String(a.debut).localeCompare(String(b.debut)))
   const lines = [
     'BEGIN:VCALENDAR',
@@ -274,10 +327,11 @@ export function buildCalendarIcs(events = [], { calName = 'Korriganed Ar Meilho�
     'METHOD:PUBLISH',
     `X-WR-CALNAME:${escapeIcsText(calName)}`,
     'X-WR-TIMEZONE:Europe/Paris',
-    'REFRESH-INTERVAL;VALUE=DURATION:PT1H',
-    'X-PUBLISHED-TTL:PT1H',
+    'REFRESH-INTERVAL;VALUE=DURATION:PT15M',
+    'X-PUBLISHED-TTL:PT15M',
   ]
   for (const event of sorted) lines.push(...veventLines(event))
+  for (const event of cancelledEvents) lines.push(...veventLines({ ...event, cancelled: true }))
   lines.push('END:VCALENDAR')
   return `${lines.map(foldIcsLine).join('\r\n')}\r\n`
 }

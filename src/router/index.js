@@ -58,6 +58,7 @@ const routes = [
   { path: '/agenda/nouveau', name: 'event-create', component: () => import('@/views/EventEditView.vue'), meta: { permissionAny: ['agenda.write', 'agenda.libre'] } },
   { path: '/agenda/presences', name: 'agenda-presences', component: () => import('@/views/PresenceSheetView.vue'), meta: { permissionAny: ['agenda.read', 'agenda.write', 'agenda.libre'] } },
   { path: '/agenda/:id/modifier', name: 'event-edit', component: () => import('@/views/EventEditView.vue'), props: true, meta: { permissionAny: ['agenda.write', 'agenda.libre'] } },
+  { path: '/agenda/:id', name: 'event-detail', component: () => import('@/views/EventDetailView.vue'), props: true, meta: { permissionAny: ['agenda.read', 'agenda.write', 'agenda.libre'] } },
   { path: '/contenus', name: 'contents', component: () => import('@/views/ContentsView.vue'), meta: { permission: 'content.read' } },
   { path: '/contenus/nouveau', name: 'content-create', component: () => import('@/views/ContentEditView.vue'), meta: { permission: 'content.write' } },
   { path: '/contenus/:id/modifier', name: 'content-edit', component: () => import('@/views/ContentEditView.vue'), props: true, meta: { permission: 'content.write' } },

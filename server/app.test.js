@@ -145,6 +145,8 @@ describe('API HTTP', () => {
     assert.equal(pretty.status, 200)
     assert.match(String(pretty.headers.get('content-type') || ''), /text\/calendar/)
     assert.match(pretty.body.raw || '', /SUMMARY:Sortie ICS/)
+    assert.match(String(pretty.headers.get('cache-control') || ''), /no-cache/)
+    assert.match(pretty.body.raw || '', /SEQUENCE:0/)
 
     const head = await request(app, 'HEAD', '/calendrier.ics')
     assert.equal(head.status, 200)
@@ -162,6 +164,24 @@ describe('API HTTP', () => {
     assert.equal(draft.status, 200)
     const icsAfterDraft = await request(app, 'GET', '/api/public/calendar.ics')
     assert.doesNotMatch(icsAfterDraft.body.raw || '', /Brouillon secret/)
+
+    const updated = await request(app, 'PUT', `/api/events/${created.body.id}`, {
+      token: login.body.token,
+      body: { lieu: 'Moulin Vert' },
+    })
+    assert.equal(updated.status, 200)
+    const icsAfterUpdate = await request(app, 'GET', '/calendrier.ics')
+    assert.match(icsAfterUpdate.body.raw || '', /LOCATION:Moulin Vert/)
+    assert.match(icsAfterUpdate.body.raw || '', /SEQUENCE:1/)
+
+    const deleted = await request(app, 'DELETE', `/api/events/${created.body.id}`, {
+      token: login.body.token,
+    })
+    assert.equal(deleted.status, 200)
+    const icsAfterDelete = await request(app, 'GET', '/calendrier.ics')
+    assert.match(icsAfterDelete.body.raw || '', /STATUS:CANCELLED/)
+    assert.match(icsAfterDelete.body.raw || '', /SEQUENCE:2/)
+    assert.match(icsAfterDelete.body.raw || '', /SUMMARY:Sortie ICS/)
   })
 
   it('filtre le calendrier ICS par groupes et enregistre le catalogue', async () => {

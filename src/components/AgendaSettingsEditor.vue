@@ -3,8 +3,8 @@
     <h2 class="section-label">Agenda du cercle</h2>
     <p class="text-body-2 text-medium-emphasis mb-4">
       Les répétitions et sorties se créent, se modifient et se suppriment dans l’application.
-      Google Agenda et l’agenda iPhone / iPad s’abonnent à ce calendrier et se mettent à jour tout seuls
-      (souvent sous une heure).
+      Apple et Outlook relisent souvent le calendrier en quelques minutes. Google Agenda le fait
+      à son rythme : une modification ou une suppression peut mettre plusieurs heures à apparaître.
     </p>
 
     <v-alert type="info" variant="tonal" class="mb-4">

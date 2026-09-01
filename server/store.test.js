@@ -603,6 +603,7 @@ describe('json store', () => {
     )
     const updated = await updateEvent(created.id, { titre: 'Fest-noz KAMG', lieu: 'Moulin Vert' }, options)
     assert.equal(updated.titre, 'Fest-noz KAMG')
+    assert.equal(updated.sequence, 1)
     const loaded = await getEvent(created.id, options)
     assert.equal(loaded.lieu, 'Moulin Vert')
     assert.equal(loaded.inscriptionsOuvertes, true)
@@ -614,6 +615,31 @@ describe('json store', () => {
     const cleared = await setEventPresence(created.id, { personId: person.id, statut: '' }, options)
     assert.equal(cleared.deleted, true)
     assert.equal((await listPresences(options)).length, 0)
+  })
+
+  it('signale un dépublication dans le flux ICS comme une annulation', async () => {
+    const created = await createEvent(
+      {
+        type: 'sortie',
+        titre: 'Sortie à masquer',
+        debut: '2026-11-01T18:00:00.000Z',
+        publie: true,
+      },
+      options,
+    )
+    const hidden = await updateEvent(created.id, { publie: false }, options)
+    assert.equal(hidden.publie, false)
+    assert.equal(hidden.sequence, 1)
+    const ics = await getPublicCalendarIcs(options)
+    assert.match(ics, /SUMMARY:Sortie à masquer/)
+    assert.match(ics, /STATUS:CANCELLED/)
+    assert.doesNotMatch(ics, /STATUS:CONFIRMED/)
+    const shown = await updateEvent(created.id, { publie: true }, options)
+    assert.equal(shown.publie, true)
+    const republished = await getPublicCalendarIcs(options)
+    assert.match(republished, /STATUS:CONFIRMED/)
+    assert.doesNotMatch(republished, /STATUS:CANCELLED/)
+    assert.match(republished, /SEQUENCE:2/)
   })
 
   it('importe Google une fois puis gère tout le CRUD en local', async () => {
@@ -662,11 +688,16 @@ END:VCALENDAR`
     assert.match(ics, /SUMMARY:Répétition KAMG/)
     assert.match(ics, /UID:import-test@google.com/)
     assert.match(ics, /LOCATION:Quimper/)
+    assert.match(ics, /SEQUENCE:1/)
 
     const removed = await deleteEvent(events[0].id, options)
     assert.equal(removed.deleted, true)
     assert.equal((await listEvents(options)).length, 0)
-    assert.doesNotMatch(await getPublicCalendarIcs(options), /Répétition KAMG/)
+    const cancelledIcs = await getPublicCalendarIcs(options)
+    assert.match(cancelledIcs, /UID:import-test@google.com/)
+    assert.match(cancelledIcs, /STATUS:CANCELLED/)
+    assert.match(cancelledIcs, /SEQUENCE:2/)
+    assert.match(cancelledIcs, /SUMMARY:Répétition KAMG/)
   })
 
   it('hash le jeton de reset, coupe les sessions, et refuse un lien expiré', async () => {

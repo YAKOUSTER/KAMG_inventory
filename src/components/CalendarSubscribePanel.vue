@@ -30,7 +30,8 @@
     <v-alert type="info" variant="tonal" density="compact" class="mt-4 mb-3">
       Google Agenda n’accepte pas le bouton « un clic ». Il faut coller l’adresse https dans les
       paramètres, <strong>sur un ordinateur</strong> (l’application téléphone ne propose pas « À
-      partir de l’URL »).
+      partir de l’URL »). Après une modification ou une suppression dans KAMG, Google relit le
+      calendrier à son rythme : souvent plusieurs heures, parfois jusqu’au lendemain.
     </v-alert>
     <ol class="calendar-subscribe__steps">
       <li>Copiez l’adresse https ci-dessous.</li>

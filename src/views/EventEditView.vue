@@ -162,7 +162,7 @@
 
       <div class="d-flex ga-3 mt-6">
         <v-btn type="submit" color="primary" :loading="saving">Enregistrer</v-btn>
-        <v-btn variant="text" :to="{ name: 'agenda' }">Annuler</v-btn>
+        <v-btn variant="text" :to="cancelTo">Annuler</v-btn>
         <v-spacer />
         <v-btn
           v-if="isEdit && canDeleteEvent"
@@ -200,7 +200,7 @@ import {
 } from '@/domain/eventKinds'
 import { danceGroupSelectItems } from '@/domain/eventGroups'
 import { emptySortie, normalizeSortie } from '@/domain/sortie'
-import { assertCanMutateEvent, eventIsPast } from '@/domain/events'
+import { assertCanMutateEvent, canMutateEvent, eventIsPast } from '@/domain/events'
 import {
   defaultRecurrenceUntil,
   expandRecurringDates,
@@ -225,6 +225,9 @@ const presences = ref([])
 const originalType = ref('autre')
 const groupesTouched = ref(false)
 const isEdit = computed(() => Boolean(props.id))
+const cancelTo = computed(() =>
+  isEdit.value ? { name: 'event-detail', params: { id: props.id } } : { name: 'agenda' },
+)
 const libreOnly = computed(() => isLibreAgendaUser(auth.user))
 const kindItems = computed(() => {
   const items = eventKindSelectItems()
@@ -232,7 +235,7 @@ const kindItems = computed(() => {
   return items.filter((item) => item.value === 'fest_noz' || item.value === 'sortie')
 })
 const canDeleteEvent = computed(
-  () => auth.can('agenda.write') || (libreOnly.value && form.horsCercle),
+  () => canMutateEvent(auth.user, { horsCercle: form.horsCercle, kinds: form.kinds }),
 )
 const groupItems = computed(() => danceGroupSelectItems())
 const recurrenceItems = [
@@ -480,15 +483,11 @@ async function submit() {
     }
     const saved = props.id ? await api.updateEvent(props.id, payload) : await api.createEvent(payload)
     const createdCount = Number(saved.createdCount || 1)
-    applyFormFromEvent(saved)
-    if (!props.id || saved.id !== props.id) {
-      await router.replace({ name: 'event-edit', params: { id: saved.id } })
-    }
-    success.value =
-      createdCount > 1
-        ? `${createdCount} dates créées. Chaque date peut être modifiée séparément.`
-        : 'Événement enregistré.'
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    await router.push({
+      name: 'event-detail',
+      params: { id: saved.id },
+      query: createdCount > 1 ? { created: String(createdCount) } : { saved: '1' },
+    })
   } catch (err) {
     error.value = err.message
   } finally {

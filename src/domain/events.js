@@ -117,8 +117,9 @@ export function normalizeEvent(input = {}, { id } = {}) {
     groupes,
     horsCercle,
     sortie: isSortie ? normalizeSortie(input.sortie) : null,
+    sequence: Math.max(0, Math.floor(Number(input.sequence) || 0)),
     createdAt: normalizeIsoDate(input.createdAt) || new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    updatedAt: normalizeIsoDate(input.updatedAt) || new Date().toISOString(),
   }
 }
 
@@ -263,10 +264,15 @@ export function publicEventSummary(event, { includeDescription = false } = {}) {
   }
 }
 
+export function canMutateEvent(user, event) {
+  if (!user) return false
+  if (can(user, 'agenda.write')) return true
+  return can(user, 'agenda.libre') && eventIsHorsCercle(event)
+}
+
 export function assertCanMutateEvent(user, event) {
   if (!user) return
-  if (can(user, 'agenda.write')) return
-  if (can(user, 'agenda.libre') && eventIsHorsCercle(event)) return
+  if (canMutateEvent(user, event)) return
   const error = new Error('Vous ne pouvez gérer que les sorties non officielles')
   error.status = 403
   throw error

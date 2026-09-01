@@ -51,7 +51,7 @@ import { normalizeContentPage, filterPublishedPages, sortContentPages, publicCon
 import { normalizePresenceRecord, publicPerson, isClearedPresenceStatut } from '../src/domain/presence.js'
 import { normalizeAgendaSettings, DEFAULT_AGENDA_SETTINGS, publishedCalendarName } from '../src/domain/agendaSettings.js'
 import { applyEventCatalog, normalizeEventCatalog } from '../src/domain/eventCatalog.js'
-import { buildCalendarIcs } from '../src/domain/ics.js'
+import { buildCalendarIcs, eventIcsSequence, eventIcsUid, icsTombstoneFromEvent, normalizeIcsTombstone } from '../src/domain/ics.js'
 import { fetchGoogleCalendarEvents, resetGoogleCalendarCache } from './googleCalendar.js'
 import {
   readMemberPagesSeed,
@@ -111,6 +111,7 @@ function emptyDb() {
     loans: [],
     events: [],
     eventOverlays: {},
+    cancelledEvents: [],
     presences: [],
     pages: [],
     settings: structuredClone({ agenda: DEFAULT_AGENDA_SETTINGS, eventCatalog: normalizeEventCatalog() }),
@@ -150,6 +151,9 @@ function ensureShape(raw) {
     raw.eventOverlays && typeof raw.eventOverlays === 'object' && !Array.isArray(raw.eventOverlays)
       ? raw.eventOverlays
       : {}
+  db.cancelledEvents = (Array.isArray(raw.cancelledEvents) ? raw.cancelledEvents : [])
+    .map((entry) => normalizeIcsTombstone(entry))
+    .filter(Boolean)
   db.presences = Array.isArray(raw.presences) ? raw.presences : []
   db.pages = (Array.isArray(raw.pages) ? raw.pages : []).map((page) => {
     if (!page?.id) return page
@@ -1140,14 +1144,50 @@ export async function listEvents(options = {}) {
   return sortEvents(listLocalEvents(db))
 }
 
+const ICS_TOMBSTONE_TTL_MS = 1000 * 60 * 60 * 24 * 400
+
+function pruneCancelledEvents(db, now = Date.now()) {
+  db.cancelledEvents = (db.cancelledEvents || []).filter((entry) => {
+    const stamp = Date.parse(entry.updatedAt || 0)
+    return Number.isFinite(stamp) && now - stamp < ICS_TOMBSTONE_TTL_MS
+  })
+}
+
+function shouldPublishCancellation(event) {
+  if (!event) return false
+  if (event.publie !== false) return true
+  return eventIcsSequence(event) > 0
+}
+
+function upsertCancelledEvent(db, event) {
+  if (!shouldPublishCancellation(event)) return
+  pruneCancelledEvents(db)
+  const tombstone = icsTombstoneFromEvent(event)
+  const uid = eventIcsUid(tombstone)
+  db.cancelledEvents = (db.cancelledEvents || []).filter((entry) => eventIcsUid(entry) !== uid)
+  db.cancelledEvents.push(tombstone)
+}
+
+function dropCancelledEvent(db, event) {
+  if (!event) return
+  const uid = eventIcsUid(event)
+  db.cancelledEvents = (db.cancelledEvents || []).filter((entry) => eventIcsUid(entry) !== uid)
+}
+
 export async function getPublicCalendarIcs(options = {}) {
   const db = await readDb(options)
   const groupes = Array.isArray(options.groupes) ? options.groupes : []
   const calName = publishedCalendarName(db.settings?.agenda || {})
   const suffix = groupes.length ? ` — ${groupes.join(', ')}` : ''
+  const cutoff = Date.now() - ICS_TOMBSTONE_TTL_MS
+  const cancelled = (db.cancelledEvents || []).filter((entry) => {
+    const stamp = Date.parse(entry.updatedAt || 0)
+    return Number.isFinite(stamp) && stamp >= cutoff
+  })
   return buildCalendarIcs(filterPublishedEvents(listLocalEvents(db)), {
     calName: `${calName}${suffix}`,
     groupes,
+    cancelled,
   })
 }
 
@@ -1317,7 +1357,7 @@ export async function createEvent(payload, options = {}) {
         starts.length > 1 ? shiftEventTimes(rest.debut, rest.fin || rest.debut, nextStart) : {}
       const event = runDomain(
         normalizeEvent,
-        { ...rest, ...times, source: 'local' },
+        { ...rest, ...times, source: 'local', sequence: 0 },
         { id: randomUUID() },
       )
       db.events.push(event)
@@ -1357,14 +1397,26 @@ export async function updateEvent(id, payload, options = {}) {
     if (index === -1) throw Object.assign(new Error('Événement introuvable'), { status: 404 })
     const current = applyEventOverlay(db.events[index], db.eventOverlays?.[id])
     assertCanMutateEvent(options.actor, current)
+    const wasPublished = current.publie !== false
     const event = runDomain(
       normalizeEvent,
-      { ...current, ...payload, id, source: 'local', googleUid: current.googleUid },
+      {
+        ...current,
+        ...payload,
+        id,
+        source: 'local',
+        googleUid: current.googleUid,
+        sequence: eventIcsSequence(current) + 1,
+        createdAt: current.createdAt,
+        updatedAt: new Date().toISOString(),
+      },
       { id },
     )
     assertCanMutateEvent(options.actor, event)
     db.events[index] = event
     if (db.eventOverlays?.[id]) delete db.eventOverlays[id]
+    if (wasPublished && event.publie === false) upsertCancelledEvent(db, current)
+    else if (event.publie !== false) dropCancelledEvent(db, event)
     appendAudit(db, options.actor, {
       action: 'event.update',
       entityType: 'event',
@@ -1385,6 +1437,7 @@ export async function deleteEvent(id, options = {}) {
     assertCanMutateEvent(options.actor, current)
     const [removed] = db.events.splice(index, 1)
     if (db.eventOverlays?.[id]) delete db.eventOverlays[id]
+    upsertCancelledEvent(db, current)
     db.presences = (db.presences || []).filter((entry) => entry.eventId !== id)
     appendAudit(db, options.actor, {
       action: 'event.delete',

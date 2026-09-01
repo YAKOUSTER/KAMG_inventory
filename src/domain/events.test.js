@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { applyEventOverlay, assertCanMutateEvent, eventIsPast, normalizeEvent, upcomingEvents, pastEvents, publicEventSummary } from './events.js'
+import { applyEventOverlay, assertCanMutateEvent, canMutateEvent, eventIsPast, normalizeEvent, upcomingEvents, pastEvents, publicEventSummary } from './events.js'
 import { eventIsHorsCercle } from './eventKinds.js'
 
 describe('normalizeEvent', () => {
@@ -22,6 +22,9 @@ describe('normalizeEvent', () => {
     assert.deepEqual(event.kinds, [])
     assert.equal(event.titre, 'Festival de Lorient')
     assert.ok(event.debut.endsWith('Z') || event.debut.includes('T'))
+    assert.equal(event.sequence, 0)
+    assert.ok(event.updatedAt)
+    assert.ok(event.createdAt)
   })
 
   it('préfixe le titre seulement si les types sont explicites', () => {
@@ -73,6 +76,23 @@ describe('normalizeEvent', () => {
       { id: 'evt-rep' },
     )
     assert.equal(repetition.inscriptionsOuvertes, false)
+  })
+
+  it('conserve sequence et updatedAt déjà enregistrés', () => {
+    const event = normalizeEvent(
+      {
+        type: 'sortie',
+        titre: 'Festival',
+        debut: '2026-08-10T14:00:00',
+        sequence: 4,
+        createdAt: '2026-08-01T10:00:00.000Z',
+        updatedAt: '2026-08-02T10:00:00.000Z',
+      },
+      { id: 'evt-seq' },
+    )
+    assert.equal(event.sequence, 4)
+    assert.equal(event.createdAt, '2026-08-01T10:00:00.000Z')
+    assert.equal(event.updatedAt, '2026-08-02T10:00:00.000Z')
   })
 
   it('exige un titre', () => {
@@ -182,5 +202,9 @@ describe('assertCanMutateEvent', () => {
     assert.doesNotThrow(() => assertCanMutateEvent(libre, hors))
     assert.doesNotThrow(() => assertCanMutateEvent(libre, { kinds: ['fest_noz'], titre: 'Fest' }))
     assert.throws(() => assertCanMutateEvent(libre, officiel), /non officielles/)
+    assert.equal(canMutateEvent(write, officiel), true)
+    assert.equal(canMutateEvent(libre, officiel), false)
+    assert.equal(canMutateEvent(libre, hors), true)
+    assert.equal(canMutateEvent(null, hors), false)
   })
 })
