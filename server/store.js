@@ -38,6 +38,7 @@ import {
   paymentMethodLabel,
   matchingPeopleForAccount,
   matchingPeopleForChildrenNames,
+  childDraftsToCreate,
   normalizeChildIds,
 } from '../src/domain/person.js'
 import { parseSeasonId } from '../src/domain/seasons.js'
@@ -1893,6 +1894,39 @@ export async function placeMember(id, payload = {}, options = {}) {
       })
     }
 
+    const createdChildIds = []
+    if (isParent) {
+      const childDrafts = childDraftsToCreate(db.people || [], signup.childrenNames, signup.nom || user.nom, {
+        createChildren: payload.createChildren,
+        createChildNames: payload.createChildNames,
+      })
+      const childRoles = Array.isArray(payload.childRoles) && payload.childRoles.length
+        ? payload.childRoles
+        : ['danseur_enfant']
+      for (const draft of childDrafts) {
+        const child = runDomain(
+          normalizePerson,
+          {
+            prenom: draft.prenom,
+            nom: draft.nom,
+            telephone: signup.telephone || '',
+            roles: childRoles,
+          },
+          { id: randomUUID() },
+        )
+        db.people.push(child)
+        personIds.push(child.id)
+        createdChildIds.push(child.id)
+        appendAudit(db, options.actor, {
+          action: 'person.create',
+          entityType: 'person',
+          entityId: child.id,
+          entityLabel: personLabel(child),
+          summary: `Fiche enfant créée depuis l’inscription ${userLabel(user)}`,
+        })
+      }
+    }
+
     const uniqueIds = normalizePersonIds(personIds)
     if (!uniqueIds.length) {
       throw Object.assign(new Error('Liez au moins une fiche personne (danseur ou enfant)'), { status: 400 })
@@ -1907,12 +1941,15 @@ export async function placeMember(id, payload = {}, options = {}) {
       createdPersonId ||
       (isParent ? selfMatches[0]?.id || '' : '')
     const requestedChildren = normalizeChildIds(
-      payload.familyChildIds?.length
-        ? payload.familyChildIds
-        : [
-            ...childMatches.map((person) => person.id),
-            ...(isParent ? uniqueIds.filter((personId) => personId !== parentId) : []),
-          ],
+      [
+        ...(payload.familyChildIds?.length
+          ? payload.familyChildIds
+          : [
+              ...childMatches.map((person) => person.id),
+              ...(isParent ? uniqueIds.filter((personId) => personId !== parentId) : []),
+            ]),
+        ...createdChildIds,
+      ],
       parentId,
     )
     if (parentId && requestedChildren.length) {

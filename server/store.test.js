@@ -1033,6 +1033,42 @@ END:VCALENDAR`
     assert.deepEqual(parent.roles, [])
   })
 
+  it('crée la fiche de l’enfant quand un parent parle pour lui et qu’elle n’existe pas', async () => {
+    const signup = await registerMember(
+      {
+        prenom: 'Lydie',
+        nom: 'Normant',
+        email: 'lydie.enfant@cercle.test',
+        password: 'motdepasse',
+        relation: 'parent',
+        childrenNames: 'Zoé',
+        alsoDances: false,
+      },
+      options,
+    )
+    const placed = await placeMember(
+      signup.user.id,
+      {
+        createPerson: true,
+        alsoDances: false,
+        createChildren: true,
+        createChildNames: ['Zoé'],
+        childRoles: ['danseur_enfant'],
+      },
+      options,
+    )
+    const db = await readDb(options)
+    const child = db.people.find((person) => person.prenom === 'Zoé')
+    const parent = db.people.find((person) => person.prenom === 'Lydie')
+    assert.ok(child)
+    assert.equal(child.nom, 'NORMANT')
+    assert.ok(child.roles.includes('danseur_enfant'))
+    assert.deepEqual(placed.personIds, [child.id])
+    assert.ok(parent)
+    assert.deepEqual(parent.childIds, [child.id])
+    assert.deepEqual(parent.roles, [])
+  })
+
   it('copie l’e-mail du compte quand on lie une fiche ensuite', async () => {
     const person = await createPerson(
       { nom: 'Prigent', prenom: 'Yan', email: 'ancien@cercle.test', roles: ['danseur_concours'] },

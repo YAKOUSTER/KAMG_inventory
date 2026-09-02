@@ -418,6 +418,48 @@ export function matchingPeopleForChildrenNames(people = [], childrenNames, paren
   return [...byId.values()]
 }
 
+export function childNameDraft(name, parentNom = '') {
+  const trimmed = String(name || '').trim()
+  if (!trimmed) return null
+  const parts = trimmed.split(/\s+/).filter(Boolean)
+  const prenom = parts[0] || trimmed
+  const nom = parts.length >= 2 ? parts.slice(1).join(' ') : String(parentNom || '').trim()
+  if (!prenom || !nom) return null
+  return {
+    prenom,
+    nom,
+    label: personDisplayName({ prenom, nom }),
+  }
+}
+
+export function unmatchedChildDrafts(people = [], childrenNames, parentNom = '') {
+  return splitChildrenNames(childrenNames)
+    .map((name) => {
+      if (matchingPeopleForChildrenNames(people, name, parentNom).length) return null
+      return childNameDraft(name, parentNom)
+    })
+    .filter(Boolean)
+}
+
+export function childDraftsToCreate(
+  people = [],
+  childrenNames,
+  parentNom = '',
+  { createChildren, createChildNames } = {},
+) {
+  const drafts = unmatchedChildDrafts(people, childrenNames, parentNom)
+  if (!drafts.length || createChildren === false) return []
+  const selected = Array.isArray(createChildNames)
+    ? createChildNames.map((value) => foldText(value)).filter(Boolean)
+    : null
+  if (selected) {
+    return drafts.filter(
+      (draft) => selected.includes(foldText(draft.prenom)) || selected.includes(foldText(draft.label)),
+    )
+  }
+  return createChildren ? drafts : []
+}
+
 export function childrenOf(people = [], person) {
   const ids = new Set(normalizeChildIds(person?.childIds, person?.id))
   return sortPeople((people || []).filter((entry) => ids.has(entry.id)))

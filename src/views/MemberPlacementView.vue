@@ -49,10 +49,11 @@
           <p class="text-body-2 text-medium-emphasis mb-4">
             {{
               isParent
-                ? 'Reliez les fiches des enfants. Cochez « Je danse aussi » si le parent a sa propre fiche danseur. Une fiche parent sert au CA à se souvenir de la famille, même s’il ne danse pas.'
+                ? 'Créez ou reliez les fiches des enfants (costumes et sondages). Cochez « Je danse aussi » si le parent a sa propre fiche danseur. Une fiche parent sert au CA à se souvenir de la famille, même s’il ne danse pas.'
                 : 'Reliez à une fiche existante, ou créez-en une et cochez le groupe de danse.'
             }}
           </p>
+          <v-alert v-if="dialogError" type="error" variant="tonal" class="mb-4">{{ dialogError }}</v-alert>
           <v-alert v-if="matchedPeople.length" type="info" variant="tonal" class="mb-4">
             Fiche déjà présente :
             {{ matchedPeople.map((person) => personDisplayName(person)).join(', ') }}.
@@ -65,13 +66,44 @@
           <v-autocomplete
             v-model="personIds"
             :items="personItems"
-            :label="isParent ? 'Fiche(s) enfant' : 'Fiche existante'"
+            :label="isParent ? 'Relier une fiche enfant déjà existante' : 'Fiche existante'"
             multiple
             chips
             closable-chips
             hide-details
             class="mb-4"
           />
+          <div v-if="isParent && unmatchedDrafts.length" class="mb-4">
+            <p class="text-body-2 mb-2">
+              Pas encore de fiche pour
+              {{ unmatchedDrafts.map((draft) => draft.label).join(', ') }}.
+              Cochez pour en créer une, utilisable ensuite pour les costumes.
+            </p>
+            <v-checkbox
+              v-for="draft in unmatchedDrafts"
+              :key="draft.prenom + draft.nom"
+              :model-value="createChildNames.includes(draft.prenom)"
+              :label="`Créer la fiche de ${draft.label}`"
+              hide-details
+              class="mb-1"
+              @update:model-value="toggleChildDraft(draft.prenom, $event)"
+            />
+            <div v-if="createChildNames.length" class="mt-3">
+              <div class="text-caption mb-2">Groupe de l’enfant</div>
+              <v-chip-group v-model="childRoles" multiple column>
+                <v-chip
+                  v-for="role in PERSON_ROLES"
+                  :key="`child-${role.id}`"
+                  :value="role.id"
+                  filter
+                  variant="outlined"
+                  color="primary"
+                >
+                  {{ role.label }}
+                </v-chip>
+              </v-chip-group>
+            </div>
+          </div>
           <v-checkbox
             v-if="isParent"
             v-model="alsoDances"
@@ -119,7 +151,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useDisplay } from 'vuetify'
 import { api } from '@/services/api'
-import { PERSON_ROLES, matchingPeopleForAccount, matchingPeopleForChildrenNames, personDisplayName } from '@/domain/person'
+import { PERSON_ROLES, matchingPeopleForAccount, matchingPeopleForChildrenNames, unmatchedChildDrafts, personDisplayName } from '@/domain/person'
 import { SIGNUP_RELATIONS } from '@/domain/memberAccount'
 import { useInventoryStore } from '@/stores/inventory'
 
@@ -137,6 +169,9 @@ const createPerson = ref(false)
 const forceCreate = ref(false)
 const alsoDances = ref(false)
 const roles = ref([])
+const createChildNames = ref([])
+const childRoles = ref(['danseur_enfant'])
+const dialogError = ref('')
 
 const isParent = computed(() => current.value?.signup?.relation === 'parent')
 const matchedPeople = computed(() =>
@@ -145,6 +180,15 @@ const matchedPeople = computed(() =>
 const matchedChildren = computed(() =>
   current.value && isParent.value
     ? matchingPeopleForChildrenNames(
+        inventory.people,
+        current.value.signup?.childrenNames,
+        current.value.signup?.nom || current.value.nom,
+      )
+    : [],
+)
+const unmatchedDrafts = computed(() =>
+  current.value && isParent.value
+    ? unmatchedChildDrafts(
         inventory.people,
         current.value.signup?.childrenNames,
         current.value.signup?.nom || current.value.nom,
@@ -188,14 +232,34 @@ function openPlace(account) {
   createPerson.value = selfMatches.length === 0
   forceCreate.value = false
   roles.value = parent && !account.signup?.alsoDances ? [] : ['danseur_loisir']
+  createChildNames.value = parent
+    ? unmatchedChildDrafts(
+        inventory.people,
+        account.signup?.childrenNames,
+        account.signup?.nom || account.nom,
+      ).map((draft) => draft.prenom)
+    : []
+  childRoles.value = ['danseur_enfant']
   error.value = ''
+  dialogError.value = ''
   dialog.value = true
+}
+
+function toggleChildDraft(prenom, checked) {
+  const id = String(prenom || '').trim()
+  if (!id) return
+  if (checked) {
+    if (!createChildNames.value.includes(id)) createChildNames.value = [...createChildNames.value, id]
+    return
+  }
+  createChildNames.value = createChildNames.value.filter((entry) => entry !== id)
 }
 
 async function save() {
   if (!current.value) return
   saving.value = true
   error.value = ''
+  dialogError.value = ''
   try {
     await api.placeMember(current.value.id, {
       personIds: personIds.value,
@@ -203,12 +267,16 @@ async function save() {
       forceCreate: Boolean(createPerson.value && forceCreate.value),
       alsoDances: Boolean(alsoDances.value),
       familyChildIds: isParent.value ? personIds.value : [],
+      createChildren: isParent.value && createChildNames.value.length > 0,
+      createChildNames: isParent.value ? createChildNames.value : [],
+      childRoles: childRoles.value,
       roles: roles.value,
     })
     dialog.value = false
     await inventory.refresh({ force: true })
     await load()
   } catch (err) {
+    dialogError.value = err.message
     error.value = err.message
   } finally {
     saving.value = false

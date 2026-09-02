@@ -23,6 +23,8 @@ import {
   setAdhesionRecord,
   matchingPeopleForAccount,
   matchingPeopleForChildrenNames,
+  unmatchedChildDrafts,
+  childDraftsToCreate,
   childrenOf,
   parentsOf,
   memberRsvpLabel,
@@ -350,6 +352,18 @@ describe('liens de parenté', () => {
     const other = normalizePerson({ nom: 'Le Goff', prenom: 'Léa', roles: ['danseur_enfant'] }, { id: 'other' })
     const matches = matchingPeopleForChildrenNames([lea, yann, other], 'Léa et Yann', 'Le Gall')
     assert.deepEqual(matches.map((person) => person.id).sort(), ['lea', 'yann'])
+  })
+
+  it('propose une fiche enfant à créer quand le prénom n’existe pas', () => {
+    const lea = normalizePerson({ nom: 'Le Gall', prenom: 'Léa', roles: ['danseur_enfant'] }, { id: 'lea' })
+    const drafts = unmatchedChildDrafts([lea], 'Zoé', 'Normant')
+    assert.equal(drafts.length, 1)
+    assert.equal(drafts[0].prenom, 'Zoé')
+    assert.equal(drafts[0].nom, 'Normant')
+    assert.equal(unmatchedChildDrafts([lea], 'Léa', 'Le Gall').length, 0)
+    const selected = childDraftsToCreate([lea], 'Zoé et Yann', 'Normant', { createChildNames: ['Zoé'] })
+    assert.deepEqual(selected.map((draft) => draft.prenom), ['Zoé'])
+    assert.equal(childDraftsToCreate([lea], 'Zoé', 'Normant', { createChildren: false }).length, 0)
   })
 
   it('empêche une fiche d’être son propre enfant et calcule parents / enfants', () => {
