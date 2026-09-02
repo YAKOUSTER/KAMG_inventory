@@ -1,69 +1,42 @@
 .DS_Store
-node_modules
-/dist
-
-
-# local env files
-.env.local
-.env.*.local
-
-# Log files
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-
-# Editor directories and files
-.idea
-.vscode
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-
-
-# Node.js
 node_modules/
 dist/
+
+# Local JSON database (seed.json is committed; runtime copy is not)
+data/db.json
+data/db.json.tmp
+data/uploads/*
+!data/uploads/.gitkeep
+data/backups/
+
+# Clés push (générées sur le serveur, hors git)
+data/vapid.env
+
+# Env
 .env
 .env.local
 .env.*.local
 
 # Logs
-logs
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# IDE/Editor files
-.vscode/
+# Editor
 .idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
 *.swp
 *.swo
-*.swn
-*.bak
-.DS_Store
-Thumbs.db
 
-# Build artifacts
-build/
-out/
-
-# Temp files
-*.tmp
-*.temp
-*.lock
-
-# Vue.js/Vite specific
+# Vite
 *.cache/
 .vite/
-vite.config.ts
 
-# Supabase
+# Supabase / Vercel leftovers
 .supabase/
-supabase/migrations/
-
-# Vercel
 .vercel/

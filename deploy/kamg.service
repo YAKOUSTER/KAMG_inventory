@@ -1,0 +1,20 @@
+[Unit]
+Description=Patrimoine textile KAMG
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/var/www/kamg
+Environment=NODE_ENV=production
+Environment=PORT=4173
+Environment=KAMG_PUBLIC_URL=https://kamg.fr
+EnvironmentFile=-/var/www/kamg/data/vapid.env
+# Les clés push sont créées au premier démarrage dans data/vapid.env (hors git).
+ExecStart=/usr/bin/node server/index.js
+Restart=on-failure
+RestartSec=5
+User=www-data
+Group=www-data
+
+[Install]
+WantedBy=multi-user.target
