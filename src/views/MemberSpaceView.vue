@@ -360,10 +360,12 @@ const upcomingCards = computed(() =>
   filterEventsByGroup(data.value?.events?.upcoming || [], groupFilter.value),
 )
 const personItems = computed(() =>
-  (data.value?.profiles || []).map((person) => ({
-    title: memberRsvpLabel(person, data.value?.people || [], data.value?.profiles || []),
-    value: person.id,
-  })),
+  (data.value?.profiles || [])
+    .filter((person) => person.actif)
+    .map((person) => ({
+      title: memberRsvpLabel(person, data.value?.people || [], data.value?.profiles || []),
+      value: person.id,
+    })),
 )
 const showSortieFiche = computed(
   () => eventIsSortie(selectedEvent.value) && sortieHasContent(selectedEvent.value?.sortie),
@@ -426,8 +428,10 @@ onMounted(async () => {
     }
     data.value = payload
     applyEventCatalog(payload.eventCatalog)
+    const rsvpIds = (payload.profiles || []).filter((person) => person.actif).map((person) => person.id)
     const stored = readStoredPresencePersonId(payload.profiles || [])
-    selectedPersonId.value = stored || payload.profiles?.[0]?.id || ''
+    selectedPersonId.value =
+      (stored && rsvpIds.includes(stored) ? stored : rsvpIds[0]) || payload.profiles?.[0]?.id || ''
   } catch (err) {
     error.value = err.message || 'Impossible de charger l’espace membres.'
   } finally {

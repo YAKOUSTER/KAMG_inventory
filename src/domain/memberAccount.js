@@ -1,5 +1,5 @@
 import { can, resolveUserAccess } from './auth.js'
-import { isActiveMember } from './person.js'
+import { isActiveMember, normalizeChildIds } from './person.js'
 
 export const USER_STATUSES = [
   { id: 'pending', label: 'En attente de rangement' },
@@ -80,9 +80,19 @@ export function isStaffAccount(user) {
   return user?.role === 'admin' || user?.role === 'gestion' || user?.role === 'lecteur'
 }
 
+export function peopleCoveredByAccount(user, people = []) {
+  const direct = normalizePersonIds(user?.personIds)
+  const ids = new Set(direct)
+  for (const id of direct) {
+    const person = (people || []).find((entry) => entry.id === id)
+    for (const childId of normalizeChildIds(person?.childIds, id)) ids.add(childId)
+  }
+  return [...ids]
+}
+
 export function accountDuesOverdue(user, people = [], now = new Date()) {
   if (!user || isDisabledUser(user) || isPendingPlacement(user) || isStaffAccount(user)) return false
-  const ids = normalizePersonIds(user.personIds)
+  const ids = peopleCoveredByAccount(user, people)
   if (!ids.length) return true
   return !ids.some((id) => {
     const person = people.find((entry) => entry.id === id)
@@ -109,11 +119,17 @@ export function canVisitAppRoute(user, meta = {}) {
   return true
 }
 
-export function canRsvpAsPerson(user, personId) {
-  if (!user || isDisabledUser(user) || isPendingPlacement(user) || user.duesOverdue) return false
+export function canRsvpAsPerson(user, personId, people = [], now = new Date()) {
+  if (!user || isDisabledUser(user) || isPendingPlacement(user)) return false
   const id = String(personId || '').trim()
   if (!id) return false
-  return normalizePersonIds(user.personIds).includes(id)
+  const covered = peopleCoveredByAccount(user, people)
+  if (!covered.includes(id)) return false
+  if (Array.isArray(people) && people.length) {
+    const person = people.find((entry) => entry.id === id)
+    return Boolean(person && isActiveMember(person, now))
+  }
+  return user.duesOverdue !== true
 }
 
 export function normalizeAccountRecord(user = {}) {

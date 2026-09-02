@@ -51,7 +51,7 @@ import {
   updateMemberProfile,
 } from './store.js'
 import { todayLocal } from '../src/domain/dates.js'
-import { currentSeasonId } from '../src/domain/seasons.js'
+import { currentSeasonId, newSeasonId } from '../src/domain/seasons.js'
 
 async function tmpOptions() {
   const dir = await mkdtemp(path.join(os.tmpdir(), 'patrimoine-'))
@@ -1067,6 +1067,74 @@ END:VCALENDAR`
     assert.ok(parent)
     assert.deepEqual(parent.childIds, [child.id])
     assert.deepEqual(parent.roles, [])
+  })
+
+  it('laisse un parent sans cotisation se connecter et répondre pour sa fille à jour', async () => {
+    const season = newSeasonId()
+    const child = await createPerson(
+      {
+        nom: 'Normant',
+        prenom: 'Zoé',
+        roles: ['danseur_enfant'],
+        saisons: [...new Set([currentSeasonId(), season])],
+      },
+      options,
+    )
+    const signup = await registerMember(
+      {
+        prenom: 'Lydie',
+        nom: 'Normant',
+        email: 'lydie.rsvp@cercle.test',
+        password: 'motdepasse',
+        relation: 'parent',
+        childrenNames: 'Zoé',
+        alsoDances: false,
+      },
+      options,
+    )
+    const placed = await placeMember(
+      signup.user.id,
+      { createPerson: true, alsoDances: false, familyChildIds: [child.id] },
+      options,
+    )
+    assert.deepEqual(placed.personIds, [child.id])
+    const session = await login('lydie.rsvp@cercle.test', 'motdepasse', options)
+    assert.equal(session.user.duesOverdue, false)
+    const space = await getMemberSpace(session.user, options)
+    assert.equal(space.duesOverdue, false)
+    assert.ok(space.profiles.some((person) => person.id === child.id))
+    const event = await createEvent(
+      {
+        type: 'sortie',
+        titre: 'Bal parent',
+        debut: '2026-10-10T18:00:00.000Z',
+        inscriptionsOuvertes: true,
+      },
+      options,
+    )
+    const presence = await setEventPresence(
+      event.id,
+      { personId: child.id, statut: '1' },
+      { ...options, actor: session.user, linkedOnly: true },
+    )
+    assert.equal(presence.statut, 'present')
+
+    const db = await readDb(options)
+    const parent = db.people.find((person) => person.prenom === 'Lydie')
+    const account = db.users.find((user) => user.id === signup.user.id)
+    account.personIds = [parent.id]
+    await writeDb(db, options)
+    const again = await login('lydie.rsvp@cercle.test', 'motdepasse', options)
+    assert.equal(again.user.duesOverdue, false)
+    const spaceViaParent = await getMemberSpace(again.user, options)
+    assert.equal(spaceViaParent.duesOverdue, false)
+    assert.ok(spaceViaParent.profiles.some((person) => person.id === child.id))
+    const second = await setEventPresence(
+      event.id,
+      { personId: child.id, statut: 'maybe' },
+      { ...options, actor: again.user, linkedOnly: true },
+    )
+    assert.equal(second.statut, 'maybe')
   })
 
   it('copie l’e-mail du compte quand on lie une fiche ensuite', async () => {

@@ -11,7 +11,9 @@ import {
   validatePassword,
   accountDuesOverdue,
   DUES_OVERDUE_MESSAGE,
+  peopleCoveredByAccount,
 } from './memberAccount.js'
+import { currentSeasonId, newSeasonId } from './seasons.js'
 
 describe('inscription membres', () => {
   it('exige un email et un mot de passe solides', () => {
@@ -81,6 +83,36 @@ describe('accès après connexion', () => {
     assert.equal(canRsvpAsPerson(parent, 'lea'), true)
     assert.equal(canRsvpAsPerson(parent, 'inconnu'), false)
     assert.equal(canRsvpAsPerson({ status: 'pending', personIds: ['lea'] }, 'lea'), false)
+    assert.equal(canRsvpAsPerson({ status: 'active', personIds: ['lea'], duesOverdue: true }, 'lea'), false)
+  })
+
+  it('laisse un parent sans cotisation répondre pour un enfant à jour', () => {
+    const now = new Date('2026-09-02T12:00:00')
+    const season = newSeasonId(now)
+    assert.equal(season, '2026-2027')
+    assert.equal(currentSeasonId(now), '2025-2026')
+    const mom = { id: 'mom', prenom: 'Lydie', nom: 'Normant', roles: [], saisons: [], childIds: ['zoe'] }
+    const zoe = {
+      id: 'zoe',
+      prenom: 'Zoé',
+      nom: 'Normant',
+      roles: ['danseur_enfant'],
+      saisons: [season],
+    }
+    const people = [mom, zoe]
+    const linkedToChild = { role: 'membre', status: 'active', personIds: ['zoe'] }
+    assert.equal(accountDuesOverdue(linkedToChild, people, now), false)
+    assert.equal(canRsvpAsPerson(linkedToChild, 'zoe', people, now), true)
+    assert.equal(canRsvpAsPerson(linkedToChild, 'mom', people, now), false)
+
+    const linkedToMom = { role: 'membre', status: 'active', personIds: ['mom'] }
+    assert.deepEqual(peopleCoveredByAccount(linkedToMom, people).sort(), ['mom', 'zoe'])
+    assert.equal(accountDuesOverdue(linkedToMom, people, now), false)
+    assert.equal(canRsvpAsPerson(linkedToMom, 'zoe', people, now), true)
+    assert.equal(canRsvpAsPerson(linkedToMom, 'mom', people, now), false)
+
+    const unpaidChild = { ...zoe, saisons: [] }
+    assert.equal(accountDuesOverdue(linkedToChild, [mom, unpaidChild], now), true)
   })
 
   it('retrouve un compte par email ou identifiant historique', () => {

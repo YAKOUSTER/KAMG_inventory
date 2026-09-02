@@ -23,6 +23,7 @@ import {
   passwordResetUrl,
   PASSWORD_RESET_MESSAGE,
   accountDuesOverdue,
+  peopleCoveredByAccount,
   DUES_OVERDUE_MESSAGE,
   validatePassword,
 } from '../src/domain/memberAccount.js'
@@ -1086,7 +1087,7 @@ export async function getMemberSpace(user, options = {}) {
     }
   }
   const space = await getPublicMemberSpace(options)
-  const allowed = new Set(normalizePersonIds(user.personIds))
+  const allowed = new Set(peopleCoveredByAccount(user, db.people || []))
   const profiles = (db.people || []).map(memberSelfProfile).filter((person) => person && allowed.has(person.id))
   return {
     ...space,
@@ -1474,7 +1475,7 @@ export async function setEventPresence(eventId, payload, options = {}) {
     }
     const person = (db.people || []).find((entry) => entry.id === personId)
     if (!person) throw Object.assign(new Error('Personne introuvable'), { status: 400 })
-    if (options.linkedOnly && !canRsvpAsPerson(options.actor, personId)) {
+    if (options.linkedOnly && !canRsvpAsPerson(options.actor, personId, db.people)) {
       throw Object.assign(new Error('Vous ne pouvez répondre que pour vos fiches'), { status: 403 })
     }
     if (!personCanRsvpToEvent(person, event)) {
