@@ -67,6 +67,10 @@ import {
   normalizePushSubscription,
 } from './push.js'
 import { canReceivePushNotifications } from '../src/domain/auth.js'
+import {
+  buildPasswordResetNotification,
+  buildPendingMemberNotification,
+} from '../src/domain/managerAlerts.js'
 import { hashPassword, hashToken, randomToken, verifyPassword } from './password.js'
 import { passwordResetEmail, sendMail } from './mail.js'
 import {
@@ -1757,6 +1761,7 @@ export async function registerMember(payload, options = {}) {
       entityLabel: userLabel(user),
       summary: `Inscription en attente : ${userLabel(user)}`,
     })
+    await notifyManagers(db, buildPendingMemberNotification(user)).catch(() => {})
     return { ...issueSession(db, user), pending: true }
   }, options)
 }
@@ -2027,11 +2032,7 @@ export async function requestPasswordReset(identifiant, options = {}) {
       const mail = passwordResetEmail({ nom: user.nom, resetUrl })
       await sendMail({ to, subject: mail.subject, text: mail.text })
     }
-    await notifyManagers(db, {
-      title: 'Mot de passe oublié',
-      body: `${userLabel(user)} a demandé une réinitialisation.`,
-      url: '/utilisateurs',
-    }).catch(() => {})
+    await notifyManagers(db, buildPasswordResetNotification(user)).catch(() => {})
     appendAudit(db, { id: user.id, login: user.login, nom: user.nom }, {
       action: 'user.password-reset-request',
       entityType: 'user',

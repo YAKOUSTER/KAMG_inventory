@@ -7,6 +7,7 @@
     </div>
     <p class="text-body-2 text-medium-emphasis mb-4">
       Les inscriptions arrivent ici. Reliez chaque compte à une fiche danseur, ou aux enfants pour un parent.
+      Une notification est envoyée aux administrateurs abonnés à chaque nouvelle inscription.
     </p>
 
     <v-alert v-if="error" type="error" variant="tonal" class="mb-4" closable @click:close="error = ''">

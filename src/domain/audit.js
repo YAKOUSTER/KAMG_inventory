@@ -13,6 +13,12 @@ export const AUDIT_ACTIONS = [
   { id: 'user.create', label: 'Compte créé', entityType: 'user' },
   { id: 'user.update', label: 'Compte modifié', entityType: 'user' },
   { id: 'user.delete', label: 'Compte supprimé', entityType: 'user' },
+  { id: 'user.register', label: 'Inscription à ranger', entityType: 'user' },
+  { id: 'user.place', label: 'Membre rangé', entityType: 'user' },
+  { id: 'user.refuse', label: 'Inscription refusée', entityType: 'user' },
+  { id: 'user.password-reset-request', label: 'Mot de passe oublié', entityType: 'user' },
+  { id: 'user.password-reset-link', label: 'Lien mot de passe', entityType: 'user' },
+  { id: 'user.password-reset', label: 'Mot de passe réinitialisé', entityType: 'user' },
   { id: 'db.import', label: 'Import JSON', entityType: 'db' },
   { id: 'referentiels.update', label: 'Listes de paramétrage', entityType: 'settings' },
   { id: 'audit.clear', label: 'Journal vidé', entityType: 'settings' },
@@ -33,6 +39,9 @@ export function auditEntityRoute(entry) {
       return { name: 'person-detail', params: { id: entry.entityId } }
     case 'loan':
       return { name: 'loan-detail', params: { id: entry.entityId } }
+    case 'user':
+      if (entry.action === 'user.register') return { path: '/a-ranger' }
+      return { path: '/utilisateurs' }
     default:
       return null
   }

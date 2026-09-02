@@ -7,6 +7,10 @@ self.addEventListener('push', (event) => {
     badge: '/favicon.png',
     data: { url: payload.url || '/' },
   }
+  if (payload.tag) {
+    options.tag = payload.tag
+    options.renotify = true
+  }
   event.waitUntil(self.registration.showNotification(title, options))
 })
 

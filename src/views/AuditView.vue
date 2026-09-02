@@ -7,7 +7,8 @@
     </div>
 
     <p class="text-body-2 text-medium-emphasis mb-6">
-      Dernières créations, modifications, emprunts et retours, avec l’utilisateur concerné.
+      Dernières créations, inscriptions à ranger, emprunts et retours, avec l’utilisateur concerné.
+      Pour être prévenue sur le téléphone, activez les notifications dans le menu Compte (admin).
     </p>
 
     <div class="d-flex flex-wrap ga-3 mb-6">

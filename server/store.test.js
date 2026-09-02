@@ -552,6 +552,24 @@ describe('json store', () => {
     assert.equal(adjusted.metrage, 1)
   })
 
+  it('note une inscription à ranger dans le journal d’activité', async () => {
+    await registerMember(
+      {
+        prenom: 'Lydie',
+        nom: 'Normant',
+        email: 'lydie.journal@cercle.test',
+        password: 'motdepasse',
+        relation: 'parent',
+        childrenNames: 'Zoé Normant',
+      },
+      options,
+    )
+    const audit = await listAudit({ action: 'user.register' }, options)
+    assert.equal(audit.total, 1)
+    assert.equal(audit.entries[0].action, 'user.register')
+    assert.match(audit.entries[0].summary, /Lydie/i)
+  })
+
   it('enregistre créations, modifications et retours dans le journal d’audit', async () => {
     const session = await login('admin', 'admin', options)
     const actor = session.user

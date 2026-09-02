@@ -1,6 +1,7 @@
 <template>
   <v-list-item
     v-if="visible"
+    lines="two"
     :title="subscribed ? 'Notifications activées' : 'Activer les notifications'"
     :subtitle="subtitle"
     :prepend-icon="subscribed ? 'mdi-bell-ring-outline' : 'mdi-bell-outline'"
@@ -12,6 +13,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { canReceivePushNotifications } from '@/domain/auth'
+import { iosNeedsHomeScreen, pushToggleSubtitle, pushUnsupportedMessage } from '@/domain/pushHints'
 import {
   disablePushNotifications,
   enablePushNotifications,
@@ -28,16 +30,34 @@ const enabled = ref(false)
 const supported = ref(false)
 
 const visible = computed(() => canReceivePushNotifications(auth.user))
-const subtitle = computed(() => {
-  if (!supported.value) return 'Non supporté sur ce navigateur'
-  if (!enabled.value) return 'Serveur non configuré (VAPID)'
-  return subscribed.value ? 'Emprunts, retours et sorties' : 'Alertes emprunts, retours et sorties'
-})
+const iosTab = computed(() =>
+  iosNeedsHomeScreen({
+    userAgent: typeof navigator === 'undefined' ? '' : navigator.userAgent,
+    platform: typeof navigator === 'undefined' ? '' : navigator.platform,
+    maxTouchPoints: typeof navigator === 'undefined' ? 0 : navigator.maxTouchPoints,
+    standalone: typeof window === 'undefined' ? false : Boolean(window.navigator.standalone),
+    displayMode:
+      typeof window !== 'undefined' && window.matchMedia('(display-mode: standalone)').matches
+        ? 'standalone'
+        : 'browser',
+  }),
+)
+const subtitle = computed(() =>
+  pushToggleSubtitle({
+    supported: supported.value,
+    enabled: enabled.value,
+    subscribed: subscribed.value,
+    iosTab: iosTab.value,
+  }),
+)
 
 onMounted(refresh)
 
 async function refresh() {
-  if (!visible.value || !pushSupported()) return
+  if (!visible.value || !pushSupported()) {
+    supported.value = pushSupported()
+    return
+  }
   try {
     const status = await getPushStatus()
     supported.value = status.supported
@@ -51,7 +71,7 @@ async function refresh() {
 async function toggle() {
   if (loading.value) return
   if (!supported.value) {
-    ui.notify('Notifications non supportées sur ce navigateur. Essayez Chrome ou Firefox, en HTTPS.', {
+    ui.notify(pushUnsupportedMessage({ iosTab: iosTab.value }), {
       color: 'error',
     })
     return
