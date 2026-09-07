@@ -56,7 +56,7 @@ function normalizeIsoDate(value) {
   const raw = trim(value)
   if (!raw) return ''
   const date = new Date(raw)
-  if (Number.isNaN(date.getTime())) return raw
+  if (Number.isNaN(date.getTime())) return ''
   return date.toISOString()
 }
 

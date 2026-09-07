@@ -385,7 +385,7 @@ function toLocalInput(value) {
 function fromLocalInput(value) {
   if (!value) return ''
   const date = new Date(value)
-  return Number.isNaN(date.getTime()) ? value : date.toISOString()
+  return Number.isNaN(date.getTime()) ? '' : date.toISOString()
 }
 
 function toggleOccurrence(day, keep) {

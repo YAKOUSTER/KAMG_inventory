@@ -101,6 +101,17 @@ describe('normalizeEvent', () => {
       /titre/i,
     )
   })
+
+  it('refuse une date de début illisible', () => {
+    assert.throws(
+      () =>
+        normalizeEvent(
+          { titre: 'Cassé', debut: '110920-09-11T14:06', kinds: ['stage'] },
+          { id: 'evt-bad' },
+        ),
+      /début/i,
+    )
+  })
 })
 
 describe('applyEventOverlay', () => {
