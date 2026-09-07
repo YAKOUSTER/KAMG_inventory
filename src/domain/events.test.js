@@ -141,6 +141,30 @@ describe('event lists', () => {
     assert.deepEqual(list.map((event) => event.id), ['2'])
   })
 
+  it('garde un événement commencé hier s’il n’est pas encore terminé', () => {
+    const now = new Date(2026, 8, 12, 12, 0)
+    const list = upcomingEvents(
+      [
+        {
+          id: 'stage',
+          titre: 'Stage',
+          debut: new Date(2026, 8, 11, 9, 0).toISOString(),
+          fin: new Date(2026, 8, 13, 18, 0).toISOString(),
+          publie: true,
+        },
+        {
+          id: 'done',
+          titre: 'Fini',
+          debut: new Date(2026, 8, 10, 9, 0).toISOString(),
+          fin: new Date(2026, 8, 11, 18, 0).toISOString(),
+          publie: true,
+        },
+      ],
+      now,
+    )
+    assert.deepEqual(list.map((event) => event.id), ['stage'])
+  })
+
   it('produit un résumé public sans description trop longue', () => {
     const summary = publicEventSummary(
       {

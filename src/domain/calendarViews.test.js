@@ -1,12 +1,18 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import {
+  displayEventWhen,
   eventDateBadge,
+  eventDayCount,
+  eventEndDay,
   eventsInMonth,
   eventsOnDay,
+  eventSpanDays,
+  eventTimeLabel,
   groupEventsByDay,
   groupEventsByMonth,
   isAgendaView,
+  isMultiDayEvent,
   listGroupsByDay,
   monthCells,
   periodLabel,
@@ -119,5 +125,64 @@ describe('filtre mois', () => {
       eventsInMonth(events, '2026-04-14').map((event) => event.id),
       ['a'],
     )
+  })
+
+  it('garde un événement commencé le mois précédent s’il déborde', () => {
+    const events = [
+      {
+        id: 'span',
+        debut: new Date(2026, 7, 31, 18, 0).toISOString(),
+        fin: new Date(2026, 8, 2, 16, 0).toISOString(),
+      },
+    ]
+    assert.deepEqual(
+      eventsInMonth(events, '2026-09-01').map((event) => event.id),
+      ['span'],
+    )
+  })
+})
+
+describe('événements sur plusieurs jours', () => {
+  const weekend = {
+    id: 'w',
+    titre: 'Week-end Gwennyn',
+    debut: new Date(2026, 8, 11, 18, 0).toISOString(),
+    fin: new Date(2026, 8, 13, 16, 0).toISOString(),
+  }
+
+  it('compte les jours inclus du vendredi au dimanche', () => {
+    assert.equal(isMultiDayEvent(weekend), true)
+    assert.equal(eventDayCount(weekend), 3)
+    assert.deepEqual(eventSpanDays(weekend), ['2026-09-11', '2026-09-12', '2026-09-13'])
+    assert.equal(eventEndDay(weekend), '2026-09-13')
+  })
+
+  it('traite minuit le lendemain comme fin exclusive', () => {
+    const untilMidnight = {
+      debut: new Date(2026, 8, 11, 18, 0).toISOString(),
+      fin: new Date(2026, 8, 14, 0, 0, 0).toISOString(),
+    }
+    assert.deepEqual(eventSpanDays(untilMidnight), ['2026-09-11', '2026-09-12', '2026-09-13'])
+  })
+
+  it('affiche l’événement chaque jour du calendrier, une seule fois en liste', () => {
+    const byDay = groupEventsByDay([weekend], { span: true })
+    assert.equal(eventsOnDay(byDay, '2026-09-11').length, 1)
+    assert.equal(eventsOnDay(byDay, '2026-09-12').length, 1)
+    assert.equal(eventsOnDay(byDay, '2026-09-13').length, 1)
+    const list = listGroupsByDay([weekend], { newestFirst: false })
+    assert.equal(list.length, 1)
+    assert.equal(list[0].day, '2026-09-11')
+  })
+
+  it('étiquette le premier jour, la suite et la fin', () => {
+    assert.match(eventTimeLabel(weekend), /3 j\./)
+    assert.equal(eventTimeLabel(weekend, '2026-09-12'), 'suite')
+    assert.equal(eventTimeLabel(weekend, '2026-09-13'), '16:00')
+    const badge = eventDateBadge(weekend)
+    assert.equal(badge.multi, true)
+    assert.equal(badge.day, '11–13')
+    assert.match(displayEventWhen(weekend), /Du vendredi/)
+    assert.match(displayEventWhen(weekend), /dimanche/)
   })
 })

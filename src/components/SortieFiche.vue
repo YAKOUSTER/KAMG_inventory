@@ -332,12 +332,14 @@ import {
   selectItems,
   sortieDateLabel,
 } from '@/domain/sortie'
+import { eventEndDay } from '@/domain/calendarViews'
 import SortieReadValue from '@/components/SortieReadValue.vue'
 import SortiePendingSelect from '@/components/SortiePendingSelect.vue'
 
 const props = defineProps({
   titre: { type: String, default: '' },
   debut: { type: String, default: '' },
+  fin: { type: String, default: '' },
   lieu: { type: String, default: '' },
   sortie: { type: Object, required: true },
   dancerCount: { type: Number, default: null },
@@ -347,7 +349,11 @@ const props = defineProps({
 })
 
 const season = computed(() => seasonLabel(props.debut))
-const dateLabel = computed(() => sortieDateLabel(props.debut))
+const dateLabel = computed(() => {
+  if (!props.fin || props.fin === props.debut) return sortieDateLabel(props.debut)
+  const endDay = eventEndDay({ debut: props.debut, fin: props.fin })
+  return sortieDateLabel(props.debut, endDay ? `${endDay}T12:00:00` : props.fin)
+})
 const dancerCountLabel = computed(() => (props.dancerCount == null ? '—' : String(props.dancerCount)))
 const openPanels = ref(props.editable ? [0] : [0, 1, 2, 3, 4])
 const personItems = computed(() =>

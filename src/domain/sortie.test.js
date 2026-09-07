@@ -5,6 +5,7 @@ import {
   emptySortie,
   normalizeSortie,
   seasonLabel,
+  sortieDateLabel,
   sortieHasContent,
 } from './sortie.js'
 
@@ -44,5 +45,14 @@ describe('displayHourLabel', () => {
   it('affiche 18h30', () => {
     assert.equal(displayHourLabel('18:30'), '18h30')
     assert.equal(displayHourLabel('9:05'), '09h05')
+  })
+})
+
+describe('sortieDateLabel', () => {
+  it('affiche une plage pour un week-end', () => {
+    const debut = new Date(2026, 8, 11, 18, 0).toISOString()
+    const fin = new Date(2026, 8, 13, 16, 0).toISOString()
+    assert.equal(sortieDateLabel(debut), '11 sept. 2026')
+    assert.equal(sortieDateLabel(debut, fin), '11–13 sept. 2026')
   })
 })

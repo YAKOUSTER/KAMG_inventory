@@ -1,4 +1,4 @@
-import { addDays, todayLocal } from './dates.js'
+import { addDays, displayDate, todayLocal } from './dates.js'
 
 export const AGENDA_VIEWS = [
   { id: 'liste', label: 'Liste', icon: 'mdi-format-list-bulleted' },
@@ -8,6 +8,8 @@ export const AGENDA_VIEWS = [
 ]
 
 export const WEEKDAY_LABELS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
+
+export const WEEKDAY_LONG_LABELS = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche']
 
 export const MONTH_LABELS = [
   'Janvier',
@@ -80,13 +82,86 @@ export function yearMonths(year) {
   }))
 }
 
-export function groupEventsByDay(events = []) {
+export function clockFromIso(value) {
+  if (!value) return ''
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+  return `${pad2(date.getHours())}:${pad2(date.getMinutes())}`
+}
+
+function isExclusiveMidnight(value, startDay) {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return false
+  const day = toLocalDay(value)
+  return Boolean(
+    startDay &&
+      day &&
+      day > startDay &&
+      date.getHours() === 0 &&
+      date.getMinutes() === 0 &&
+      date.getSeconds() === 0,
+  )
+}
+
+export function eventStartDay(event) {
+  return toLocalDay(event?.debut)
+}
+
+export function eventEndDay(event) {
+  const start = eventStartDay(event)
+  const rawEnd = event?.fin || event?.debut
+  let end = toLocalDay(rawEnd)
+  if (!start) return end
+  if (!end || end < start) return start
+  if (isExclusiveMidnight(rawEnd, start)) {
+    const previous = addDays(end, -1)
+    return previous < start ? start : previous
+  }
+  return end
+}
+
+export function isMultiDayEvent(event) {
+  const start = eventStartDay(event)
+  const end = eventEndDay(event)
+  return Boolean(start && end && end > start)
+}
+
+export function eventSpanDays(event) {
+  const start = eventStartDay(event)
+  const end = eventEndDay(event)
+  if (!start) return []
+  if (!end || end <= start) return [start]
+  const days = []
+  let cursor = start
+  for (let index = 0; index < 62 && cursor <= end; index += 1) {
+    days.push(cursor)
+    cursor = addDays(cursor, 1)
+  }
+  return days
+}
+
+export function eventDayCount(event) {
+  return eventSpanDays(event).length
+}
+
+export function eventSpanRole(event, isoDay) {
+  if (!isoDay || !isMultiDayEvent(event)) return ''
+  const start = eventStartDay(event)
+  const end = eventEndDay(event)
+  if (isoDay === start) return 'start'
+  if (isoDay === end) return 'end'
+  if (isoDay > start && isoDay < end) return 'mid'
+  return ''
+}
+
+export function groupEventsByDay(events = [], { span = false } = {}) {
   const map = new Map()
   for (const event of events) {
-    const day = toLocalDay(event?.debut)
-    if (!day) continue
-    if (!map.has(day)) map.set(day, [])
-    map.get(day).push(event)
+    const days = span ? eventSpanDays(event) : [eventStartDay(event)].filter(Boolean)
+    for (const day of days) {
+      if (!map.has(day)) map.set(day, [])
+      map.get(day).push(event)
+    }
   }
   for (const list of map.values()) {
     list.sort((a, b) => String(a.debut || '').localeCompare(String(b.debut || '')))
@@ -156,23 +231,62 @@ export function isAgendaView(value) {
   return AGENDA_VIEWS.some((entry) => entry.id === value)
 }
 
-export function eventTimeLabel(event) {
-  const raw = event?.debut
-  if (!raw) return ''
-  const date = new Date(raw)
-  if (Number.isNaN(date.getTime())) return ''
-  return `${pad2(date.getHours())}:${pad2(date.getMinutes())}`
+export function eventTimeLabel(event, isoDay) {
+  const startClock = clockFromIso(event?.debut)
+  if (!startClock) return ''
+  const role = eventSpanRole(event, isoDay)
+  if (role === 'mid') return 'suite'
+  if (role === 'end') return clockFromIso(event?.fin) || 'fin'
+  if (isMultiDayEvent(event)) {
+    const count = eventDayCount(event)
+    return `${startClock} · ${count} j.`
+  }
+  const endClock = clockFromIso(event?.fin)
+  if (endClock && endClock !== startClock) return `${startClock}–${endClock}`
+  return startClock
+}
+
+export function displayEventWhen(event) {
+  const start = eventStartDay(event)
+  const parsed = parseLocalDay(start)
+  if (!parsed) return ''
+  const startWeekday = WEEKDAY_LONG_LABELS[(parsed.date.getDay() + 6) % 7]
+  const startClock = clockFromIso(event?.debut)
+  const endClock = clockFromIso(event?.fin || event?.debut)
+  const startDate = displayDate(event.debut)
+  if (!isMultiDayEvent(event)) {
+    const weekday = startWeekday.charAt(0).toUpperCase() + startWeekday.slice(1)
+    if (endClock && endClock !== startClock) {
+      return `${weekday} ${startDate} · ${startClock} – ${endClock}`
+    }
+    return startClock ? `${weekday} ${startDate} · ${startClock}` : `${weekday} ${startDate}`
+  }
+  const endParsed = parseLocalDay(eventEndDay(event))
+  const endWeekday = endParsed ? WEEKDAY_LONG_LABELS[(endParsed.date.getDay() + 6) % 7] : ''
+  const endDate = displayDate(event.fin || event.debut)
+  return `Du ${startWeekday} ${startDate} ${startClock} au ${endWeekday} ${endDate} ${endClock}`
 }
 
 export function eventDateBadge(value) {
-  const day = toLocalDay(value?.debut || value)
-  const parsed = parseLocalDay(day)
-  if (!parsed) return { weekday: '', day: '', month: '' }
-  const weekday = WEEKDAY_LABELS[(parsed.date.getDay() + 6) % 7]
+  const event = value && typeof value === 'object' ? value : { debut: value }
+  const start = parseLocalDay(eventStartDay(event) || toLocalDay(value))
+  if (!start) return { weekday: '', day: '', month: '', multi: false }
+  const month = MONTH_LABELS[start.month - 1].slice(0, 3).toUpperCase()
+  if (!isMultiDayEvent(event)) {
+    return {
+      weekday: WEEKDAY_LABELS[(start.date.getDay() + 6) % 7],
+      day: String(start.day),
+      month,
+      multi: false,
+    }
+  }
+  const end = parseLocalDay(eventEndDay(event))
+  const endMonth = end ? MONTH_LABELS[end.month - 1].slice(0, 3).toUpperCase() : month
   return {
-    weekday,
-    day: String(parsed.day),
-    month: MONTH_LABELS[parsed.month - 1].slice(0, 3).toUpperCase(),
+    weekday: `${eventDayCount(event)} j.`,
+    day: end ? `${start.day}–${end.day}` : String(start.day),
+    month: endMonth === month ? month : `${month}–${endMonth}`,
+    multi: true,
   }
 }
 
@@ -180,7 +294,7 @@ export function eventsInMonth(events = [], isoDay) {
   const key = monthKey(isoDay)
   if (!key) return []
   return [...events]
-    .filter((event) => monthKey(toLocalDay(event?.debut)) === key)
+    .filter((event) => eventSpanDays(event).some((day) => monthKey(day) === key))
     .sort((a, b) => String(a.debut || '').localeCompare(String(b.debut || '')))
 }
 
@@ -188,7 +302,7 @@ export function eventsInYear(events = [], isoDay) {
   const year = String(parseLocalDay(isoDay || todayLocal())?.year || '')
   if (!year) return []
   return [...events]
-    .filter((event) => toLocalDay(event?.debut).startsWith(`${year}-`))
+    .filter((event) => eventSpanDays(event).some((day) => day.startsWith(`${year}-`)))
     .sort((a, b) => String(a.debut || '').localeCompare(String(b.debut || '')))
 }
 

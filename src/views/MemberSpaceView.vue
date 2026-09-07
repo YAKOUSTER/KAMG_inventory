@@ -227,7 +227,7 @@
               {{ eventGroupLabel(group) }}
             </v-chip>
           </div>
-          <p class="mb-1"><strong>{{ displayDateTime(selectedEvent.debut) }}</strong></p>
+          <p class="mb-1"><strong>{{ displayEventWhen(selectedEvent) }}</strong></p>
           <p v-if="selectedEvent.lieu" class="mb-2">{{ selectedEvent.lieu }}</p>
           <p v-if="selectedEvent.description" class="text-body-2" style="white-space: pre-wrap">
             {{ selectedEvent.description }}
@@ -249,6 +249,7 @@
             class="mt-4"
             :titre="selectedEvent.titre"
             :debut="selectedEvent.debut"
+            :fin="selectedEvent.fin"
             :lieu="selectedEvent.lieu"
             :sortie="selectedEvent.sortie || emptySortie()"
             :dancer-count="selectedDancerCount"
@@ -283,7 +284,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { useDisplay } from 'vuetify'
 import { api } from '@/services/api'
 import { GROUP_NAME, LOGO_SRC } from '@/domain/brand'
-import { displayDate, displayDateTime } from '@/domain/dates'
+import { displayDate } from '@/domain/dates'
+import { displayEventWhen } from '@/domain/calendarViews'
 import { eventAcceptsInscriptions, eventIsSortie } from '@/domain/events'
 import { emptySortie, sortieHasContent } from '@/domain/sortie'
 import { loanStatusColor, loanStatusLabel, openLoanLines } from '@/domain/loans'

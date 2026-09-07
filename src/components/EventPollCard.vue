@@ -1,7 +1,7 @@
 <template>
   <article class="event-poll-card">
     <button type="button" class="event-poll-card__main" @click="emit('select', event)">
-      <div class="event-poll-card__date" aria-hidden="true">
+      <div class="event-poll-card__date" :class="{ 'event-poll-card__date--range': badge.multi }" aria-hidden="true">
         <span class="event-poll-card__weekday">{{ badge.weekday }}</span>
         <span class="event-poll-card__day">{{ badge.day }}</span>
         <span class="event-poll-card__month">{{ badge.month }}</span>
@@ -108,6 +108,14 @@ const timeLabel = computed(() => eventTimeLabel(props.event))
 .event-poll-card__day {
   font-size: 1.35rem;
   font-weight: 800;
+}
+
+.event-poll-card__date--range {
+  width: 58px;
+}
+
+.event-poll-card__date--range .event-poll-card__day {
+  font-size: 1.05rem;
 }
 
 .event-poll-card__title {

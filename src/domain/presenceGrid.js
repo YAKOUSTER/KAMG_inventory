@@ -1,6 +1,6 @@
 import { eventAcceptsInscriptions } from './events.js'
 import { todayLocal } from './dates.js'
-import { WEEKDAY_LABELS, eventTimeLabel, parseLocalDay, toLocalDay } from './calendarViews.js'
+import { WEEKDAY_LABELS, eventDayCount, eventEndDay, eventTimeLabel, isMultiDayEvent, parseLocalDay, toLocalDay } from './calendarViews.js'
 import { presenceStatutMeta } from './presence.js'
 
 export function presenceCellKey(eventId, personId) {
@@ -44,7 +44,7 @@ export function inscriptionEventsForGrid(events = [], now = new Date()) {
   return [...events]
     .filter((event) => eventAcceptsInscriptions(event))
     .filter((event) => {
-      const day = toLocalDay(event.debut)
+      const day = eventEndDay(event) || toLocalDay(event.debut)
       return day && day >= today
     })
     .sort((a, b) => String(a.debut || '').localeCompare(String(b.debut || '')))
@@ -54,9 +54,15 @@ export function presenceColumnMeta(event) {
   const day = toLocalDay(event?.debut)
   const parsed = parseLocalDay(day)
   const weekday = parsed ? WEEKDAY_LABELS[(parsed.date.getDay() + 6) % 7] : ''
-  const dateLabel = parsed
-    ? `${String(parsed.day).padStart(2, '0')}/${String(parsed.month).padStart(2, '0')}`
-    : day
+  const dateLabel = (() => {
+    if (!parsed) return day
+    const start = `${String(parsed.day).padStart(2, '0')}/${String(parsed.month).padStart(2, '0')}`
+    if (!isMultiDayEvent(event)) return start
+    const endParsed = parseLocalDay(eventEndDay(event))
+    if (!endParsed) return `${start} · ${eventDayCount(event)} j.`
+    const end = `${String(endParsed.day).padStart(2, '0')}/${String(endParsed.month).padStart(2, '0')}`
+    return `${start}–${end}`
+  })()
   return {
     id: event?.id,
     event,

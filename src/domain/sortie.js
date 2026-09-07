@@ -85,10 +85,22 @@ const MONTHS_SHORT = [
   'déc.',
 ]
 
-export function sortieDateLabel(value) {
-  const date = value ? new Date(value) : null
-  if (!date || Number.isNaN(date.getTime())) return ''
-  return `${date.getDate()} ${MONTHS_SHORT[date.getMonth()]} ${date.getFullYear()}`
+export function sortieDateLabel(debut, fin) {
+  const start = debut ? new Date(debut) : null
+  if (!start || Number.isNaN(start.getTime())) return ''
+  const startLabel = `${start.getDate()} ${MONTHS_SHORT[start.getMonth()]} ${start.getFullYear()}`
+  if (!fin) return startLabel
+  const end = new Date(fin)
+  if (Number.isNaN(end.getTime())) return startLabel
+  const sameDay =
+    start.getFullYear() === end.getFullYear() &&
+    start.getMonth() === end.getMonth() &&
+    start.getDate() === end.getDate()
+  if (sameDay) return startLabel
+  if (start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear()) {
+    return `${start.getDate()}–${end.getDate()} ${MONTHS_SHORT[start.getMonth()]} ${start.getFullYear()}`
+  }
+  return `${start.getDate()} ${MONTHS_SHORT[start.getMonth()]} – ${end.getDate()} ${MONTHS_SHORT[end.getMonth()]} ${end.getFullYear()}`
 }
 
 export function displayHourLabel(value) {

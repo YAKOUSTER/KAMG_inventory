@@ -1,4 +1,5 @@
 import { todayLocal } from './dates.js'
+import { eventEndDay } from './calendarViews.js'
 import { can } from './auth.js'
 import {
   applyEventTitlePrefix,
@@ -217,7 +218,7 @@ export function upcomingEvents(events = [], now = new Date()) {
   const today = todayLocal(now)
   return sortEvents(
     filterPublishedEvents(events).filter((event) => {
-      const day = eventLocalDay(event)
+      const day = eventEndDay(event) || eventLocalDay(event)
       return day && day >= today
     }),
   )
@@ -227,7 +228,7 @@ export function pastEvents(events = [], now = new Date()) {
   const today = todayLocal(now)
   return sortEvents(
     filterPublishedEvents(events).filter((event) => {
-      const day = eventLocalDay(event)
+      const day = eventEndDay(event) || eventLocalDay(event)
       return day && day < today
     }),
     { ascending: false },

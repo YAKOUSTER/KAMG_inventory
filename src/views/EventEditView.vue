@@ -71,7 +71,13 @@
         </FieldRow>
         <FieldRow label="Fin">
           <v-text-field v-model="form.fin" type="datetime-local" hide-details="auto" />
+          <p class="text-caption text-medium-emphasis mt-1">
+            Sur plusieurs jours, indiquez le dernier jour. Sinon l’heure de fin le même jour.
+          </p>
         </FieldRow>
+        <p v-if="whenPreview" class="text-body-2 text-medium-emphasis form-fields-grid__span-2 mt-n2 mb-2">
+          {{ whenPreview }}
+        </p>
         <template v-if="showRecurrence">
           <FieldRow label="Récurrence" class="form-fields-grid__span-2">
             <v-select
@@ -153,6 +159,7 @@
         embedded
         :titre="fullTitle"
         :debut="fromLocalInput(form.debut)"
+        :fin="fromLocalInput(form.fin)"
         :lieu="form.lieu"
         :sortie="form.sortie"
         :dancer-count="dancerCount"
@@ -210,6 +217,7 @@ import {
   recurrenceWeekdayLabel,
 } from '@/domain/recurrence'
 import { displayDate, todayLocal } from '@/domain/dates'
+import { displayEventWhen } from '@/domain/calendarViews'
 
 const props = defineProps({ id: { type: String, default: '' } })
 const router = useRouter()
@@ -267,6 +275,12 @@ const isSortie = computed(() => form.kinds.includes('sortie') || form.kinds.incl
 const isRepetition = computed(() => kindsAreRepetition(form.kinds))
 const isPast = computed(() =>
   eventIsPast({
+    debut: fromLocalInput(form.debut),
+    fin: fromLocalInput(form.fin),
+  }),
+)
+const whenPreview = computed(() =>
+  displayEventWhen({
     debut: fromLocalInput(form.debut),
     fin: fromLocalInput(form.fin),
   }),

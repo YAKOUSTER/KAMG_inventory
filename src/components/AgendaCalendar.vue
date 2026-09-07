@@ -63,6 +63,9 @@
           <div class="agenda-cal__list-body">
             <div class="d-flex flex-wrap ga-1 align-center mb-1">
               <EventKindChips :event="event" />
+              <v-chip v-if="isMultiDayEvent(event)" size="x-small" variant="tonal">
+                {{ eventDayCount(event) }} jours
+              </v-chip>
               <v-chip v-if="event.publie === false" size="x-small" color="warning" variant="tonal">
                 Brouillon
               </v-chip>
@@ -93,10 +96,10 @@
           :key="event.id"
           type="button"
           class="agenda-cal__chip"
-          :class="chipClass(event)"
+          :class="chipClass(event, day)"
           @click.stop="emit('select', event)"
         >
-          <span class="agenda-cal__chip-time">{{ eventTimeLabel(event) }}</span>
+          <span class="agenda-cal__chip-time">{{ eventTimeLabel(event, day) }}</span>
           {{ event.titre }}
         </button>
         <button
@@ -129,10 +132,10 @@
           :key="event.id"
           type="button"
           class="agenda-cal__chip agenda-cal__chip--compact"
-          :class="chipClass(event)"
+          :class="chipClass(event, cell.iso)"
           @click="emit('select', event)"
         >
-          {{ eventTimeLabel(event) }} {{ event.titre }}
+          {{ eventTimeLabel(event, cell.iso) }} {{ event.titre }}
         </button>
         <button
           v-if="eventsFor(cell.iso).length > 3"
@@ -193,8 +196,11 @@
             :class="{ 'is-past': isPastEvent(event) }"
             @click="selectFromDay(event)"
           >
-            <span class="agenda-cal__chip-time">{{ eventTimeLabel(event) }}</span>
+            <span class="agenda-cal__chip-time">{{ eventTimeLabel(event, selectedDay) }}</span>
             <EventKindChips :event="event" />
+            <v-chip v-if="isMultiDayEvent(event)" size="x-small" variant="tonal">
+              {{ eventDayCount(event) }} jours
+            </v-chip>
             <v-chip v-if="isPastEvent(event)" size="x-small" variant="tonal" color="secondary">
               Passé
             </v-chip>
@@ -229,9 +235,12 @@ import EventKindChips from '@/components/EventKindChips.vue'
 import {
   AGENDA_VIEWS,
   WEEKDAY_LABELS,
+  eventDayCount,
   eventsOnDay,
+  eventSpanRole,
   eventTimeLabel,
   groupEventsByDay,
+  isMultiDayEvent,
   listGroupsByDay,
   monthCells,
   periodLabel,
@@ -269,7 +278,7 @@ const view = ref(readStoredAgendaView(props.storageKey, props.initialView))
 const holidaysVisible = ref(readStoredHolidaysVisible(HOLIDAY_STORAGE_KEY, true))
 const cursor = ref(todayLocal())
 
-const byDay = computed(() => groupEventsByDay(props.events))
+const byDay = computed(() => groupEventsByDay(props.events, { span: true }))
 const label = computed(() => periodLabel(view.value, cursor.value))
 const week = computed(() => weekDays(cursor.value))
 const parsedCursor = computed(() => parseLocalDay(cursor.value))
@@ -321,10 +330,13 @@ function isPastEvent(event) {
   return props.markPast && eventIsPast(event)
 }
 
-function chipClass(event) {
+function chipClass(event, isoDay) {
+  const span = eventSpanRole(event, isoDay)
   return {
     [`agenda-cal__chip--${event.type || 'autre'}`]: true,
     'is-past': isPastEvent(event),
+    'agenda-cal__chip--span': Boolean(span),
+    [`agenda-cal__chip--span-${span}`]: Boolean(span),
   }
 }
 
@@ -688,6 +700,23 @@ function openMonth(entry) {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.agenda-cal__chip--span {
+  box-shadow: inset 3px 0 0 rgba(44, 51, 44, 0.28);
+}
+
+.agenda-cal__chip--span-start {
+  border-radius: 8px 4px 4px 8px;
+}
+
+.agenda-cal__chip--span-mid {
+  border-radius: 4px;
+  font-style: italic;
+}
+
+.agenda-cal__chip--span-end {
+  border-radius: 4px 8px 8px 4px;
 }
 
 .agenda-cal__chip--sortie {

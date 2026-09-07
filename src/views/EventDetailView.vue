@@ -56,8 +56,7 @@
       </div>
 
       <div class="detail-rows mb-4">
-        <DetailRow label="Début" :value="displayDateTime(event.debut) || '—'" />
-        <DetailRow v-if="event.fin && event.fin !== event.debut" label="Fin" :value="displayDateTime(event.fin)" />
+        <DetailRow label="Quand" :value="displayEventWhen(event) || '—'" />
         <DetailRow v-if="event.lieu" label="Lieu" :value="event.lieu" />
         <DetailRow label="Publication" :value="event.publie === false ? 'Masqué de l’espace membres' : 'Visible dans l’espace membres'" />
         <DetailRow
@@ -79,6 +78,7 @@
         embedded
         :titre="event.titre"
         :debut="event.debut"
+        :fin="event.fin"
         :lieu="event.lieu"
         :sortie="event.sortie || emptySortie()"
         :dancer-count="dancerCount"
@@ -95,7 +95,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { api } from '@/services/api'
 import { useAuthStore } from '@/stores/auth'
 import { GROUP_NAME, LOGO_SRC } from '@/domain/brand'
-import { displayDateTime } from '@/domain/dates'
+import { displayEventWhen } from '@/domain/calendarViews'
 import {
   canMutateEvent,
   eventAcceptsInscriptions,
