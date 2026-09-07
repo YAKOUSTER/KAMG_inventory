@@ -1,0 +1,5 @@
+{
+  "name": "KAMG Patrimoine textile",
+  "install": "npm ci && bash deploy/setup-ssh.sh",
+  "start": "bash deploy/setup-ssh.sh"
+}

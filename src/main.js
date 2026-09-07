@@ -1,13 +1,17 @@
-import { createApp } from 'vue';
-import App from '../../App.vue';
-import router from './router/router';
-import store from './store'; // Assurez-vous d'importer le store correctement
-import './assets/main.css'; // Importer les styles globaux
-import vuetify from './plugins/vuetify'; // Assurez-vous de créer ce fichier
+import { createApp } from 'vue'
+import App from './App.vue'
+import router from './router'
+import { createPinia } from 'pinia'
+import vuetify from './plugins/vuetify'
+import './assets/main.css'
+import { registerPushServiceWorker } from '@/services/pushNotifications'
 
+if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+  registerPushServiceWorker().catch(() => {})
+}
 
 const app = createApp(App)
-  app.use(vuetify)
-  app.use(router)
-  app.use(store) // Ajoutez le store à l'application Vue
-  app.mount('#app');
+app.use(createPinia())
+app.use(router)
+app.use(vuetify)
+app.mount('#app')

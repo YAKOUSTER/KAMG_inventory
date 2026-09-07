@@ -1,0 +1,113 @@
+import { describe, it } from 'node:test'
+import assert from 'node:assert/strict'
+import { ROLE_PRESETS, can, canReceivePushNotifications, canSeeAgenda, canWriteLibreEvents, effectivePermissions, isLibreAgendaUser, PERMISSIONS, publicUser, resolveUserAccess } from './auth.js'
+
+const admin = { role: 'admin' }
+const gestion = { role: 'gestion' }
+const lecteur = { role: 'lecteur' }
+const custom = {
+  role: 'gestion',
+  custom: true,
+  permissions: ['items.read', 'items.create', 'loans.read'],
+}
+
+describe('permissions', () => {
+  it('donne tous les droits à l’admin, pas la création au gestionnaire', () => {
+    assert.equal(can(admin, 'items.create'), true)
+    assert.equal(can(admin, 'users.manage'), true)
+    assert.equal(can(admin, 'loans.manage'), true)
+    assert.equal(can(admin, 'audit.read'), true)
+    assert.equal(can(gestion, 'items.update'), true)
+    assert.equal(can(gestion, 'items.create'), false)
+    assert.equal(can(gestion, 'loans.write'), true)
+    assert.equal(can(gestion, 'loans.manage'), false)
+    assert.equal(can(gestion, 'audit.read'), false)
+    assert.equal(can(lecteur, 'items.read'), true)
+    assert.equal(can(lecteur, 'loans.write'), false)
+    assert.equal(can(lecteur, 'items.update'), false)
+  })
+
+  it('autorise un accès personnalisé qui s’écarte du rôle', () => {
+    assert.equal(can(custom, 'items.create'), true)
+    assert.equal(can(custom, 'items.update'), false)
+    assert.deepEqual(effectivePermissions(custom), ['items.read', 'items.create', 'loans.read'])
+  })
+
+  it('réserve les notifications push à l’administrateur pour le moment', () => {
+    assert.equal(canReceivePushNotifications(publicUser({ role: 'admin' })), true)
+    assert.equal(canReceivePushNotifications(publicUser({ role: 'gestion' })), false)
+    assert.equal(canReceivePushNotifications(publicUser({ role: 'lecteur' })), false)
+    assert.equal(canReceivePushNotifications(publicUser({ role: 'membre' })), false)
+  })
+
+  it('retire le mot de passe du profil public', () => {
+    const shown = publicUser({
+      id: 'u1',
+      login: 'admin',
+      nom: 'Sterenn',
+      role: 'admin',
+      passwordHash: 'secret',
+    })
+    assert.equal(shown.nom, 'Sterenn')
+    assert.ok(shown.permissions.includes('users.manage'))
+    assert.equal(shown.passwordHash, undefined)
+  })
+})
+
+describe('presets', () => {
+  it('couvre bien les trois profils demandés', () => {
+    assert.ok(ROLE_PRESETS.admin.includes('items.create'))
+    assert.ok(!ROLE_PRESETS.gestion.includes('items.create'))
+    assert.ok(ROLE_PRESETS.gestion.includes('items.update'))
+    assert.ok(ROLE_PRESETS.gestion.includes('agenda.write'))
+    assert.ok(!ROLE_PRESETS.gestion.includes('agenda.libre'))
+    assert.ok(!ROLE_PRESETS.lecteur.includes('agenda.libre'))
+    assert.ok(PERMISSIONS.some((perm) => perm.id === 'agenda.libre'))
+    assert.ok(ROLE_PRESETS.membre)
+    assert.equal(can({ role: 'membre' }, 'items.read'), false)
+    assert.deepEqual(ROLE_PRESETS.lecteur, [
+      'items.read',
+      'loans.read',
+      'people.read',
+      'agenda.read',
+      'content.read',
+    ])
+  })
+})
+
+describe('agenda.libre', () => {
+  it('donne l’agenda sans le droit de gérer les répétitions officielles', () => {
+    const libre = { role: 'membre', custom: true, permissions: ['agenda.libre'] }
+    assert.equal(canSeeAgenda(libre), true)
+    assert.equal(canWriteLibreEvents(libre), true)
+    assert.equal(isLibreAgendaUser(libre), true)
+    assert.equal(isLibreAgendaUser({ role: 'gestion' }), false)
+    assert.equal(isLibreAgendaUser({ role: 'admin' }), false)
+    assert.equal(can(libre, 'agenda.write'), false)
+  })
+})
+
+describe('resolveUserAccess', () => {
+  it('donne le preset Administrateur même si les cases personnalisées sont vides', () => {
+    const access = resolveUserAccess({
+      role: 'admin',
+      custom: true,
+      permissions: [],
+    })
+    assert.equal(access.role, 'admin')
+    assert.equal(access.custom, false)
+    assert.equal(can(access, 'users.manage'), true)
+    assert.equal(can(access, 'items.read'), true)
+  })
+
+  it('garde un accès sorties libres sur un compte membre', () => {
+    const access = resolveUserAccess({
+      role: 'membre',
+      custom: true,
+      permissions: ['agenda.libre'],
+    })
+    assert.equal(access.custom, true)
+    assert.deepEqual(access.permissions, ['agenda.libre'])
+    assert.equal(can(access, 'items.read'), false)
+  })
+})
