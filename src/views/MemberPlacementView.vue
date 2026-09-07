@@ -16,7 +16,7 @@
     <v-progress-linear v-if="loading" indeterminate color="primary" class="mb-4" />
 
     <v-alert v-if="!loading && !pending.length" type="info" variant="tonal">
-      Personne en attente pour le moment.
+      Personne en attente pour le moment. La notification n’est qu’une alerte : les inscriptions restent ici jusqu’à ce qu’elles soient rangées.
     </v-alert>
 
     <article v-for="account in pending" :key="account.id" class="stack-item">
@@ -149,11 +149,12 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useDisplay } from 'vuetify'
 import { api } from '@/services/api'
 import { PERSON_ROLES, matchingPeopleForAccount, matchingPeopleForChildrenNames, unmatchedChildDrafts, personDisplayName } from '@/domain/person'
 import { SIGNUP_RELATIONS } from '@/domain/memberAccount'
+import { PUSH_NAVIGATE_EVENT } from '@/domain/pushNavigation'
 import { useInventoryStore } from '@/stores/inventory'
 
 const display = useDisplay()
@@ -288,6 +289,7 @@ async function refuse(account) {
   if (!confirm(`Refuser l’inscription de ${account.nom} ?`)) return
   try {
     await api.placeMember(account.id, { refuse: true })
+    await inventory.refresh({ force: true })
     await load()
   } catch (err) {
     error.value = err.message
@@ -297,5 +299,20 @@ async function refuse(account) {
 onMounted(async () => {
   await inventory.refresh()
   await load()
+  document.addEventListener('visibilitychange', onVisible)
+  window.addEventListener(PUSH_NAVIGATE_EVENT, onPushNavigate)
 })
+
+onUnmounted(() => {
+  document.removeEventListener('visibilitychange', onVisible)
+  window.removeEventListener(PUSH_NAVIGATE_EVENT, onPushNavigate)
+})
+
+function onVisible() {
+  if (document.visibilityState === 'visible') load()
+}
+
+function onPushNavigate() {
+  load()
+}
 </script>

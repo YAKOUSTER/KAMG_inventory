@@ -96,10 +96,10 @@ export function managerSubscriptions(db) {
 }
 
 export async function notifyManagers(db, payload) {
-  if (!isPushEnabled()) return { sent: 0, skipped: 'disabled' }
+  if (!isPushEnabled()) return { sent: 0, skipped: 'disabled', staleIds: [] }
   const targets = managerSubscriptions(db)
   let sent = 0
-  const stale = []
+  const staleIds = []
 
   for (const entry of targets) {
     try {
@@ -107,16 +107,12 @@ export async function notifyManagers(db, payload) {
       sent += 1
     } catch (error) {
       if (error.statusCode === 404 || error.statusCode === 410) {
-        stale.push(entry.id)
+        staleIds.push(entry.id)
       }
     }
   }
 
-  if (stale.length) {
-    db.pushSubscriptions = (db.pushSubscriptions || []).filter((entry) => !stale.includes(entry.id))
-  }
-
-  return { sent, stale: stale.length }
+  return { sent, stale: staleIds.length, staleIds }
 }
 
 export function normalizePushSubscription(input = {}, { id, userId } = {}) {

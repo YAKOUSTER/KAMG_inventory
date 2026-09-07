@@ -142,10 +142,15 @@ export function toolbarLinksForArea(area) {
   return (area?.links || []).filter((link) => link.toolbar !== false)
 }
 
-export function visibleGestionAreas(user) {
+export function visibleGestionAreas(user, { pendingMembers = 0 } = {}) {
   return GESTION_AREAS.map((area) => {
     const links = visibleAreaLinks(area, user)
-    return links.length ? { ...area, links, home: links[0].to } : null
+    if (!links.length) return null
+    const pendingHome =
+      area.id === 'membres' && Number(pendingMembers) > 0
+        ? links.find((link) => link.to === '/a-ranger')
+        : null
+    return { ...area, links, home: pendingHome?.to || links[0].to }
   }).filter(Boolean)
 }
 

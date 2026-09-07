@@ -668,9 +668,21 @@ function detectNewGoogleEvents(db, googleEvents = []) {
   return { baseline: false, newEvents, allUids }
 }
 
+async function pruneStalePushSubscriptions(staleIds, options = {}) {
+  if (!staleIds?.length) return
+  await withDb((db) => {
+    db.pushSubscriptions = (db.pushSubscriptions || []).filter((entry) => !staleIds.includes(entry.id))
+  }, options)
+}
+
 async function deliverManagerNotification(payload, options = {}) {
   if (!isPushEnabled() || !payload) return { sent: 0 }
-  return withDb(async (db) => notifyManagers(db, payload), options)
+  const db = await readDb(options)
+  const result = await notifyManagers(db, payload)
+  if (result.staleIds?.length) {
+    await pruneStalePushSubscriptions(result.staleIds, options).catch(() => {})
+  }
+  return result
 }
 
 export async function getPushConfig(user, options = {}) {
@@ -1311,23 +1323,30 @@ export async function importGoogleCalendarEvents(options = {}) {
       entityLabel: 'Agenda',
       summary: `Import Google Agenda : ${imported} nouveau(x), ${skipped} déjà présent(s)`,
     })
-    if (!detectionPreview.baseline) {
-      for (const event of importedEvents) {
-        await notifyManagers(db, {
-          title: 'Nouvelle date au calendrier',
-          body: `${event.titre} — ${event.lieu || 'lieu à préciser'}`,
-          url: '/espace-membre?onglet=agenda',
-        })
-      }
-    }
     return {
       count: googleEvents.length,
       imported,
       skipped,
       newCount: imported,
       syncedAt: db.settings.agenda.googleImportedAt,
+      notifyEvents: detectionPreview.baseline
+        ? []
+        : importedEvents.map((event) => ({ titre: event.titre, lieu: event.lieu })),
     }
-  }, options)
+  }, options).then((result) => {
+    for (const event of result.notifyEvents || []) {
+      deliverManagerNotification(
+        {
+          title: 'Nouvelle date au calendrier',
+          body: `${event.titre} — ${event.lieu || 'lieu à préciser'}`,
+          url: '/espace-membre?onglet=agenda',
+        },
+        options,
+      ).catch(() => {})
+    }
+    const { notifyEvents, ...rest } = result
+    return rest
+  })
 }
 
 export async function syncGoogleCalendar(options = {}) {
@@ -1734,7 +1753,7 @@ export async function registerMember(payload, options = {}) {
     }
   })()
   const signup = runDomain(normalizeSignup, payload || {})
-  return withDb(async (db) => {
+  const result = await withDb(async (db) => {
     if (findUserByIdentifiant(db.users, email)) {
       throw Object.assign(new Error('Un compte existe déjà avec cet e-mail'), { status: 409 })
     }
@@ -1761,9 +1780,10 @@ export async function registerMember(payload, options = {}) {
       entityLabel: userLabel(user),
       summary: `Inscription en attente : ${userLabel(user)}`,
     })
-    await notifyManagers(db, buildPendingMemberNotification(user)).catch(() => {})
-    return { ...issueSession(db, user), pending: true }
+    return { session: { ...issueSession(db, user), pending: true }, user }
   }, options)
+  deliverManagerNotification(buildPendingMemberNotification(result.user), options).catch(() => {})
+  return result.session
 }
 
 export async function listPendingMembers(options = {}) {
@@ -2022,9 +2042,9 @@ export async function requestPasswordReset(identifiant, options = {}) {
   const generic = { ok: true, message: PASSWORD_RESET_MESSAGE }
   const ident = String(identifiant || '').trim().toLowerCase()
   if (!ident) return generic
-  return withDb(async (db) => {
+  const outcome = await withDb(async (db) => {
     const user = findUserByIdentifiant(db.users, ident)
-    if (!user || isDisabledUser(user)) return generic
+    if (!user || isDisabledUser(user)) return { response: generic, user: null }
     const token = issuePasswordReset(db, user.id)
     const resetUrl = passwordResetUrl(options.origin, token)
     const to = user.email || (String(user.login || '').includes('@') ? user.login : '')
@@ -2032,7 +2052,6 @@ export async function requestPasswordReset(identifiant, options = {}) {
       const mail = passwordResetEmail({ nom: user.nom, resetUrl })
       await sendMail({ to, subject: mail.subject, text: mail.text })
     }
-    await notifyManagers(db, buildPasswordResetNotification(user)).catch(() => {})
     appendAudit(db, { id: user.id, login: user.login, nom: user.nom }, {
       action: 'user.password-reset-request',
       entityType: 'user',
@@ -2040,9 +2059,15 @@ export async function requestPasswordReset(identifiant, options = {}) {
       entityLabel: userLabel(user),
       summary: `Demande de mot de passe oublié : ${userLabel(user)}`,
     })
-    if (options.includeUrl) return { ...generic, resetUrl }
-    return generic
+    return {
+      response: options.includeUrl ? { ...generic, resetUrl } : generic,
+      user,
+    }
   }, options)
+  if (outcome.user) {
+    deliverManagerNotification(buildPasswordResetNotification(outcome.user), options).catch(() => {})
+  }
+  return outcome.response
 }
 
 export async function createPasswordResetLink(userId, options = {}) {

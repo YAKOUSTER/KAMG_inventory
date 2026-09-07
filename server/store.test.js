@@ -26,6 +26,7 @@ import {
   userFromToken,
   placeMember,
   registerMember,
+  listPendingMembers,
   requestPasswordReset,
   createPasswordResetLink,
   resetPassword,
@@ -568,6 +569,9 @@ describe('json store', () => {
     assert.equal(audit.total, 1)
     assert.equal(audit.entries[0].action, 'user.register')
     assert.match(audit.entries[0].summary, /Lydie/i)
+    const pending = await listPendingMembers(options)
+    assert.equal(pending.length, 1)
+    assert.match(pending[0].nom, /Lydie/i)
   })
 
   it('enregistre créations, modifications et retours dans le journal d’audit', async () => {

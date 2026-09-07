@@ -64,6 +64,7 @@ export const useInventoryStore = defineStore('inventory', {
         openTasks: countOpenTasks(this.items),
         people: this.people.length,
         activeLoans: this.loans.filter((loan) => loan.statut !== 'retourne').length,
+        pendingMembers: Number(this.stats?.pendingMembers) || 0,
       }
     },
     upsertItem(item) {

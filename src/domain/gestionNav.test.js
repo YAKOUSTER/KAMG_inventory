@@ -81,4 +81,16 @@ describe('navigation gestion', () => {
     assert.equal(linkMatchesPath({ to: '/', exact: true }, '/inventaire'), false)
     assert.equal(linkMatchesPath({ to: '/', exact: true }, '/'), true)
   })
+
+  it('ouvre À ranger depuis l’onglet Membres s’il y a des inscriptions en attente', () => {
+    assert.equal(visibleGestionAreas(admin).find((area) => area.id === 'membres')?.home, '/adhesions')
+    assert.equal(
+      visibleGestionAreas(admin, { pendingMembers: 2 }).find((area) => area.id === 'membres')?.home,
+      '/a-ranger',
+    )
+    assert.equal(
+      visibleGestionAreas(lecteur, { pendingMembers: 1 }).find((area) => area.id === 'membres')?.home,
+      '/adhesions',
+    )
+  })
 })

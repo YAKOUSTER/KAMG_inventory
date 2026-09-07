@@ -116,7 +116,13 @@
               exact-active-class=""
               :class="{ 'v-btn--active': linkMatchesPath(link, route.path) }"
             >
-              {{ link.title }}
+              <v-badge
+                :content="pendingMembersBadge"
+                color="warning"
+                :model-value="link.to === '/a-ranger' && Boolean(pendingMembersBadge)"
+              >
+                {{ link.title }}
+              </v-badge>
             </v-btn>
           </div>
         </template>
@@ -166,6 +172,9 @@
               <template v-if="link.to === '/panier' && cart.count" #append>
                 <v-chip size="x-small" color="warning" variant="flat">{{ cart.count }}</v-chip>
               </template>
+              <template v-else-if="link.to === '/a-ranger' && pendingMembersBadge" #append>
+                <v-chip size="x-small" color="warning" variant="flat">{{ pendingMembersBadge }}</v-chip>
+              </template>
             </v-list-item>
           </template>
           <v-list-subheader>Compte</v-list-subheader>
@@ -208,7 +217,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useDisplay } from 'vuetify'
 import { useInventoryStore } from '@/stores/inventory'
@@ -218,6 +227,7 @@ import { useUiStore } from '@/stores/ui'
 import { ROLES, canReceivePushNotifications } from '@/domain/auth'
 import { APP_TITLE, GROUP_NAME, LOGO_SRC } from '@/domain/brand'
 import { gestionAreaForPath, linkMatchesPath, toolbarLinksForArea, visibleGestionAreas } from '@/domain/gestionNav'
+import { PUSH_NAVIGATE_EVENT, PUSH_NAVIGATE_TYPE, appPathFromNotificationUrl } from '@/domain/pushNavigation'
 import PushNotificationsToggle from '@/components/PushNotificationsToggle.vue'
 import BottomTabBar from '@/components/BottomTabBar.vue'
 import { registerPushServiceWorker } from '@/services/pushNotifications'
@@ -239,7 +249,10 @@ const isLogin = computed(() =>
 const isMemberSpace = computed(() => route.meta.publicLayout === 'member')
 const isStandalonePublic = computed(() => isLogin.value || isMemberSpace.value)
 
-const areas = computed(() => (auth.user?.duesOverdue ? [] : visibleGestionAreas(auth.user)))
+const pendingCount = computed(() => Number(inventory.stats?.pendingMembers) || 0)
+const areas = computed(() =>
+  auth.user?.duesOverdue ? [] : visibleGestionAreas(auth.user, { pendingMembers: pendingCount.value }),
+)
 const currentArea = computed(() => gestionAreaForPath(route.path, auth.user))
 const areaToolbarLinks = computed(() => toolbarLinksForArea(currentArea.value))
 const showAreaToolbar = computed(
@@ -303,11 +316,34 @@ async function onMoreLogout() {
   await logout()
 }
 
+async function applyPushNavigation(url) {
+  const path = appPathFromNotificationUrl(url, window.location.origin)
+  if (router.currentRoute.value.fullPath !== path) {
+    await router.push(path).catch(() => {})
+  }
+  if (auth.user) await inventory.refresh({ force: true }).catch(() => {})
+  window.dispatchEvent(new CustomEvent(PUSH_NAVIGATE_EVENT, { detail: { path } }))
+}
+
+function onPushMessage(event) {
+  if (event.data?.type !== PUSH_NAVIGATE_TYPE) return
+  applyPushNavigation(event.data.url)
+}
+
 onMounted(() => {
   document.title = APP_TITLE
   if (auth.user) inventory.refresh().catch(() => {})
   if (canReceivePushNotifications(auth.user)) {
     registerPushServiceWorker().catch(() => {})
+  }
+  if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('message', onPushMessage)
+  }
+})
+
+onUnmounted(() => {
+  if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+    navigator.serviceWorker.removeEventListener('message', onPushMessage)
   }
 })
 
