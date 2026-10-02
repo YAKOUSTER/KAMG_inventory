@@ -6,6 +6,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { createApiApp, resetRateLimits } from './app.js'
 import { ensureDb, resetStoreCache } from './store.js'
+import { accessSeasonIds } from '../src/domain/seasons.js'
 
 async function setupTempData() {
   const dir = await mkdtemp(path.join(os.tmpdir(), 'patrimoine-api-'))
@@ -651,5 +652,47 @@ describe('API HTTP', () => {
       body: { seasonId: '2026-2027', paid: true },
     })
     assert.equal(forbidden.status, 403)
+  })
+
+  it('laisse un membre payé 2025-2026 accéder à l’espace tant que cette saison ouvre l’accès', async () => {
+    const app = createApiApp()
+    const admin = await request(app, 'POST', '/api/auth/login', {
+      body: { login: 'admin', password: 'admin' },
+    })
+    const person = await request(app, 'POST', '/api/people', {
+      token: admin.body.token,
+      body: { nom: 'Topin', prenom: 'Lenawenn', roles: ['danseur_loisir'], saisons: ['2025-2026'] },
+    })
+    assert.equal(person.status, 200)
+
+    const signup = await request(app, 'POST', '/api/auth/register', {
+      body: {
+        prenom: 'Lenawenn',
+        nom: 'Topin',
+        email: 'lenawenn.grace@cercle.test',
+        password: 'motdepasse',
+        relation: 'danseur',
+      },
+    })
+    assert.equal(signup.status, 200)
+
+    const placed = await request(app, 'POST', `/api/members/${signup.body.user.id}/place`, {
+      token: admin.body.token,
+      body: { personIds: [person.body.id] },
+    })
+    assert.equal(placed.status, 200)
+
+    const memberLogin = await request(app, 'POST', '/api/auth/login', {
+      body: { login: 'lenawenn.grace@cercle.test', password: 'motdepasse' },
+    })
+    assert.equal(memberLogin.status, 200)
+    const expectedOverdue = !accessSeasonIds().includes('2025-2026')
+    assert.equal(memberLogin.body.user.duesOverdue, expectedOverdue)
+
+    const space = await request(app, 'GET', '/api/public/espace-membre', {
+      token: memberLogin.body.token,
+    })
+    assert.equal(space.status, 200)
+    assert.equal(space.body.duesOverdue, expectedOverdue)
   })
 })

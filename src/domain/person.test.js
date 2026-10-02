@@ -131,8 +131,14 @@ describe('normalizePerson', () => {
     )
     assert.deepEqual(couture.saisons, ['2025-2026'])
     assert.equal(isCurrentMember(couture, new Date('2026-08-25T12:00:00')), true)
+    assert.equal(isActiveMember(couture, new Date('2026-10-02T12:00:00')), true)
+    assert.equal(isActiveMember(couture, new Date('2026-11-10T12:00:00')), false)
     assert.equal(
       personRolesLabel(couture, new Date('2026-08-25T12:00:00')),
+      'Membre 2025-2026 · Actif · Groupe Vêtement',
+    )
+    assert.equal(
+      personRolesLabel(couture, new Date('2026-10-02T12:00:00')),
       'Membre 2025-2026 · Actif · Groupe Vêtement',
     )
     const sansRole = normalizePerson(
@@ -162,6 +168,7 @@ describe('normalizePerson', () => {
       { seasonId: '2025-2026', methode: 'hello_asso' },
     ])
     assert.equal(isActiveMember(saved, new Date('2026-08-25T12:00:00')), true)
+    assert.equal(isActiveMember(saved, new Date('2026-10-02T12:00:00')), true)
     assert.equal(isActiveMember(saved, new Date('2026-11-10T12:00:00')), false)
     assert.equal(
       personRolesLabel(saved, new Date('2026-11-10T12:00:00')),

@@ -31,10 +31,31 @@ export function currentSeasonId(now = new Date()) {
   return seasonLabel(undefined, now)
 }
 
+export function previousSeasonId(now = new Date()) {
+  const start = seasonStartYear(currentSeasonId(now))
+  return start != null ? seasonIdFromStartYear(start - 1) : ''
+}
+
 export function newSeasonId(now = new Date()) {
   const month = now.getMonth()
   if (month >= 6 && month < 9) return seasonIdFromStartYear(now.getFullYear())
   return currentSeasonId(now)
+}
+
+export function isSeasonRenewalGrace(now = new Date()) {
+  return now.getMonth() === 9
+}
+
+export function accessSeasonIds(now = new Date()) {
+  const current = currentSeasonId(now)
+  const next = newSeasonId(now)
+  const ids = new Set([current])
+  if (next && next !== current) ids.add(next)
+  if (isSeasonRenewalGrace(now)) {
+    const previous = previousSeasonId(now)
+    if (previous) ids.add(previous)
+  }
+  return [...ids]
 }
 
 export function adhesionSeasonItems(now = new Date()) {

@@ -7,6 +7,8 @@ import {
   normalizeSeasons,
   isFirstYearOfSeason,
   parseSeasonId,
+  previousSeasonId,
+  accessSeasonIds,
 } from './seasons.js'
 import { normalizeOrgTags, personOrgTagLabels } from './orgChart.js'
 
@@ -286,10 +288,7 @@ export function isCurrentMember(person, now = new Date()) {
 
 export function isActiveMember(person, now = new Date()) {
   if (!person || !canHaveSeasons(person)) return false
-  const current = currentSeasonId(now)
-  if (hasPaidSeason(person, current)) return true
-  const next = newSeasonId(now)
-  return next !== current && hasPaidSeason(person, next)
+  return accessSeasonIds(now).some((id) => hasPaidSeason(person, id))
 }
 
 export function membershipStatusLabel(person, now = new Date()) {
@@ -304,6 +303,8 @@ export function personMembershipLabel(person, now = new Date()) {
   if (seasons.includes(current)) return `Membre ${current}`
   const next = newSeasonId(now)
   if (next !== current && seasons.includes(next)) return `Membre ${next}`
+  const previous = previousSeasonId(now)
+  if (accessSeasonIds(now).includes(previous) && seasons.includes(previous)) return `Membre ${previous}`
   return ''
 }
 

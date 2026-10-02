@@ -75,6 +75,14 @@ describe('accès après connexion', () => {
       false,
     )
     assert.equal(accountDuesOverdue({ role: 'admin', personIds: ['anna'] }, [anna]), false)
+    assert.equal(
+      accountDuesOverdue(
+        { role: 'membre', status: 'active', personIds: ['anna'] },
+        [{ id: 'anna', roles: ['danseur_loisir'], saisons: ['2025-2026'] }],
+        new Date('2026-10-02T12:00:00'),
+      ),
+      false,
+    )
     assert.match(DUES_OVERDUE_MESSAGE, /cotisation/)
   })
 

@@ -7,6 +7,8 @@ import {
   newSeasonId,
   normalizeSeasons,
   parseSeasonId,
+  previousSeasonId,
+  accessSeasonIds,
   seasonLabel,
 } from './seasons.js'
 
@@ -30,6 +32,14 @@ describe('saisons du cercle', () => {
     assert.equal(currentSeasonId(new Date('2026-08-25T12:00:00')), '2025-2026')
     assert.equal(currentSeasonId(new Date('2026-09-10T12:00:00')), '2025-2026')
     assert.equal(currentSeasonId(new Date('2026-10-02T12:00:00')), '2026-2027')
+  })
+
+  it('laisse la saison précédente ouvrir l’accès en octobre', () => {
+    const october = new Date('2026-10-02T12:00:00')
+    assert.equal(previousSeasonId(october), '2025-2026')
+    assert.deepEqual(accessSeasonIds(october).sort(), ['2025-2026', '2026-2027'])
+    assert.deepEqual(accessSeasonIds(new Date('2026-09-10T12:00:00')).sort(), ['2025-2026', '2026-2027'])
+    assert.deepEqual(accessSeasonIds(new Date('2026-11-10T12:00:00')), ['2026-2027'])
   })
 
   it('marque la saison en cours et la rentrée dans la liste d’adhésion', () => {
