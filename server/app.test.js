@@ -427,6 +427,39 @@ describe('API HTTP', () => {
     assert.equal(reuse.status, 400)
   })
 
+  it('laisse l’admin enregistrer le SMTP sans exposer le mot de passe', async () => {
+    const app = createApiApp()
+    const guest = await request(app, 'GET', '/api/mail')
+    assert.equal(guest.status, 401)
+    const admin = await request(app, 'POST', '/api/auth/login', {
+      body: { login: 'admin', password: 'admin' },
+    })
+    const before = await request(app, 'GET', '/api/mail', { token: admin.body.token })
+    assert.equal(before.status, 200)
+    assert.equal(before.body.configured, false)
+    const tooSoon = await request(app, 'POST', '/api/mail/test', {
+      token: admin.body.token,
+      body: { to: 'sterenn@example.test' },
+    })
+    assert.equal(tooSoon.status, 400)
+
+    const saved = await request(app, 'PUT', '/api/mail', {
+      token: admin.body.token,
+      body: {
+        host: 'ssl0.ovh.net',
+        port: 465,
+        user: 'contact@kamg.fr',
+        password: 'secret-ovh',
+      },
+    })
+    assert.equal(saved.status, 200)
+    assert.equal(saved.body.configured, true)
+    assert.equal(saved.body.hasPassword, true)
+    assert.equal(saved.body.user, 'contact@kamg.fr')
+    assert.equal(saved.body.password, undefined)
+    assert.doesNotMatch(JSON.stringify(saved.body), /secret-ovh/)
+  })
+
   it('coupe la session après reset et refuse un compte désactivé', async () => {
     const app = createApiApp()
     const signup = await request(app, 'POST', '/api/auth/register', {

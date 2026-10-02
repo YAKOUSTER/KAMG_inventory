@@ -2091,14 +2091,10 @@ export async function requestPasswordReset(identifiant, options = {}) {
   if (!ident) return generic
   const outcome = await withDb(async (db) => {
     const user = findUserByIdentifiant(db.users, ident)
-    if (!user || isDisabledUser(user)) return { response: generic, user: null }
+    if (!user || isDisabledUser(user)) return { response: generic, user: null, to: '', resetUrl: '' }
     const token = issuePasswordReset(db, user.id)
     const resetUrl = passwordResetUrl(options.origin, token)
     const to = user.email || (String(user.login || '').includes('@') ? user.login : '')
-    if (to) {
-      const mail = passwordResetEmail({ nom: user.nom, resetUrl })
-      await sendMail({ to, subject: mail.subject, text: mail.text })
-    }
     appendAudit(db, { id: user.id, login: user.login, nom: user.nom }, {
       action: 'user.password-reset-request',
       entityType: 'user',
@@ -2109,10 +2105,23 @@ export async function requestPasswordReset(identifiant, options = {}) {
     return {
       response: options.includeUrl ? { ...generic, resetUrl } : generic,
       user,
+      to,
+      resetUrl,
     }
   }, options)
+  let mailSent
+  if (outcome.to) {
+    const mail = passwordResetEmail({ nom: outcome.user?.nom, resetUrl: outcome.resetUrl })
+    const delivered = await sendMail({ to: outcome.to, subject: mail.subject, text: mail.text }, options)
+    mailSent = delivered.sent
+  } else if (outcome.user) {
+    mailSent = false
+  }
   if (outcome.user) {
-    deliverManagerNotification(buildPasswordResetNotification(outcome.user), options).catch(() => {})
+    deliverManagerNotification(
+      buildPasswordResetNotification(outcome.user, { mailSent }),
+      options,
+    ).catch(() => {})
   }
   return outcome.response
 }

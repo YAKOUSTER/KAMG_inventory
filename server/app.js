@@ -71,6 +71,7 @@ import {
   unsubscribePush,
   dataPaths,
 } from './store.js'
+import { getMailPublicStatus, saveMailSettings, sendTestMail } from './mail.js'
 import { can, canReceivePushNotifications } from '../src/domain/auth.js'
 import { isDisabledUser, isPendingPlacement, normalizePersonIds, DUES_OVERDUE_MESSAGE } from '../src/domain/memberAccount.js'
 import { securityHeaders } from './security.js'
@@ -562,6 +563,21 @@ export function createApiApp() {
     '/api/users/:id/reset-link',
     auth('users.manage'),
     handle((req) => createPasswordResetLink(req.params.id, { actor: req.user, origin: requestOrigin(req) })),
+  )
+  app.get('/api/mail', auth('users.manage'), handle(() => getMailPublicStatus()))
+  app.put(
+    '/api/mail',
+    auth('users.manage'),
+    handle((req) => saveMailSettings(req.body || {})),
+  )
+  app.post(
+    '/api/mail/test',
+    auth('users.manage'),
+    handle((req) =>
+      sendTestMail({
+        to: req.body?.to || req.user?.email || (String(req.user?.login || '').includes('@') ? req.user.login : ''),
+      }),
+    ),
   )
 
   app.use((error, _req, res, _next) => {

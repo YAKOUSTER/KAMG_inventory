@@ -9,6 +9,48 @@
       Trois profils de gestion (Administrateur, Gestion, Lecteur) et les comptes membres. Les inscriptions en attente se rangent dans « À ranger ». « Lien mot de passe » copie un lien valable une heure.
     </p>
 
+    <v-alert
+      v-if="mailStatus && !mailStatus.configured"
+      type="warning"
+      variant="tonal"
+      class="mb-4"
+    >
+      Les e-mails « mot de passe oublié » ne partent pas. En attendant, utilisez « Lien mot de passe » ci-dessous.
+      Pour l’envoi automatique, renseignez la boîte OVH du cercle (souvent <code>ssl0.ovh.net</code>, port 465).
+    </v-alert>
+    <v-alert v-else-if="mailStatus?.configured" type="success" variant="tonal" class="mb-4">
+      Les e-mails de réinitialisation partent depuis {{ mailStatus.user || mailStatus.from }}.
+    </v-alert>
+
+    <v-expansion-panels class="mb-6" variant="accordion">
+      <v-expansion-panel>
+        <v-expansion-panel-title>E-mails de mot de passe oublié</v-expansion-panel-title>
+        <v-expansion-panel-text>
+          <p class="text-body-2 text-medium-emphasis mb-4">
+            Compte e-mail OVH du cercle (le même que la messagerie kamg.fr). Le mot de passe n’est jamais affiché.
+          </p>
+          <v-text-field v-model="mailForm.host" label="Serveur SMTP" placeholder="ssl0.ovh.net" hide-details class="mb-3" />
+          <v-text-field v-model="mailForm.port" label="Port" placeholder="465" hide-details class="mb-3" />
+          <v-text-field v-model="mailForm.user" label="Identifiant (e-mail OVH)" type="email" hide-details class="mb-3" />
+          <v-text-field
+            v-model="mailForm.password"
+            :label="mailStatus?.hasPassword ? 'Mot de passe (laisser vide pour conserver)' : 'Mot de passe'"
+            type="password"
+            hide-details
+            class="mb-3"
+          />
+          <v-text-field v-model="mailForm.from" label="Expéditeur (optionnel)" hide-details class="mb-3" />
+          <v-text-field v-model="mailForm.testTo" label="E-mail de test" type="email" hide-details class="mb-4" />
+          <v-alert v-if="mailError" type="error" variant="tonal" class="mb-3">{{ mailError }}</v-alert>
+          <v-alert v-if="mailOk" type="success" variant="tonal" class="mb-3">{{ mailOk }}</v-alert>
+          <div class="d-flex flex-wrap ga-2">
+            <v-btn color="primary" class="text-none" :loading="mailSaving" @click="saveMail">Enregistrer</v-btn>
+            <v-btn variant="tonal" class="text-none" :loading="mailTesting" @click="sendTest">Envoyer un e-mail test</v-btn>
+          </div>
+        </v-expansion-panel-text>
+      </v-expansion-panel>
+    </v-expansion-panels>
+
     <div v-for="user in users" :key="user.id" class="stack-item">
       <div class="d-flex flex-wrap align-center ga-2">
         <span class="text-subtitle-1 font-weight-bold">{{ user.nom }}</span>
@@ -103,6 +145,19 @@ const saving = ref(false)
 const resettingId = ref('')
 const error = ref('')
 const editing = reactive(emptyForm())
+const mailStatus = ref(null)
+const mailSaving = ref(false)
+const mailTesting = ref(false)
+const mailError = ref('')
+const mailOk = ref('')
+const mailForm = reactive({
+  host: 'ssl0.ovh.net',
+  port: '465',
+  user: '',
+  password: '',
+  from: '',
+  testTo: '',
+})
 
 const roleItems = ROLES.map((role) => ({ title: role.label, value: role.id }))
 
@@ -170,6 +225,59 @@ function toggle(id, checked) {
 
 async function load() {
   users.value = await api.users()
+  await loadMail()
+}
+
+async function loadMail() {
+  try {
+    const status = await api.mailStatus()
+    mailStatus.value = status
+    mailForm.host = status.host || 'ssl0.ovh.net'
+    mailForm.port = String(status.port || 465)
+    mailForm.user = status.user || ''
+    mailForm.from = status.from || ''
+    mailForm.password = ''
+    if (!mailForm.testTo) {
+      mailForm.testTo = status.user || auth.user?.email || (String(auth.user?.login || '').includes('@') ? auth.user.login : '')
+    }
+  } catch {
+    mailStatus.value = { configured: false }
+  }
+}
+
+async function saveMail() {
+  mailSaving.value = true
+  mailError.value = ''
+  mailOk.value = ''
+  try {
+    mailStatus.value = await api.saveMail({
+      host: mailForm.host,
+      port: mailForm.port,
+      user: mailForm.user,
+      password: mailForm.password,
+      from: mailForm.from,
+    })
+    mailForm.password = ''
+    mailOk.value = 'Paramètres d’e-mail enregistrés.'
+  } catch (err) {
+    mailError.value = err.message
+  } finally {
+    mailSaving.value = false
+  }
+}
+
+async function sendTest() {
+  mailTesting.value = true
+  mailError.value = ''
+  mailOk.value = ''
+  try {
+    const result = await api.testMail(mailForm.testTo)
+    mailOk.value = `E-mail de test envoyé à ${result.to}.`
+  } catch (err) {
+    mailError.value = err.message
+  } finally {
+    mailTesting.value = false
+  }
 }
 
 async function save() {

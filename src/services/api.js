@@ -49,6 +49,9 @@ export const api = {
   forgotPassword: (email) => request('/api/auth/forgot-password', { method: 'POST', body: { email } }),
   resetPassword: (token, password) =>
     request('/api/auth/reset-password', { method: 'POST', body: { token, password } }),
+  mailStatus: () => request('/api/mail'),
+  saveMail: (body) => request('/api/mail', { method: 'PUT', body }),
+  testMail: (to) => request('/api/mail/test', { method: 'POST', body: { to } }),
   logout: () => request('/api/auth/logout', { method: 'POST', body: {} }),
   me: () => request('/api/auth/me'),
   bootstrap: () => request('/api/bootstrap'),

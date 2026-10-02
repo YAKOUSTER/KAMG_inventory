@@ -113,6 +113,8 @@ bash deploy/deploy-production.sh
 
 Branche déployée : la branche git courante, ou `KAMG_DEPLOY_BRANCH` pour en forcer une. `data/db.json` et les photos ne sont jamais écrasés.
 
+**E-mails « mot de passe oublié ».** kamg.fr a une messagerie OVH. Dans l’app : **Comptes et accès** → *E-mails de mot de passe oublié* (serveur `ssl0.ovh.net`, port 465, identifiant = l’adresse de la boîte). Cela écrit `data/smtp.env` (hors git). Sans ces paramètres, le formulaire affiche quand même un succès (pour ne pas révéler si le compte existe) mais aucun message ne part : utilisez **Lien mot de passe**.
+
 **À éviter :** copier le `dist/` dans le dossier web d’AppMEUR, ou pointer nginx de `sterennfonseca.fr` vers le port 4173. Un chemin du type `sterennfonseca.fr/kamg` est possible mais plus fragile (conflit `/api`) : le sous-domaine est le plus sûr.
 
 ## Tests

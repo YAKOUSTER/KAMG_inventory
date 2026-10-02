@@ -21,10 +21,15 @@ export function buildPendingMemberNotification(user) {
   }
 }
 
-export function buildPasswordResetNotification(user) {
+export function buildPasswordResetNotification(user, { mailSent } = {}) {
+  const name = userDisplayName(user)
+  let body = `${name} a demandé une réinitialisation.`
+  if (mailSent === false) {
+    body += ' L’e-mail n’est pas parti. Copiez un lien depuis Comptes et accès.'
+  }
   return {
     title: 'Mot de passe oublié',
-    body: `${userDisplayName(user)} a demandé une réinitialisation.`,
+    body,
     url: '/utilisateurs',
     tag: 'password-reset',
   }
