@@ -1,0 +1,23 @@
+{
+  "name": "Gestion KAMG",
+  "short_name": "Gestion KAMG",
+  "description": "Gestion du cercle Korriganed Ar Meilhoù Glas — agenda, infos et patrimoine textile",
+  "lang": "fr",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f4f6f4",
+  "theme_color": "#53736a",
+  "icons": [
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}

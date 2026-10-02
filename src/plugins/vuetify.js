@@ -1,37 +1,54 @@
-// plugins/vuetify.js
-import 'vuetify/styles';
 import '@mdi/font/css/materialdesignicons.css'
-import { createVuetify } from 'vuetify';
-import * as components from 'vuetify/components';
-import * as directives from 'vuetify/directives';
-import { VListItem, VListItemContent, VListItemTitle, VListItemSubtitle, VListItemAction } from 'vuetify/components';
+import 'vuetify/styles'
+import { createVuetify } from 'vuetify'
+import { fr } from 'vuetify/locale'
 
-
-const vuetify = createVuetify({
-  components,
-  directives,
-
+export default createVuetify({
+  locale: {
+    locale: 'fr',
+    fallback: 'fr',
+    messages: { fr },
+  },
   theme: {
-    defaultTheme: 'myCustomTheme',
+    defaultTheme: 'kamg',
     themes: {
-      myCustomTheme: {
-        dark: false, // ou true pour un thème sombre
+      kamg: {
+        dark: false,
         colors: {
-          primary: '#6A8C69', // Couleur primaire
-          secondary: '#53736A', // Couleur secondaire
-          kamg: '#edede5',
-          accent: '#82B1FF', // Couleur d'accentuation
-          error: '#A8B545', // Couleur d'erreur
-          info: '#C2C0A6', // Couleur d'information
-          success: '#4CAF50', // Couleur de succès
-          warning: '#A8B545', // Couleur d'avertissement
+          primary: '#53736A',
+          secondary: '#6A8C69',
+          surface: '#FFFFFF',
+          'surface-bright': '#FFFFFF',
+          'surface-light': '#F7F8FA',
+          'surface-variant': '#E8EEEA',
+          background: '#F6F8F7',
+          kamg: '#E8EEEA',
+          error: '#C45C45',
+          info: '#8AA3B5',
+          success: '#5A9A6A',
+          warning: '#D4A017',
+          'on-surface': '#1C2420',
+          'on-background': '#1C2420',
         },
       },
     },
   },
-  icons: {
-    defaultSet: 'mdi', // Pour définir un set d'icônes par défaut
+  defaults: {
+    VBtn: { rounded: 'xl' },
+    VCard: { rounded: 'xl', elevation: 0, variant: 'flat' },
+    VTextField: { variant: 'outlined', density: 'comfortable' },
+    VSelect: { variant: 'outlined', density: 'comfortable' },
+    VAutocomplete: { variant: 'outlined', density: 'comfortable' },
+    VTextarea: { variant: 'outlined', density: 'comfortable' },
+    VCombobox: { variant: 'outlined', density: 'comfortable' },
+    VFileInput: { variant: 'outlined', density: 'comfortable' },
+    VAlert: { rounded: 'xl', variant: 'tonal' },
+    VChip: { rounded: 'pill' },
+    VDataTable: {
+      noDataText: 'Aucune donnée',
+      itemsPerPageText: 'Lignes par page',
+      hover: false,
+    },
+    VList: { bgColor: 'surface' },
   },
-});
-
-export default vuetify;
+})
