@@ -50,6 +50,7 @@ import {
   createEvent,
   updateEvent,
   deleteEvent,
+  deleteEventBatch,
   listEventPresences,
   listPresences,
   setEventPresence,
@@ -441,6 +442,11 @@ export function createApiApp() {
     '/api/events/:id',
     authAny(['agenda.write', 'agenda.libre']),
     handle((req) => updateEvent(req.params.id, req.body, { actor: req.user })),
+  )
+  app.delete(
+    '/api/events/:id/batch',
+    authAny(['agenda.write', 'agenda.libre']),
+    handle((req) => deleteEventBatch(req.params.id, { actor: req.user })),
   )
   app.delete(
     '/api/events/:id',

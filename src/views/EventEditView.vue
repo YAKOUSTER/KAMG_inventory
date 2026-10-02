@@ -72,7 +72,11 @@
         <FieldRow label="Fin">
           <v-text-field v-model="form.fin" type="datetime-local" hide-details="auto" />
           <p class="text-caption text-medium-emphasis mt-1">
-            Sur plusieurs jours, indiquez le dernier jour. Sinon l’heure de fin le même jour.
+            {{
+              form.recurrenceFreq
+                ? 'Heure de fin de chaque séance, en général le même jour. La dernière date de la série est le champ « Jusqu’au ».'
+                : 'Sur plusieurs jours, indiquez le dernier jour. Sinon l’heure de fin le même jour.'
+            }}
           </p>
         </FieldRow>
         <p v-if="whenPreview" class="text-body-2 text-medium-emphasis form-fields-grid__span-2 mt-n2 mb-2">
@@ -217,7 +221,7 @@ import {
   recurrenceWeekdayLabel,
 } from '@/domain/recurrence'
 import { displayDate, todayLocal } from '@/domain/dates'
-import { displayEventWhen } from '@/domain/calendarViews'
+import { displayEventWhen, isMultiDayEvent } from '@/domain/calendarViews'
 
 const props = defineProps({ id: { type: String, default: '' } })
 const router = useRouter()
@@ -493,6 +497,12 @@ async function submit() {
         freq: form.recurrenceFreq,
         until: form.recurrenceUntil || defaultRecurrenceUntil(payload.debut),
         except: normalizeSkipDates(form.recurrenceExcept),
+      }
+      if (isMultiDayEvent({ debut: payload.debut, fin: payload.fin })) {
+        const ok = confirm(
+          'Chaque date durera plusieurs jours. Pour une répétition, la fin doit être le même jour que le début. La dernière occurrence se règle avec « Jusqu’au ». Continuer quand même ?',
+        )
+        if (!ok) return
       }
     }
     const saved = props.id ? await api.updateEvent(props.id, payload) : await api.createEvent(payload)

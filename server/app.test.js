@@ -247,7 +247,7 @@ describe('API HTTP', () => {
       body: {
         type: 'sortie',
         titre: 'Sortie test',
-        debut: '2026-09-10T17:00:00.000Z',
+        debut: '2026-12-10T17:00:00.000Z',
         inscriptionsOuvertes: true,
       },
     })

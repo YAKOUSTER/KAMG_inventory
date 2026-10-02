@@ -43,6 +43,7 @@ import {
   getEvent,
   updateEvent,
   deleteEvent,
+  deleteEventBatch,
   setEventPresence,
   listPresences,
   listEvents,
@@ -791,6 +792,34 @@ END:VCALENDAR`
     assert.equal(updated.lieu, 'Moulin Vert')
     const others = events.filter((event) => event.id !== created.id)
     assert.ok(others.every((event) => !event.lieu))
+  })
+
+  it('supprime d’un coup toutes les dates créées ensemble', async () => {
+    const start = new Date(2026, 8, 4, 18, 0, 0).toISOString()
+    const end = new Date(2026, 8, 4, 20, 0, 0).toISOString()
+    const created = await createEvent(
+      {
+        kinds: ['repetition_korrigan'],
+        titre: 'Salle bleue',
+        debut: start,
+        fin: end,
+        recurrence: { freq: 'weekly', until: '2026-09-18' },
+      },
+      options,
+    )
+    assert.equal(created.createdCount, 3)
+    assert.ok(created.createdBatchId)
+    const loaded = await getEvent(created.id, options)
+    assert.equal(loaded.batchCount, 3)
+    const removed = await deleteEventBatch(created.id, options)
+    assert.equal(removed.deletedCount, 3)
+    const remaining = (await listEvents(options)).filter((event) => event.kinds.includes('repetition_korrigan'))
+    assert.equal(remaining.length, 0)
+    const db = await readDb(options)
+    assert.equal(
+      (db.cancelledEvents || []).filter((entry) => removed.deletedIds.includes(entry.id)).length,
+      3,
+    )
   })
 
   it('saute les dates exclues d’une récurrence d’atelier', async () => {

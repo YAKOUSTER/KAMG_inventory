@@ -19,6 +19,15 @@
       <v-btn v-if="canEdit" variant="text" color="error" :loading="deleting" @click="remove">
         Supprimer
       </v-btn>
+      <v-btn
+        v-if="canEdit && Number(event.batchCount) > 1"
+        variant="text"
+        color="error"
+        :loading="deletingBatch"
+        @click="removeBatch"
+      >
+        Supprimer les {{ event.batchCount }} dates
+      </v-btn>
     </div>
 
     <article class="kamg-fiche event-detail-fiche">
@@ -118,6 +127,7 @@ const event = ref(null)
 const error = ref('')
 const loading = ref(false)
 const deleting = ref(false)
+const deletingBatch = ref(false)
 const presences = ref([])
 const success = ref('')
 
@@ -165,6 +175,28 @@ async function remove() {
     error.value = err.message
   } finally {
     deleting.value = false
+  }
+}
+
+async function removeBatch() {
+  const count = Number(event.value?.batchCount || 0)
+  if (!event.value || count < 2) return
+  if (
+    !confirm(
+      `Supprimer les ${count} dates « ${event.value.titre} » créées ensemble ? Elles disparaîtront aussi de Google Agenda.`,
+    )
+  ) {
+    return
+  }
+  deletingBatch.value = true
+  error.value = ''
+  try {
+    await api.deleteEventBatch(props.id)
+    router.push({ name: 'agenda' })
+  } catch (err) {
+    error.value = err.message
+  } finally {
+    deletingBatch.value = false
   }
 }
 

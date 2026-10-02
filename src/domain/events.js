@@ -119,6 +119,7 @@ export function normalizeEvent(input = {}, { id } = {}) {
     horsCercle,
     sortie: isSortie ? normalizeSortie(input.sortie) : null,
     sequence: Math.max(0, Math.floor(Number(input.sequence) || 0)),
+    createdBatchId: trim(input.createdBatchId).slice(0, 80),
     createdAt: normalizeIsoDate(input.createdAt) || new Date().toISOString(),
     updatedAt: normalizeIsoDate(input.updatedAt) || new Date().toISOString(),
   }

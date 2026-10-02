@@ -49,6 +49,7 @@ import { kindsAllowRecurrence } from '../src/domain/eventKinds.js'
 import { personCanRsvpToEvent, loansVisibleToMember } from '../src/domain/eventGroups.js'
 import { loansOfPeople } from '../src/domain/loans.js'
 import { expandRecurringDates, shiftEventTimes } from '../src/domain/recurrence.js'
+import { eventsInCreateBatch } from '../src/domain/eventBatches.js'
 import { normalizeContentPage, filterPublishedPages, sortContentPages, publicContentSummary } from '../src/domain/content.js'
 import { normalizePresenceRecord, publicPerson, isClearedPresenceStatut } from '../src/domain/presence.js'
 import { normalizeAgendaSettings, DEFAULT_AGENDA_SETTINGS, publishedCalendarName } from '../src/domain/agendaSettings.js'
@@ -1355,7 +1356,10 @@ export async function syncGoogleCalendar(options = {}) {
 
 export async function getEvent(id, options = {}) {
   const db = await readDb(options)
-  return listLocalEvents(db).find((entry) => entry.id === id) || null
+  const raw = (db.events || []).find((entry) => entry.id === id)
+  if (!raw) return null
+  const event = applyEventOverlay(raw, db.eventOverlays?.[id])
+  return { ...event, batchCount: eventsInCreateBatch(db.events, raw).length }
 }
 
 export async function createEvent(payload, options = {}) {
@@ -1377,12 +1381,22 @@ export async function createEvent(payload, options = {}) {
   return withDb((db) => {
     db.events = db.events || []
     const created = []
+    const now = new Date().toISOString()
+    const batchId = starts.length > 1 ? randomUUID() : ''
     for (const nextStart of starts) {
       const times =
         starts.length > 1 ? shiftEventTimes(rest.debut, rest.fin || rest.debut, nextStart) : {}
       const event = runDomain(
         normalizeEvent,
-        { ...rest, ...times, source: 'local', sequence: 0 },
+        {
+          ...rest,
+          ...times,
+          source: 'local',
+          sequence: 0,
+          createdAt: now,
+          updatedAt: now,
+          createdBatchId: batchId,
+        },
         { id: randomUUID() },
       )
       db.events.push(event)
@@ -1472,6 +1486,39 @@ export async function deleteEvent(id, options = {}) {
       summary: `Suppression de l’événement « ${removed.titre} »`,
     })
     return { id, deleted: true }
+  }, options)
+}
+
+export async function deleteEventBatch(id, options = {}) {
+  return withDb((db) => {
+    db.events = db.events || []
+    const index = db.events.findIndex((entry) => entry.id === id)
+    if (index === -1) throw Object.assign(new Error('Événement introuvable'), { status: 404 })
+    const raw = db.events[index]
+    const current = applyEventOverlay(raw, db.eventOverlays?.[id])
+    const batch = eventsInCreateBatch(db.events, raw)
+    for (const entry of batch) {
+      assertCanMutateEvent(options.actor, applyEventOverlay(entry, db.eventOverlays?.[entry.id]))
+    }
+    const ids = new Set(batch.map((entry) => entry.id))
+    for (const entry of batch) {
+      upsertCancelledEvent(db, applyEventOverlay(entry, db.eventOverlays?.[entry.id]))
+      if (db.eventOverlays?.[entry.id]) delete db.eventOverlays[entry.id]
+    }
+    db.events = db.events.filter((entry) => !ids.has(entry.id))
+    db.presences = (db.presences || []).filter((entry) => !ids.has(entry.eventId))
+    appendAudit(db, options.actor, {
+      action: 'event.delete_batch',
+      entityType: 'event',
+      entityId: current.id,
+      entityLabel: current.titre,
+      summary:
+        batch.length > 1
+          ? `Suppression de ${batch.length} dates « ${current.titre} »`
+          : `Suppression de l’événement « ${current.titre} »`,
+      meta: { deletedIds: [...ids] },
+    })
+    return { id, deleted: true, deletedCount: batch.length, deletedIds: [...ids] }
   }, options)
 }
 

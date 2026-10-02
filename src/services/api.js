@@ -103,6 +103,7 @@ export const api = {
   createEvent: (body) => request('/api/events', { method: 'POST', body }),
   updateEvent: (id, body) => request(`/api/events/${encodeURIComponent(id)}`, { method: 'PUT', body }),
   deleteEvent: (id) => request(`/api/events/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+  deleteEventBatch: (id) => request(`/api/events/${encodeURIComponent(id)}/batch`, { method: 'DELETE' }),
   eventPresences: (id) => request(`/api/events/${encodeURIComponent(id)}/presences`),
   presences: () => request('/api/presences'),
   setEventPresence: (id, body) =>
